@@ -22,27 +22,20 @@ export async function adminDashboardLoader() {
     throw redirect('/unauthorized');
   }
 
-  // Fetch total number of cases
-  const { count, error: countError } = await supabase
-    .from('cases')
-    .select('*', { count: 'exact', head: true });
-
-  // Fetch 5 most recent cases with doctor profile info
-  const { data: recentCases, error: recentError } = await supabase
-    .from('cases')
-    .select(
-      `
-      *,
-      profiles:user_id (
-        full_name,
-        avatar_url,
-        clinic,
-        phone
+  // Fetch total number of cases and recent cases in parallel
+  const [countRes, recentRes] = await Promise.all([
+    supabase.from('cases').select('id', { count: 'exact', head: true }),
+    supabase
+      .from('cases')
+      .select(
+        `id, first_name, last_name, status, created_at, user_id, profiles:user_id (full_name, avatar_url, clinic, phone)`
       )
-    `
-    )
-    .order('created_at', { ascending: false })
-    .limit(5);
+      .order('created_at', { ascending: false })
+      .limit(5),
+  ]);
+
+  const { count, error: countError } = countRes;
+  const { data: recentCases, error: recentError } = recentRes;
 
   const normalizedCases = (recentCases || []).map((c) => ({
     ...c,

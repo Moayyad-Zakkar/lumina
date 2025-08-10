@@ -20,21 +20,33 @@ import * as SubframeCore from '@subframe/core';
 import { Avatar } from '../components/Avatar';
 import { Link, useLocation, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
+import { Badge } from '../components/Badge';
 
 interface DefaultPageLayoutRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   className?: string;
+  initialBadgeCount?: number;
+  initialUserId?: string | null;
 }
 
 const DefaultPageLayoutRoot = React.forwardRef<
   HTMLElement,
   DefaultPageLayoutRootProps
 >(function DefaultPageLayoutRoot(
-  { children, className, ...otherProps }: DefaultPageLayoutRootProps,
+  {
+    children,
+    className,
+    initialBadgeCount,
+    initialUserId,
+    ...otherProps
+  }: DefaultPageLayoutRootProps,
   ref
 ) {
   const location = useLocation();
+  const [BadgeCount, setBadgeCount] = useState(initialBadgeCount ?? 0);
+  const [badgeLoading, setBadgeLoading] = useState(true);
+
   const { hash, pathname, search } = location;
   const navigate = useNavigate();
 
@@ -55,6 +67,109 @@ const DefaultPageLayoutRoot = React.forwardRef<
     };
 
     getProfile();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      const effectiveUserId = initialUserId || user?.id;
+
+      if (authError || !effectiveUserId) {
+        if (isMounted) setBadgeLoading(false);
+        return;
+      }
+
+      const cacheKey = `unread_count_${effectiveUserId}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (isMounted && cached != null) setBadgeCount(Number(cached));
+
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('recipient_id', effectiveUserId)
+        .eq('status', 'unread');
+
+      if (!error && isMounted) {
+        setBadgeCount(count || 0);
+        localStorage.setItem(cacheKey, String(count || 0));
+      }
+      if (isMounted) setBadgeLoading(false);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Realtime subscription to update badge immediately
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const userId = initialUserId || user?.id;
+      if (!userId || !active) return;
+      const cacheKey = `unread_count_${userId}`;
+
+      const channel = supabase
+        .channel('notifications_changes_app')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `recipient_id=eq.${userId}`,
+          },
+          (payload) => {
+            const evt = payload.eventType;
+            const newRow = payload.new as any;
+            const oldRow = payload.old as any;
+            let delta = 0;
+            if (evt === 'INSERT') {
+              if (
+                newRow?.recipient_id === userId &&
+                newRow?.status === 'unread'
+              )
+                delta = 1;
+            } else if (evt === 'UPDATE') {
+              if (newRow?.recipient_id === userId) {
+                if (oldRow?.status === 'unread' && newRow?.status !== 'unread')
+                  delta = -1;
+                if (oldRow?.status !== 'unread' && newRow?.status === 'unread')
+                  delta = 1;
+              }
+            } else if (evt === 'DELETE') {
+              if (
+                oldRow?.recipient_id === userId &&
+                oldRow?.status === 'unread'
+              )
+                delta = -1;
+            }
+            if (delta !== 0) {
+              setBadgeCount((prev) => {
+                const next = Math.max(0, (prev || 0) + delta);
+                localStorage.setItem(cacheKey, String(next));
+                return next;
+              });
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -145,6 +260,16 @@ const DefaultPageLayoutRoot = React.forwardRef<
           <SidebarWithLargeItems.NavItem
             icon={<FeatherInbox />}
             selected={pathname.startsWith('/app/cases')}
+            rightSlot={
+              BadgeCount > 0 ? (
+                <Badge
+                  variant="error"
+                  className="ml-2 px-2 py-0 text-xs rounded-full"
+                >
+                  {BadgeCount}
+                </Badge>
+              ) : null
+            }
           >
             Cases
           </SidebarWithLargeItems.NavItem>

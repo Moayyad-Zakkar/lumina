@@ -20,7 +20,7 @@ import { FeatherPlusCircle } from '@subframe/core';
 import { FeatherCalculator } from '@subframe/core';
 import { FeatherCheck } from '@subframe/core';
 import { Table } from '../components/Table';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog } from '../components/Dialog';
 import { Link, useLoaderData } from 'react-router';
 import Error from '../components/Error';
@@ -35,8 +35,36 @@ const CasePage = () => {
   const [saving, setSaving] = useState(false);
   const [isAbortDialogOpen, setIsAbortDialogOpen] = useState(false);
 
+  // Mark notifications for this case as read when the doctor opens the case
+  useEffect(() => {
+    const markCaseNotificationsRead = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        if (!caseData?.id) return;
+        await supabase
+          .from('notifications')
+          .update({ status: 'read' })
+          .eq('recipient_id', user.id)
+          .eq('case_id', caseData.id)
+          .eq('status', 'unread');
+      } catch {
+        // ignore
+      }
+    };
+    markCaseNotificationsRead();
+  }, [caseData?.id]);
+
   const alertContent = useMemo(() => {
     switch (status) {
+      case 'submitted':
+        return {
+          title: 'Waiting for 3DA Acceptance',
+          description:
+            "You're case is submitted successfully, please wait for 3DA acceptance",
+        };
       case 'awaiting_user_approval':
         return {
           title: 'Treatment Plan Ready for Approval',

@@ -21,6 +21,8 @@ import AdminDashboard from './ui/Pages/admin/AdminDashboard';
 import ProtectedRoute from './ui/layouts/ProtectedRoute';
 import UserLayout from './ui/layouts/UserLayout';
 import AdminLayout from './ui/layouts/AdminLayout';
+import { userLayoutLoader } from './ui/loaders/userLayoutLoader';
+import { adminLayoutLoader } from './ui/loaders/adminLayoutLoader';
 import NotFound from './ui/Pages/NotFound';
 import UnauthorizedPage from './ui/Pages/UnauthorizedPage';
 import { userDashboardLoader } from './ui/loaders/userdashboardLoader';
@@ -82,6 +84,7 @@ const router = createBrowserRouter([
         </RequireRole>
       </ProtectedRoute>
     ),
+    loader: userLayoutLoader,
     children: [
       {
         element: <UserDashboard />,
@@ -119,6 +122,7 @@ const router = createBrowserRouter([
         </RequireRole>
       </ProtectedRoute>
     ),
+    loader: adminLayoutLoader,
     children: [
       {
         element: <AdminDashboard />,

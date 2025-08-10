@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLoaderData, useNavigate } from 'react-router';
 
 import { Breadcrumbs } from '../../components/Breadcrumbs';
@@ -51,11 +51,34 @@ const AdminCasePage = () => {
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState(null);
   const [actionSuccess, setActionSuccess] = useState(null);
-  const [isEditingPlan, setIsEditingPlan] = useState(false);
+  const [isEditingPlan, setIsEditingPlan] = useState(
+    caseData?.status === 'submitted'
+  );
   const [editBackup, setEditBackup] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const isDisabled = useMemo(() => saving, [saving]);
+
+  // Mark admin notifications for this case as read when page opens
+  useEffect(() => {
+    const markNotificationsRead = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user || !caseData?.id) return;
+        await supabase
+          .from('notifications')
+          .update({ status: 'read' })
+          .eq('recipient_id', user.id)
+          .eq('case_id', caseData.id)
+          .eq('status', 'unread');
+      } catch {
+        // ignore
+      }
+    };
+    markNotificationsRead();
+  }, [caseData?.id]);
 
   const alertContent = useMemo(() => {
     switch (currentStatus) {

@@ -31,24 +31,27 @@ function Dashboard() {
         navigate('/login');
         return;
       }
-      // Fetch total cases for this user
-      const { count, error } = await supabase
-        .from('cases')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-      if (!error) {
-        setTotalCases(count);
-      } else {
-        setTotalCases('—');
-      }
-      // Fetch recent cases for this user (limit 3 for dashboard)
       setCasesLoading(true);
-      const { data: casesData, error: casesErr } = await supabase
-        .from('cases')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
+      const [countRes, recentRes] = await Promise.all([
+        supabase
+          .from('cases')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        supabase
+          .from('cases')
+          .select(
+            'id, first_name, last_name, status, aligner_material, created_at'
+          )
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(3),
+      ]);
+
+      const { count, error: countError } = countRes;
+      if (!countError) setTotalCases(count);
+      else setTotalCases('—');
+
+      const { data: casesData, error: casesErr } = recentRes;
       if (!casesErr) {
         setRecentCases(casesData);
         setCasesError(null);

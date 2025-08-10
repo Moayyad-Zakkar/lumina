@@ -1,14 +1,8 @@
-/*function Dashboard() {
-  return <div>Dashboard</div>;
-}
-
-export default Dashboard;*/
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 
-const Dashboard = () => {
+const CaseSubmit = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -303,4 +297,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default CaseSubmit;

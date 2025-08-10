@@ -6,11 +6,11 @@
  * Avatar — https://app.subframe.com/3c939b2b64b7/library?component=Avatar_bec25ae6-5010-4485-b46b-cf79e3943ab2
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import * as SubframeUtils from '../utils';
 import { SidebarWithLargeItems } from '../components/SidebarWithLargeItems';
 import { FeatherHome } from '@subframe/core';
-import { FeatherBell } from '@subframe/core';
+import { FeatherUsers } from '@subframe/core';
 import { FeatherInbox } from '@subframe/core';
 import { FeatherBarChart2 } from '@subframe/core';
 import { FeatherUser } from '@subframe/core';
@@ -20,6 +20,10 @@ import * as SubframeCore from '@subframe/core';
 import { Avatar } from '../components/Avatar';
 import { Link, useLocation, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
+import { useEffect } from 'react';
+import { fetchActionNeededCasesCount } from '../../helper/ActionStatuses';
+import { useState } from 'react';
+import { Badge } from '../components/Badge';
 
 interface DefaultPageLayoutRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -38,23 +42,17 @@ const DefaultPageLayoutRoot = React.forwardRef<
   const { hash, pathname, search } = location;
   const navigate = useNavigate();
 
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [casesNeedingAction, setCasesNeedingAction] = useState(0);
 
   useEffect(() => {
-    const getProfile = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', user?.id)
-        .single();
-      setAvatarUrl(data?.avatar_url);
-    };
-
-    getProfile();
+    async function getCount() {
+      // For admin:
+      const count = await fetchActionNeededCasesCount('admin');
+      // For user, you need to pass userId:
+      // const count = await fetchActionNeededCasesCount('user', userId);
+      setCasesNeedingAction(count);
+    }
+    getCount();
   }, []);
 
   return (
@@ -78,12 +76,9 @@ const DefaultPageLayoutRoot = React.forwardRef<
           <SubframeCore.DropdownMenu.Root>
             <SubframeCore.DropdownMenu.Trigger asChild>
               <div className="cursor-pointer">
-                <Avatar
-                  image={
-                    avatarUrl ||
-                    'https://res.cloudinary.com/subframe/image/upload/v1751492213/uploads/16759/l3l2pvgu2os65s6q3wi6.png'
-                  }
-                />
+                <Avatar image="https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/fychrij7dzl8wgq2zjq9.avif">
+                  A
+                </Avatar>
               </div>
             </SubframeCore.DropdownMenu.Trigger>
             <SubframeCore.DropdownMenu.Portal>
@@ -97,7 +92,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   <SidebarWithLargeItems.NavItem
                     icon={<FeatherUser />}
                     onClick={() => {
-                      navigate('/app/profile');
+                      navigate('/admin/profile');
                     }}
                   >
                     Profile
@@ -105,7 +100,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   <SidebarWithLargeItems.NavItem
                     icon={<FeatherSettings />}
                     onClick={() => {
-                      navigate('/app/settings');
+                      navigate('/admin/settings');
                     }}
                   >
                     Settings
@@ -125,28 +120,34 @@ const DefaultPageLayoutRoot = React.forwardRef<
           </SubframeCore.DropdownMenu.Root>
         }
       >
-        <Link to="/app/dashboard">
+        <Link to="/admin/dashboard">
           <SidebarWithLargeItems.NavItem
             icon={<FeatherHome />}
-            selected={pathname === '/app/dashboard'}
+            selected={pathname === '/admin/dashboard'}
           >
             Home
           </SidebarWithLargeItems.NavItem>
         </Link>
-        <Link to="/app/notifications">
+        <Link to="/admin/doctors">
           <SidebarWithLargeItems.NavItem
-            icon={<FeatherBell />}
-            selected={pathname === '/app/notifications'}
+            icon={<FeatherUsers />}
+            selected={pathname.startsWith('/admin/doctors')}
           >
-            Notifications
+            Doctors
           </SidebarWithLargeItems.NavItem>
         </Link>
-        <Link to="/app/cases">
+        <Link to="/admin/cases">
           <SidebarWithLargeItems.NavItem
             icon={<FeatherInbox />}
-            selected={pathname.startsWith('/app/cases')}
+            selected={pathname.startsWith('/admin/cases')}
+            className=""
           >
             Cases
+            {casesNeedingAction > 0 && (
+              <Badge variant="error" className="ml-2">
+                {casesNeedingAction}
+              </Badge>
+            )}
           </SidebarWithLargeItems.NavItem>
         </Link>
         <SidebarWithLargeItems.NavItem icon={<FeatherBarChart2 />}>

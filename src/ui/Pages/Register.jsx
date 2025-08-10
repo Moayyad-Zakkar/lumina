@@ -14,6 +14,8 @@ import { FeatherLock } from '@subframe/core';
 import { FeatherCheck } from '@subframe/core';
 import supabase from '../../helper/supabaseClient';
 import { useState } from 'react';
+import Error from '../components/Error';
+import SuccessMessage from '../components/SuccessMessage';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -160,28 +162,10 @@ function Register() {
             onSubmit={handleSubmit}
             className="flex w-full flex-col items-start justify-center gap-4"
           >
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
-                      {error}
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            )}
+            {error && <Error error={error} />}
 
             {successMessage && (
-              <div className="rounded-md bg-green-50 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-green-800">
-                      {successMessage}
-                    </h3>
-                  </div>
-                </div>
-              </div>
+              <SuccessMessage successMessage={successMessage} />
             )}
 
             <TextField

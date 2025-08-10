@@ -1,11 +1,11 @@
 import Header from '../components/Header';
-import { Outlet, redirect } from 'react-router';
+import { Outlet } from 'react-router';
 import '../../App.css';
 import { useEffect } from 'react';
 import supabase from '../../helper/supabaseClient';
 import { useState } from 'react';
 
-function AppLayout() {
+function Layout() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,4 +40,4 @@ function AppLayout() {
   );
 }
 
-export default AppLayout;
+export default Layout;

@@ -13,6 +13,47 @@ function Login() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    try {
+      setError(null);
+      setLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // Fetch user role from app_metadata
+      const userRole = data.user?.app_metadata?.role || 'user';
+
+      // Redirect based on user role
+      if (userRole === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/app/dashboard');
+      }
+
+      console.log('User signed in:', data.user);
+    } catch (error) {
+      console.error('Error signing in:', error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+/*
+  // the following don't take into consideration the user-role (admin, standard user)
   const handleSignIn = async (e) => {
     e.preventDefault();
 
@@ -42,6 +83,7 @@ function Login() {
       setLoading(false);
     }
   };
+  */
 
   return (
     <div className="flex w-full h-screen items-stretch">

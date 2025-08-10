@@ -1,65 +1,44 @@
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, redirect, RouterProvider } from 'react-router';
 import './App.css';
 
 import Home from './ui/Pages/Home';
 import About from './ui/Pages/About';
 import Register /*, { action as registerUserAction } */ from './ui/Pages/Register';
 import Login from './ui/Pages/Login';
-
-import AppLayout from './ui/Pages/AppLayout';
+import Layout from './ui/Pages/Layout';
 import Features from './ui/Pages/Features';
 import Welcome from './ui/Pages/Welcome';
-import Dashboard from './ui/Pages/dashboard';
+import UserDashboard from './ui/Pages/UserDashboard';
 
-import { useState } from 'react';
-import supabase from './helper/supabaseClient';
-import { useEffect } from 'react';
 import UpdatePassword from './ui/Pages/UpdatePassword';
 import ResetPassword from './ui/Pages/ResetPassword';
-import CasesList from './ui/Pages/CasesList';
-
-// Protected route component
-const ProtectedRoute = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if user is authenticated
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      setLoading(false);
-    };
-
-    getUser();
-
-    // Set up auth state listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/signin" replace />;
-  }
-
-  return children;
-};
+import CasesPage from './ui/Pages/CasesPage-v2';
+import CaseSubmit from './ui/Pages/CaseSubmit';
+import CasePage from './ui/Pages/CasePage';
+import { userCaseLoader } from './ui/loaders/userCaseLoader';
+import { RequireRole } from './ui/layouts/RequireRole';
+import AdminDashboard from './ui/Pages/admin/AdminDashboard';
+import ProtectedRoute from './ui/layouts/ProtectedRoute';
+import UserLayout from './ui/layouts/UserLayout';
+import AdminLayout from './ui/layouts/AdminLayout';
+import NotFound from './ui/Pages/NotFound';
+import UnauthorizedPage from './ui/Pages/UnauthorizedPage';
+import { userDashboardLoader } from './ui/loaders/userdashboardLoader';
+import SettingsPage from './ui/Pages/SettingsPage';
+import ProfilePage from './ui/Pages/ProfilePage';
+import { adminDashboardLoader } from './ui/loaders/adminDashboardLoader';
+import AdminCasesPage from './ui/Pages/admin/AdminCasesPage';
+import AdminCasePage from './ui/Pages/admin/AdminCasePage';
+import { adminCaseLoader } from './ui/loaders/adminCaseLoader';
+import AdminDoctorsPage from './ui/Pages/admin/AdminDoctorsPage';
+import AdminDoctorDetailsPage from './ui/Pages/admin/AdminDoctorDetailsPage';
+import { adminDoctorsLoader } from './ui/loaders/adminDoctorsLoader';
+import { adminDoctorDetailsLoader } from './ui/loaders/adminDoctorDetailsLoader';
+import AdminSettingsPage from './ui/Pages/admin/AdminSettingsPage';
 
 const router = createBrowserRouter([
   {
-    element: <AppLayout />,
+    element: <Layout />,
     children: [
       {
         element: <Home />,
@@ -89,8 +68,7 @@ const router = createBrowserRouter([
   },
   {
     element: <Register />,
-    path: '/Register',
-    /*action: registerUserAction,*/
+    path: '/register',
   },
   {
     element: <Welcome />,
@@ -99,11 +77,95 @@ const router = createBrowserRouter([
   {
     element: (
       <ProtectedRoute>
-        <Dashboard />,
-        <CasesList />,
+        <RequireRole role="user">
+          <UserLayout />
+        </RequireRole>
       </ProtectedRoute>
     ),
-    path: '/app/dashboard',
+    children: [
+      {
+        element: <UserDashboard />,
+        path: '/app/dashboard',
+        loader: userDashboardLoader,
+      },
+      {
+        element: <CasesPage />,
+        path: '/app/cases',
+      },
+      {
+        path: '/app/cases/:caseId',
+        element: <CasePage />,
+        loader: userCaseLoader,
+      },
+      {
+        element: <CaseSubmit />,
+        path: '/app/cases/new',
+      },
+      {
+        path: '/app/profile',
+        element: <ProfilePage />,
+      },
+      {
+        path: '/app/settings',
+        element: <SettingsPage />,
+      },
+    ],
+  },
+  {
+    element: (
+      <ProtectedRoute>
+        <RequireRole role="admin">
+          <AdminLayout />
+        </RequireRole>
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        element: <AdminDashboard />,
+        path: '/admin/dashboard',
+        loader: adminDashboardLoader,
+      },
+      {
+        element: <AdminCasesPage />,
+        path: '/admin/cases',
+        //loader: adminCasesLoader,
+      },
+      {
+        path: '/admin/cases/:caseId',
+        element: <AdminCasePage />,
+        loader: adminCaseLoader,
+      },
+      {
+        path: '/admin/doctors',
+        element: <AdminDoctorsPage />,
+        loader: adminDoctorsLoader,
+      },
+      {
+        path: '/admin/doctors/:doctorId',
+        element: <AdminDoctorDetailsPage />,
+        loader: adminDoctorDetailsLoader,
+      },
+      {
+        path: '/admin/settings',
+        element: <AdminSettingsPage />,
+      },
+    ],
+  },
+  {
+    path: '/app',
+    loader: () => redirect('/app/dashboard'),
+  },
+  {
+    path: '/admin',
+    loader: () => redirect('/admin/dashboard'),
+  },
+  {
+    path: '*',
+    element: <NotFound />,
+  },
+  {
+    path: '/unauthorized',
+    element: <UnauthorizedPage />,
   },
 ]);
 

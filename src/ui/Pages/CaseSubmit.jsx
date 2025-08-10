@@ -1,0 +1,665 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import supabase from '../../helper/supabaseClient';
+import { Breadcrumbs } from '../../ui/components/Breadcrumbs';
+import { TextField } from '../../ui/components/TextField';
+
+import { Alert } from '../../ui/components/Alert';
+import { Button } from '../../ui/components/Button';
+
+import { useEffect } from 'react';
+import Error from '../components/Error';
+import SuccessMessage from '../components/SuccessMessage';
+
+const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-body-bold font-body-bold text-default-font mb-2">
+        {label}
+      </legend>
+      {options.map((option) => (
+        <label
+          key={option.value}
+          className="flex items-center gap-2 cursor-pointer text-body font-body text-default-font group-disabled/0f804ad9:text-subtext-color"
+        >
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={selectedValue === option.value}
+            onChange={onChange}
+            className="accent-blue-600"
+          />
+          {option.label}
+        </label>
+      ))}
+    </fieldset>
+  );
+};
+
+/*
+const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-body-bold font-body-bold text-default-font mb-2">
+        {label}
+      </legend>
+      {options.map((option) => (
+        <label
+          key={option.value}
+          className="flex items-center gap-2 cursor-pointer text-body font-body text-default-font group-disabled/0f804ad9:text-subtext-color"
+        >
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={selectedValue === option.value}
+            onChange={onChange}
+            className="accent-blue-600"
+          />
+          {option.label}
+        </label>
+      ))}
+    </fieldset>
+  );
+};
+*/
+
+const CaseSubmit = () => {
+  const [alignerMaterials, setAlignerMaterials] = useState([]);
+  const [methods, setMethods] = useState([]);
+  const [acceptanceFee, setAcceptanceFee] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    alignerMaterial: '',
+    printingMethod: '',
+    upperJawScan: null,
+    lowerJawScan: null,
+    biteScan: null,
+    additionalFiles: [],
+  });
+
+  const navigate = useNavigate();
+
+  /*
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+*/
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true); // only active items
+
+      if (error) {
+        console.error('Error fetching services:', error);
+        setLoading(false);
+        return;
+      }
+
+      // Split data based on type
+      setAlignerMaterials(
+        data.filter((item) => item.type === 'aligners_material')
+      );
+      setMethods(data.filter((item) => item.type === 'printing_method'));
+
+      const fee = data.find((item) => item.type === 'acceptance_fee');
+      setAcceptanceFee(fee || null);
+
+      setLoading(false);
+    };
+
+    fetchServices();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+
+    if (files) {
+      // Handle file inputs
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]:
+          name === 'additionalFiles'
+            ? [...prevData.additionalFiles, ...files]
+            : files[0],
+      }));
+    } else {
+      // Handle text inputs and radio buttons
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
+  };
+
+  const uploadFile = async (file, path) => {
+    if (!file) return null;
+
+    try {
+      // Ensure user is authenticated
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error('User must be authenticated to upload files');
+      }
+
+      // Validate file type and size
+      const maxFileSize = 50 * 1024 * 1024; // 50MB
+      const allowedFileTypes = ['.stl', '.obj', '.ply']; // Add more if needed
+
+      if (file.size > maxFileSize) {
+        throw new Error('File is too large. Maximum file size is 50MB.');
+      }
+
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      if (!allowedFileTypes.includes(`.${fileExt}`)) {
+        throw new Error(
+          `Invalid file type. Allowed types are: ${allowedFileTypes.join(', ')}`
+        );
+      }
+
+      // Generate a unique filename
+      const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+      const filePath = `${path}/${fileName}`;
+
+      // Upload with additional metadata
+      const { data, error: uploadError } = await supabase.storage
+        .from('case-files')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type,
+        });
+
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('case-files').getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Comprehensive file upload error:', error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      // Ensure user is authenticated
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error('User must be authenticated to submit a case');
+      }
+
+      // Comprehensive validation
+      const validateSubmission = () => {
+        const errors = [];
+
+        // Check required personal info
+        if (!formData.firstName?.trim()) {
+          errors.push('First name is required');
+        }
+        if (!formData.lastName?.trim()) {
+          errors.push('Last name is required');
+        }
+
+        // Check required scan files
+        const requiredScans = [
+          { key: 'upperJawScan', name: 'Upper Jaw Scan' },
+          { key: 'lowerJawScan', name: 'Lower Jaw Scan' },
+          { key: 'biteScan', name: 'Bite Scan' },
+        ];
+
+        requiredScans.forEach((scan) => {
+          if (!formData[scan.key]) {
+            errors.push(`${scan.name} is required`);
+          }
+        });
+
+        // Optional: Additional validations
+        if (formData.additionalFiles && formData.additionalFiles.length > 5) {
+          errors.push('Maximum of 5 additional files allowed');
+        }
+
+        return errors;
+      };
+
+      const validationErrors = validateSubmission();
+      if (validationErrors.length > 0) {
+        throw new Error(validationErrors.join(', '));
+      }
+
+      // File upload function with comprehensive error handling
+      const uploadFileWithErrorHandling = async (file, path) => {
+        if (!file) return null;
+
+        try {
+          // Validate file type and size
+          const maxFileSize = 50 * 1024 * 1024; // 50MB
+          const allowedFileTypes = [
+            '.stl',
+            '.obj',
+            '.ply',
+            '.pdf',
+            '.png',
+            '.jpg',
+            '.jpeg',
+          ];
+
+          if (file.size > maxFileSize) {
+            throw new Error(
+              `${path} file is too large. Maximum file size is 50MB.`
+            );
+          }
+
+          const fileExt = file.name.split('.').pop().toLowerCase();
+          if (!allowedFileTypes.includes(`.${fileExt}`)) {
+            throw new Error(
+              `Invalid file type for ${path}. Allowed types are: ${allowedFileTypes.join(
+                ', '
+              )}`
+            );
+          }
+
+          // Generate unique filename
+          const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+          const filePath = `${path}/${fileName}`;
+
+          // Upload to storage
+          const { data, error: uploadError } = await supabase.storage
+            .from('case-files')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: file.type,
+            });
+
+          if (uploadError) {
+            console.error(`Upload error for ${path}:`, uploadError);
+            throw uploadError;
+          }
+
+          // Get public URL
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from('case-files').getPublicUrl(filePath);
+
+          return publicUrl;
+        } catch (error) {
+          console.error(`Comprehensive upload error for ${path}:`, error);
+          throw error;
+        }
+      };
+
+      // Parallel file uploads with error handling
+      const [
+        upperJawScanUrl,
+        lowerJawScanUrl,
+        biteScanUrl,
+        additionalFilesUrls,
+      ] = await Promise.all([
+        uploadFileWithErrorHandling(formData.upperJawScan, 'upper-jaw-scans'),
+        uploadFileWithErrorHandling(formData.lowerJawScan, 'lower-jaw-scans'),
+        uploadFileWithErrorHandling(formData.biteScan, 'bite-scans'),
+        Promise.all(
+          (formData.additionalFiles || []).map((file, index) =>
+            uploadFileWithErrorHandling(file, `additional-files/${index}`)
+          )
+        ),
+      ]);
+
+      // Use the custom insert function with explicit parameter names
+      const { data, error } = await supabase.rpc('insert_case', {
+        p_user_id: user.id,
+        p_first_name: formData.firstName.trim(),
+        p_last_name: formData.lastName.trim(),
+        p_aligner_material: formData.alignerMaterial?.trim() || null,
+        p_printing_method: formData.printingMethod?.trim() || null,
+        p_upper_jaw_scan_url: upperJawScanUrl,
+        p_lower_jaw_scan_url: lowerJawScanUrl,
+        p_bite_scan_url: biteScanUrl,
+        p_additional_files_urls: additionalFilesUrls || [],
+      });
+
+      if (error) {
+        console.error('Case insert error:', error);
+        throw error;
+      }
+
+      setSuccessMessage('Case submitted successfully!');
+      navigate('/app/cases');
+    } catch (error) {
+      console.error('Comprehensive submit error:', error);
+      setError(error.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="flex w-full flex-col items-start gap-2">
+        <Breadcrumbs>
+          <Link to="/app/cases">
+            <Breadcrumbs.Item>Cases</Breadcrumbs.Item>
+          </Link>
+          <Breadcrumbs.Divider />
+          <Breadcrumbs.Item active={true}>New Case</Breadcrumbs.Item>
+        </Breadcrumbs>
+        <span className="text-heading-2 font-heading-2 text-default-font">
+          Submit New Case
+        </span>
+      </div>
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full flex-col items-start gap-6"
+      >
+        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <div className="flex w-full items-start gap-4">
+            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+              <TextField
+                className="h-auto w-full flex-none"
+                label="First Name"
+                helpText=""
+              >
+                <TextField.Input
+                  placeholder="Enter patient's first name"
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                />
+              </TextField>
+            </div>
+            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+              <TextField
+                className="h-auto w-full flex-none"
+                label="Last Name"
+                helpText=""
+              >
+                <TextField.Input
+                  placeholder="Enter patient's last name"
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  required
+                />
+              </TextField>
+            </div>
+          </div>
+
+          <div className="flex w-full items-start gap-4">
+            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+              <RadioGroup
+                label="Preferred Aligner Material"
+                name="alignerMaterial"
+                options={alignerMaterials.map((mat) => ({
+                  label: `${mat.name} (${mat.price}$/aligner).`,
+                  value: mat.name,
+                }))}
+                selectedValue={formData.alignerMaterial}
+                onChange={handleChange}
+              />
+
+              {/*<RadioGroup
+                label="Preferred Aligner Material"
+                name="alignerMaterial"
+                options={alignerMaterials.map((mat) => ({
+                  label: `${mat.name} (${mat.price}$/aligner).`,
+                  value: mat.name,
+                }))}
+                selectedValue={formData.alignerMaterial}
+                onChange={handleChange}
+              />*/}
+            </div>
+          </div>
+
+          <div className="flex w-full items-start gap-4">
+            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+              <RadioGroup
+                label="Preferred Printing Method"
+                name="printingMethod"
+                options={methods.map((m) => ({
+                  label: `${m.name} (${
+                    m.price ? `$${m.price}/model` : 'No price'
+                  }).`,
+                  value: m.name,
+                }))}
+                selectedValue={formData.printingMethod}
+                onChange={handleChange}
+              />
+
+              {/*<RadioGroup
+                label="Preferred Printing Method"
+                name="printingMethod"
+                options={methods.map((m) => ({
+                  label: `${m.name} (${
+                    m.price ? `$${m.price}/model` : 'No price'
+                  }).`,
+                  value: m.name,
+                }))}
+                selectedValue={formData.printingMethod}
+                onChange={handleChange}
+              />*/}
+            </div>
+          </div>
+
+          {/* Fixed options Radio buttons */
+          /*
+          <div className="flex w-full items-start gap-4">
+            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+
+
+              <RadioGroup
+                label="Preferred Aligner Material"
+                name="alignerMaterial"
+                options={['3da elite', '3da auto', '3da lite']}
+                selectedValue={formData.alignerMaterial}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+          <div className="flex w-full items-start gap-4">
+            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+              <RadioGroup
+                label="Preferred Printing Method"
+                name="printingMethod"
+                options={['Standard', 'SLA']}
+                selectedValue={formData.printingMethod}
+                onChange={handleChange}
+              />
+            </div>
+          </div>*/}
+        </div>
+        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <span className="text-heading-3 font-heading-3 text-default-font">
+            Required Scans
+          </span>
+          <Alert
+            title="File Requirements"
+            description="Please ensure all scan files are in STL or PLY format"
+            //actions={<IconButton size="medium" icon={<FeatherX />} />}
+          />
+
+          <div>
+            <label
+              htmlFor="upperJawScan"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Upper Jaw Scan
+            </label>
+            <input
+              type="file"
+              id="upperJawScan"
+              name="upperJawScan"
+              accept=".stl,.obj,.ply"
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full text-sm text-gray-500
+              file:mr-4 file:rounded-md file:border-0
+              file:text-sm file:font-medium
+              file:bg-sky-50 file:text-sky-700
+              hover:file:bg-sky-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="lowerJawScan"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Lower Jaw Scan
+            </label>
+            <input
+              type="file"
+              id="lowerJawScan"
+              name="lowerJawScan"
+              accept=".stl,.obj,.ply"
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full text-sm text-gray-500
+              file:mr-4 file:rounded-md file:border-0
+              file:text-sm file:font-medium
+              file:bg-sky-50 file:text-sky-700
+              hover:file:bg-sky-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="biteScan"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Bite Scan
+            </label>
+            <input
+              type="file"
+              id="biteScan"
+              name="biteScan"
+              accept=".stl,.obj,.ply"
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full text-sm text-gray-500
+              file:mr-4 file:rounded-md file:border-0
+              file:text-sm file:font-medium
+              file:bg-sky-50 file:text-sky-700
+              hover:file:bg-sky-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="additionalFiles"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Additional Files (Optional)
+            </label>
+            <input
+              type="file"
+              id="additionalFiles"
+              name="additionalFiles"
+              multiple
+              accept=".stl,.obj,.ply,.pdf,.jpg,.png"
+              onChange={handleChange}
+              className="mt-1 block w-full text-sm text-gray-500
+              file:mr-4 file:rounded-md file:border-0
+              file:text-sm file:font-medium
+              file:bg-sky-50 file:text-sky-700
+              hover:file:bg-sky-100"
+            />
+            {formData.additionalFiles.length > 0 && (
+              <div className="mt-2 text-sm text-gray-500">
+                {formData.additionalFiles.length} file(s) selected
+              </div>
+            )}
+          </div>
+
+          {/*<div className="flex w-full flex-col items-start gap-4">
+            <div className="flex w-full items-center gap-2">
+              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
+                Upload Upper Jaw Scan
+              </Button>
+              <Badge variant="neutral">Required</Badge>
+            </div>
+            <div className="flex w-full items-center gap-2">
+              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
+                Upload Lower Jaw Scan
+              </Button>
+              <Badge variant="neutral">Required</Badge>
+            </div>
+            <div className="flex w-full items-center gap-2">
+              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
+                Upload Bite Scan
+              </Button>
+              <Badge variant="neutral">Required</Badge>
+            </div>
+            <div className="flex w-full items-center gap-2">
+              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
+                Upload Additional Files
+              </Button>
+              <Badge variant="neutral">Optional</Badge>
+            </div>
+          </div>*/}
+        </div>
+
+        {error && <Error error={error} />}
+        {successMessage && <SuccessMessage successMessage={successMessage} />}
+
+        <div className="flex w-full items-center gap-2">
+          <Button size="large" type="submit" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Case'}
+          </Button>
+          <Button
+            onClick={() => navigate(-1)}
+            variant="neutral-tertiary"
+            size="large"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </>
+  );
+};
+
+export default CaseSubmit;

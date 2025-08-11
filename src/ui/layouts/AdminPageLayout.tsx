@@ -168,9 +168,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
           <SubframeCore.DropdownMenu.Root>
             <SubframeCore.DropdownMenu.Trigger asChild>
               <div className="cursor-pointer">
-                <Avatar image="https://res.cloudinary.com/subframe/image/upload/v1711417507/shared/fychrij7dzl8wgq2zjq9.avif">
-                  A
-                </Avatar>
+                <Avatar image="https://res.cloudinary.com/subframe/image/upload/v1751492213/uploads/16759/l3l2pvgu2os65s6q3wi6.png" />
               </div>
             </SubframeCore.DropdownMenu.Trigger>
             <SubframeCore.DropdownMenu.Portal>
@@ -181,6 +179,8 @@ const DefaultPageLayoutRoot = React.forwardRef<
                 asChild
               >
                 <DropdownMenu>
+                  {/* no need for profile page for the admin */}
+                  {/*
                   <SidebarWithLargeItems.NavItem
                     icon={<FeatherUser />}
                     onClick={() => {
@@ -188,7 +188,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                     }}
                   >
                     Profile
-                  </SidebarWithLargeItems.NavItem>
+                  </SidebarWithLargeItems.NavItem>*/}
                   <SidebarWithLargeItems.NavItem
                     icon={<FeatherSettings />}
                     onClick={() => {

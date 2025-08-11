@@ -24,6 +24,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog } from '../components/Dialog';
 import { Link, useLoaderData } from 'react-router';
 import Error from '../components/Error';
+import toast from 'react-hot-toast';
 import CaseStatusBadge from '../components/CaseStatusBadge';
 import supabase from '../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../helper/formatText';
@@ -136,7 +137,8 @@ const CasePage = () => {
       if (updateError) throw updateError;
       setStatus('approved');
     } catch (e) {
-      setActionError(e.message || 'Failed to approve plan');
+      setActionError(null);
+      toast.error(e.message || 'Failed to approve plan');
     } finally {
       setSaving(false);
     }
@@ -153,7 +155,8 @@ const CasePage = () => {
       if (updateError) throw updateError;
       setStatus('user_rejected');
     } catch (e) {
-      setActionError(e.message || 'Failed to decline plan');
+      setActionError(null);
+      toast.error(e.message || 'Failed to decline plan');
     } finally {
       setSaving(false);
     }
@@ -170,7 +173,8 @@ const CasePage = () => {
       if (updateError) throw updateError;
       setStatus('user_rejected');
     } catch (e) {
-      setActionError(e.message || 'Failed to request abortion');
+      setActionError(null);
+      toast.error(e.message || 'Failed to request abortion');
     } finally {
       setSaving(false);
     }

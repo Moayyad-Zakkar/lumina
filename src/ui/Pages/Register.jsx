@@ -15,7 +15,7 @@ import { FeatherCheck } from '@subframe/core';
 import supabase from '../../helper/supabaseClient';
 import { useState } from 'react';
 import Error from '../components/Error';
-import SuccessMessage from '../components/SuccessMessage';
+import toast from 'react-hot-toast';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -28,7 +28,6 @@ function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -88,10 +87,11 @@ function Register() {
       if (data?.user && data?.session) {
         // Auto sign-in (email confirmation not required)
         console.log('User registered and signed in:', data.user);
+        toast.success('Registered and signed in. Redirecting...');
         navigate('/app/dashboard');
       } else {
         // Email confirmation required
-        setSuccessMessage(
+        toast.success(
           'Registration successful! Please check your email to confirm your account.'
         );
         // Clear the form
@@ -106,7 +106,8 @@ function Register() {
       }
     } catch (error) {
       console.error('Error during registration:', error.message);
-      setError(error.message);
+      toast.error(error.message);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -163,10 +164,6 @@ function Register() {
             className="flex w-full flex-col items-start justify-center gap-4"
           >
             {error && <Error error={error} />}
-
-            {successMessage && (
-              <SuccessMessage successMessage={successMessage} />
-            )}
 
             <TextField
               className="h-auto w-full flex-none"

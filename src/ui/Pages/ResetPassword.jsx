@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { Button } from '../components/Button';
+import toast from 'react-hot-toast';
 
 const ResetPassword = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +14,8 @@ const ResetPassword = () => {
     e.preventDefault();
 
     if (!email) {
-      setError('Please enter your email address');
+      setError(null);
+      toast.error('Please enter your email address');
       return;
     }
 
@@ -26,14 +28,13 @@ const ResetPassword = () => {
       });
 
       if (error) throw error;
-
-      setSuccessMessage(
-        'Password reset instructions have been sent to your email'
-      );
+      toast.success('Password reset instructions have been sent to your email');
+      setSuccessMessage(null);
       setEmail('');
     } catch (error) {
       console.error('Error resetting password:', error.message);
-      setError(error.message);
+      toast.error(error.message);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -52,27 +53,7 @@ const ResetPassword = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">{error}</h3>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="rounded-md bg-green-50 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">
-                  {successMessage}
-                </h3>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Inline messages removed in favor of toasts */}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>

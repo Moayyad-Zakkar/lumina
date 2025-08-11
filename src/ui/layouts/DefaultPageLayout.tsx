@@ -18,6 +18,7 @@ import { FeatherSettings } from '@subframe/core';
 import { DropdownMenu } from '../components/DropdownMenu';
 import * as SubframeCore from '@subframe/core';
 import { Avatar } from '../components/Avatar';
+import { Toaster } from 'react-hot-toast';
 import { Link, useLocation, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { Badge } from '../components/Badge';
@@ -179,7 +180,6 @@ const DefaultPageLayoutRoot = React.forwardRef<
         className
       )}
       ref={ref as any}
-      {...otherProps}
     >
       <SidebarWithLargeItems
         className="mobile:hidden"
@@ -278,6 +278,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
           Reports
         </SidebarWithLargeItems.NavItem>
       </SidebarWithLargeItems>
+      <Toaster position="top-right" />
       {children ? (
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4 self-stretch overflow-y-auto bg-default-background">
           {children}

@@ -1,11 +1,3 @@
-/*
- * Documentation:
- * Default Page Layout — https://app.subframe.com/3c939b2b64b7/library?component=Default+Page+Layout_a57b1c43-310a-493f-b807-8cc88e2452cf
- * Sidebar with large items — https://app.subframe.com/3c939b2b64b7/library?component=Sidebar+with+large+items_70c3656e-47c2-460e-8007-e198804e8862
- * Dropdown Menu — https://app.subframe.com/3c939b2b64b7/library?component=Dropdown+Menu_99951515-459b-4286-919e-a89e7549b43b
- * Avatar — https://app.subframe.com/3c939b2b64b7/library?component=Avatar_bec25ae6-5010-4485-b46b-cf79e3943ab2
- */
-
 import React from 'react';
 import * as SubframeUtils from '../utils';
 import { SidebarWithLargeItems } from '../components/SidebarWithLargeItems';
@@ -18,6 +10,7 @@ import { FeatherSettings } from '@subframe/core';
 import { DropdownMenu } from '../components/DropdownMenu';
 import * as SubframeCore from '@subframe/core';
 import { Avatar } from '../components/Avatar';
+import { Toaster } from 'react-hot-toast';
 import { Link, useLocation, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { useEffect } from 'react';
@@ -162,7 +155,6 @@ const DefaultPageLayoutRoot = React.forwardRef<
         className
       )}
       ref={ref as any}
-      {...otherProps}
     >
       <SidebarWithLargeItems
         className="mobile:hidden"
@@ -258,6 +250,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
           Reports
         </SidebarWithLargeItems.NavItem>
       </SidebarWithLargeItems>
+      <Toaster position="top-right" />
       {children ? (
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4 self-stretch overflow-y-auto bg-default-background">
           {children}

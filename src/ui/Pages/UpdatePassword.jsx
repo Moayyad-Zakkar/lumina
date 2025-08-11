@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { Button } from '../components/Button';
+import toast from 'react-hot-toast';
 
 const UpdatePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [, setError] = useState(null);
+  const [, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
 
   // Check if user is authenticated via recovery token
@@ -30,17 +31,20 @@ const UpdatePassword = () => {
 
     // Form validation
     if (!password || !confirmPassword) {
-      setError('Please enter both fields');
+      setError(null);
+      toast.error('Please enter both fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(null);
+      toast.error('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(null);
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
@@ -53,8 +57,8 @@ const UpdatePassword = () => {
       });
 
       if (error) throw error;
-
-      setSuccessMessage('Password updated successfully!');
+      toast.success('Password updated successfully!');
+      setSuccessMessage(null);
 
       // Clear form
       setPassword('');
@@ -66,7 +70,8 @@ const UpdatePassword = () => {
       }, 2000);
     } catch (error) {
       console.error('Error updating password:', error.message);
-      setError(error.message);
+      toast.error(error.message);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -84,27 +89,7 @@ const UpdatePassword = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">{error}</h3>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="rounded-md bg-green-50 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">
-                  {successMessage}
-                </h3>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Inline messages removed in favor of toasts */}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">

@@ -28,11 +28,14 @@ import {
   FeatherX,
   FeatherEdit2,
   FeatherAlertTriangle,
+  FeatherPhone,
+  FeatherHospital,
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 import { Dialog } from '../../components/Dialog';
+import toast from 'react-hot-toast';
 
 const AdminCasePage = () => {
   const { caseData, error } = useLoaderData();
@@ -58,6 +61,19 @@ const AdminCasePage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const isDisabled = useMemo(() => saving, [saving]);
+
+  const isPlanEditAllowed = useMemo(
+    () =>
+      !['ready_for_delivery', 'delivered', 'completed'].includes(currentStatus),
+    [currentStatus]
+  );
+
+  useEffect(() => {
+    if (!isPlanEditAllowed && isEditingPlan) {
+      setIsEditingPlan(false);
+      setEditBackup(null);
+    }
+  }, [isPlanEditAllowed, isEditingPlan]);
 
   // Mark admin notifications for this case as read when page opens
   useEffect(() => {
@@ -105,6 +121,11 @@ const AdminCasePage = () => {
           title: 'Aligners delivered to clinic',
           description: 'Mark the case as Completed when treatment concludes.',
         };
+      case 'completed':
+        return {
+          title: 'The case is complete',
+          description: 'The doctor had finished the case',
+        };
       default:
         return {
           title: 'Review the case and provide plan details',
@@ -138,7 +159,8 @@ const AdminCasePage = () => {
         setCurrentStatus(updates.status);
       }
     } catch (e) {
-      setActionError(e.message || 'Failed to update case');
+      setActionError(null);
+      toast.error(e.message || 'Failed to update case');
     } finally {
       setSaving(false);
     }
@@ -161,7 +183,8 @@ const AdminCasePage = () => {
       l <= 0 ||
       d <= 0
     ) {
-      setActionError('Please enter valid positive numbers for all fields');
+      setActionError(null);
+      toast.error('Please enter valid positive numbers for all fields');
       return;
     }
     await updateCase({
@@ -172,6 +195,7 @@ const AdminCasePage = () => {
     });
     setIsEditingPlan(false);
     setEditBackup(null);
+    toast.success('Sent for doctor approval');
   };
 
   const handleStatusTransition = async (newStatus) => {
@@ -179,6 +203,7 @@ const AdminCasePage = () => {
   };
 
   const handleStartEdit = () => {
+    if (!isPlanEditAllowed) return;
     setEditBackup({
       upper: upperJawAligners,
       lower: lowerJawAligners,
@@ -210,7 +235,8 @@ const AdminCasePage = () => {
       setIsDeleteDialogOpen(false);
       navigate('/admin/cases');
     } catch (e) {
-      setActionError(e.message || 'Failed to delete case');
+      setActionError(null);
+      toast.error(e.message || 'Failed to delete case');
     } finally {
       setSaving(false);
     }
@@ -334,7 +360,7 @@ status = ANY (ARRAY['submitted'::text,
                   {capitalizeFirstSafe(caseData.profiles?.full_name) || 'N/A'}
                 </span>
               </DataFieldHorizontal>
-              <DataFieldHorizontal icon={<FeatherUser />} label="Phone">
+              <DataFieldHorizontal icon={<FeatherPhone />} label="Phone">
                 <span className="whitespace-nowrap text-body font-body text-default-font">
                   {caseData.profiles?.phone || 'N/A'}
                 </span>
@@ -356,7 +382,7 @@ status = ANY (ARRAY['submitted'::text,
                   CASE-{caseData.id}
                 </span>
               </DataFieldHorizontal>
-              <DataFieldHorizontal icon={<FeatherTag />} label="Clinic">
+              <DataFieldHorizontal icon={<FeatherHospital />} label="Clinic">
                 <span className="whitespace-nowrap text-body font-body text-default-font">
                   {caseData.profiles?.clinic || 'N/A'}
                 </span>
@@ -505,13 +531,13 @@ status = ANY (ARRAY['submitted'::text,
                       Send for Doctor Approval
                     </Button>
                   </>
-                ) : (
+                ) : isPlanEditAllowed ? (
                   <IconButton
                     icon={<FeatherEdit2 />}
                     onClick={handleStartEdit}
                     aria-label="Edit plan details"
                   />
-                )}
+                ) : null}
               </div>
             </div>
           </div>

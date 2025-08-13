@@ -68,6 +68,43 @@ const AdminCasePage = () => {
     [currentStatus]
   );
 
+  const parseStorageUrl = (url) => {
+    try {
+      const parsed = new URL(url);
+      const pathParts = parsed.pathname.split('/').filter(Boolean);
+      const objectIdx = pathParts.findIndex((p) => p === 'object');
+      if (objectIdx === -1) return null;
+      // format: /storage/v1/object/{public|sign}/<bucket>/<objectPath>
+      const bucketName = pathParts[objectIdx + 2];
+      if (!bucketName) return null;
+      const objectPath = pathParts.slice(objectIdx + 3).join('/');
+      return { bucketName, objectPath: decodeURIComponent(objectPath) };
+    } catch {
+      return null;
+    }
+  };
+
+  const openSignedFromStoredUrl = async (storedUrl) => {
+    if (!storedUrl) return;
+    try {
+      const parsed = parseStorageUrl(storedUrl);
+      if (!parsed) {
+        window.open(storedUrl, '_blank');
+        return;
+      }
+      const { data, error: signError } = await supabase.storage
+        .from(parsed.bucketName)
+        .createSignedUrl(parsed.objectPath, 60 * 60);
+      if (signError || !data?.signedUrl) {
+        window.open(storedUrl, '_blank');
+        return;
+      }
+      window.open(data.signedUrl, '_blank');
+    } catch {
+      window.open(storedUrl, '_blank');
+    }
+  };
+
   useEffect(() => {
     if (!isPlanEditAllowed && isEditingPlan) {
       setIsEditingPlan(false);
@@ -629,7 +666,7 @@ status = ANY (ARRAY['submitted'::text,
                     <IconButton
                       icon={<FeatherDownload />}
                       onClick={() =>
-                        window.open(caseData.upper_jaw_scan_url, '_blank')
+                        openSignedFromStoredUrl(caseData.upper_jaw_scan_url)
                       }
                     />
                   )}
@@ -656,7 +693,7 @@ status = ANY (ARRAY['submitted'::text,
                     <IconButton
                       icon={<FeatherDownload />}
                       onClick={() =>
-                        window.open(caseData.lower_jaw_scan_url, '_blank')
+                        openSignedFromStoredUrl(caseData.lower_jaw_scan_url)
                       }
                     />
                   )}
@@ -683,7 +720,7 @@ status = ANY (ARRAY['submitted'::text,
                     <IconButton
                       icon={<FeatherDownload />}
                       onClick={() =>
-                        window.open(caseData.bite_scan_url, '_blank')
+                        openSignedFromStoredUrl(caseData.bite_scan_url)
                       }
                     />
                   )}
@@ -710,7 +747,7 @@ status = ANY (ARRAY['submitted'::text,
                   <Table.Cell>
                     <IconButton
                       icon={<FeatherDownload />}
-                      onClick={() => window.open(fileUrl, '_blank')}
+                      onClick={() => openSignedFromStoredUrl(fileUrl)}
                     />
                   </Table.Cell>
                 </Table.Row>

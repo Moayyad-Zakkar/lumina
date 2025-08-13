@@ -18,6 +18,11 @@ function AdminSettingsPage() {
   const [phone, setPhone] = useState('');
   const [savingContact, setSavingContact] = useState(false);
 
+  // Case Acceptance Fee state
+  const [feeId, setFeeId] = useState(null);
+  const [feeAmount, setFeeAmount] = useState('');
+  const [updatingFee, setUpdatingFee] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       const {
@@ -36,6 +41,18 @@ function AdminSettingsPage() {
         .eq('id', user.id)
         .single();
       setPhone(profile?.phone || '');
+
+      // Load current Case Acceptance Fee
+      const { data: feeRows, error: feeError } = await supabase
+        .from('services')
+        .select('id, price, is_active')
+        .eq('type', 'acceptance_fee')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (!feeError && Array.isArray(feeRows) && feeRows.length > 0) {
+        setFeeId(feeRows[0].id);
+        setFeeAmount(String(feeRows[0].price ?? ''));
+      }
     };
     load();
   }, []);
@@ -127,6 +144,45 @@ function AdminSettingsPage() {
       toast.error('Unexpected error updating contact info');
     } finally {
       setSavingContact(false);
+    }
+  };
+
+  const handleUpdateAcceptanceFee = async () => {
+    const parsed = Number.parseFloat(String(feeAmount).trim());
+    if (Number.isNaN(parsed) || parsed < 0) {
+      toast.error('Please enter a valid non-negative number for the fee.');
+      return;
+    }
+    setUpdatingFee(true);
+    try {
+      if (feeId) {
+        const { error } = await supabase
+          .from('services')
+          .update({ price: parsed, is_active: true })
+          .eq('id', feeId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('services')
+          .insert([
+            {
+              type: 'acceptance_fee',
+              name: 'Case Acceptance Fee',
+              price: parsed,
+              is_active: true,
+            },
+          ])
+          .select('id')
+          .single();
+        if (error) throw error;
+        setFeeId(data?.id || null);
+      }
+      toast.success('Case acceptance fee updated');
+    } catch (e) {
+      console.error(e);
+      toast.error(e.message || 'Failed to update acceptance fee');
+    } finally {
+      setUpdatingFee(false);
     }
   };
 
@@ -245,18 +301,47 @@ function AdminSettingsPage() {
         ) : null}
 
         {activeTab === 'services' ? (
-          <div className="flex w-full flex-col items-start gap-10">
-            <div className="w-full">
-              <AdminOptionManager
-                type="printing_method"
-                label="Printing Methods"
-              />
-            </div>
-            <div className="w-full">
-              <AdminOptionManager
-                type="aligners_material"
-                label="Aligner Materials"
-              />
+          <div className="flex w-full flex-col items-start gap-6">
+            <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
+                <span className="text-heading-3 font-heading-3 text-default-font">
+                  Case Acceptance Fee
+                </span>
+                <span className="block text-body font-body text-subtext-color mb-4">
+                  This fee is charged when a new case is accepted.
+                </span>
+                <div className="flex items-end gap-3">
+                  <TextField className="h-auto w-40" label="Amount (USD)">
+                    <TextField.Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      placeholder="0.00"
+                      value={feeAmount}
+                      onChange={(e) => setFeeAmount(e.target.value)}
+                    />
+                  </TextField>
+                  <Button
+                    className="w-auto"
+                    loading={updatingFee}
+                    onClick={handleUpdateAcceptanceFee}
+                  >
+                    Save Fee
+                  </Button>
+                </div>
+              </div>
+              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
+                <AdminOptionManager
+                  type="printing_method"
+                  label="Printing Methods"
+                />
+              </div>
+              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
+                <AdminOptionManager
+                  type="aligners_material"
+                  label="Aligner Materials"
+                />
+              </div>
             </div>
           </div>
         ) : null}

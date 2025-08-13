@@ -132,7 +132,6 @@ const router = createBrowserRouter([
       {
         element: <AdminCasesPage />,
         path: '/admin/cases',
-        //loader: adminCasesLoader,
       },
       {
         path: '/admin/cases/:caseId',
@@ -174,7 +173,7 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return <RouterProvider router={router} hydrateFallbackElement={null} />;
 }
 
 export default App;

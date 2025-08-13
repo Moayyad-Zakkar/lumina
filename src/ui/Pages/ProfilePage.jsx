@@ -14,6 +14,7 @@ function ProfilePage() {
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profile, setProfile] = useState({
     full_name: '',
     email: '',
@@ -33,6 +34,9 @@ function ProfilePage() {
         .select('*')
         .eq('id', user.id)
         .single();
+
+      const { data: s } = await supabase.auth.getSession();
+      console.log('session?', s);
 
       if (!error && data) {
         setProfile({
@@ -80,6 +84,8 @@ function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setUploadingAvatar(true);
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -90,11 +96,14 @@ function ProfilePage() {
         .replace(/[^\w.-]/g, '_'); // replace spaces/symbols with _
 
     const safeFileName = cleanFileName(file.name);
-    const filePath = `avatars/${user.id}/${Date.now()}-${safeFileName}`;
+    const filePath = `${user.id}/${Date.now()}-${safeFileName}`;
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('avatars')
-      .upload(filePath, file, { upsert: true });
+      .upload(filePath, file, {
+        upsert: false,
+        contentType: file.type || 'image/jpeg',
+      });
 
     if (!error) {
       const { data: publicUrlData } = supabase.storage
@@ -102,10 +111,24 @@ function ProfilePage() {
         .getPublicUrl(filePath);
 
       setProfile((prev) => ({ ...prev, avatar_url: publicUrlData.publicUrl }));
-      toast.success('Avatar updated.');
+
+      // Save the avatar URL to the database immediately
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrlData.publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Failed to save avatar URL to database:', updateError);
+        toast.error('Avatar uploaded but failed to save to profile.');
+      } else {
+        toast.success('Avatar updated successfully.');
+      }
     } else {
-      toast.error('Failed to upload avatar.');
+      console.error('Avatar upload error:', error);
+      toast.error(error?.message || 'Failed to upload avatar.');
     }
+    setUploadingAvatar(false);
   };
 
   if (loading) {
@@ -142,6 +165,7 @@ function ProfilePage() {
                 <IconButton
                   icon={<FeatherCamera />}
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
                 />
                 <input
                   ref={fileInputRef}

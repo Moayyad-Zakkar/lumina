@@ -165,7 +165,7 @@ export default function AdminOptionManager({ type, label }) {
                   }
                 />
               ) : (
-                <span className="text-body-bold font-body-bold text-neutral-700">
+                <span className="text-body-bold font-body-bold text-neutral-700 text-wrap">
                   {item.name}
                 </span>
               )}

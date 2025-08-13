@@ -68,7 +68,7 @@ const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
 const CaseSubmit = () => {
   const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [methods, setMethods] = useState([]);
-  const [acceptanceFee, setAcceptanceFee] = useState(null);
+  // acceptanceFee is not used currently; remove to satisfy linter
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -121,8 +121,7 @@ const CaseSubmit = () => {
       );
       setMethods(data.filter((item) => item.type === 'printing_method'));
 
-      const fee = data.find((item) => item.type === 'acceptance_fee');
-      setAcceptanceFee(fee || null);
+      // acceptance fee can be derived later if needed
 
       setLoading(false);
     };
@@ -151,64 +150,7 @@ const CaseSubmit = () => {
     }
   };
 
-  const uploadFile = async (file, path) => {
-    if (!file) return null;
-
-    try {
-      // Ensure user is authenticated
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        throw new Error('User must be authenticated to upload files');
-      }
-
-      // Validate file type and size
-      const maxFileSize = 50 * 1024 * 1024; // 50MB
-      const allowedFileTypes = ['.stl', '.obj', '.ply']; // Add more if needed
-
-      if (file.size > maxFileSize) {
-        throw new Error('File is too large. Maximum file size is 50MB.');
-      }
-
-      const fileExt = file.name.split('.').pop().toLowerCase();
-      if (!allowedFileTypes.includes(`.${fileExt}`)) {
-        throw new Error(
-          `Invalid file type. Allowed types are: ${allowedFileTypes.join(', ')}`
-        );
-      }
-
-      // Generate a unique filename
-      const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-      const filePath = `${path}/${fileName}`;
-
-      // Upload with additional metadata
-      const { data, error: uploadError } = await supabase.storage
-        .from('case-files')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: file.type,
-        });
-
-      if (uploadError) {
-        console.error('Upload error details:', uploadError);
-        throw uploadError;
-      }
-
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('case-files').getPublicUrl(filePath);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Comprehensive file upload error:', error);
-      throw error;
-    }
-  };
+  // removed unused uploadFile helper
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -302,7 +244,7 @@ const CaseSubmit = () => {
           const filePath = `${path}/${fileName}`;
 
           // Upload to storage
-          const { data, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from('case-files')
             .upload(filePath, file, {
               cacheControl: '3600',
@@ -344,22 +286,27 @@ const CaseSubmit = () => {
         ),
       ]);
 
-      // Use the custom insert function with explicit parameter names
-      const { data, error } = await supabase.rpc('insert_case', {
-        p_user_id: user.id,
-        p_first_name: formData.firstName.trim(),
-        p_last_name: formData.lastName.trim(),
-        p_aligner_material: formData.alignerMaterial?.trim() || null,
-        p_printing_method: formData.printingMethod?.trim() || null,
-        p_upper_jaw_scan_url: upperJawScanUrl,
-        p_lower_jaw_scan_url: lowerJawScanUrl,
-        p_bite_scan_url: biteScanUrl,
-        p_additional_files_urls: additionalFilesUrls || [],
-      });
+      // Direct insert (RPC is currently misconfigured server-side)
+      const insertPayload = {
+        user_id: user.id,
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        aligner_material: formData.alignerMaterial?.trim() || null,
+        printing_method: formData.printingMethod?.trim() || null,
+        upper_jaw_scan_url: upperJawScanUrl,
+        lower_jaw_scan_url: lowerJawScanUrl,
+        bite_scan_url: biteScanUrl,
+        additional_files_urls: additionalFilesUrls || [],
+        status: 'submitted',
+      };
 
-      if (error) {
-        console.error('Case insert error:', error);
-        throw error;
+      const { error: insertError } = await supabase
+        .from('cases')
+        .insert(insertPayload);
+
+      if (insertError) {
+        console.error('Case direct insert error:', insertError);
+        throw insertError;
       }
 
       setSuccessMessage('Case submitted successfully!');

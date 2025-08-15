@@ -30,12 +30,14 @@ import {
   FeatherAlertTriangle,
   FeatherPhone,
   FeatherHospital,
+  FeatherRefreshCw,
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 import { Dialog } from '../../components/Dialog';
 import toast from 'react-hot-toast';
+import AdminRefinementManager from '../../components/AdminRefinementManager';
 
 const AdminCasePage = () => {
   const { caseData, error } = useLoaderData();
@@ -309,8 +311,24 @@ status = ANY (ARRAY['submitted'::text,
               Case-{caseData.id}
             </span>
             <CaseStatusBadge status={currentStatus} />
+            {caseData.parent_case_id && (
+              <Badge variant="brand" icon={<FeatherRefreshCw />}>
+                Refinement #{caseData.refinement_number || 1}
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2">
+            {caseData.parent_case_id && (
+              <Button
+                variant="neutral-secondary"
+                icon={<FeatherRefreshCw />}
+                asChild
+              >
+                <Link to={`/admin/cases/${caseData.parent_case_id}`}>
+                  View Original Case
+                </Link>
+              </Button>
+            )}
             <Button
               variant="neutral-secondary"
               icon={<FeatherDownload />}
@@ -436,6 +454,16 @@ status = ANY (ARRAY['submitted'::text,
               >
                 <Badge>{caseData.printing_method || 'Not specified'}</Badge>
               </DataFieldHorizontal>
+              {caseData.refinement_reason && (
+                <DataFieldHorizontal
+                  icon={<FeatherRefreshCw />}
+                  label="Refinement Reason"
+                >
+                  <span className="text-body font-body text-default-font">
+                    {caseData.refinement_reason}
+                  </span>
+                </DataFieldHorizontal>
+              )}
             </div>
           </div>
         </div>
@@ -631,6 +659,8 @@ status = ANY (ARRAY['submitted'::text,
             </div>
           </div>
         )}
+
+        {/*<AdminRefinementManager caseId={caseData.id} />*/}
 
         <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">

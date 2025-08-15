@@ -19,6 +19,7 @@ import { FeatherDollarSign } from '@subframe/core';
 import { FeatherPlusCircle } from '@subframe/core';
 import { FeatherCalculator } from '@subframe/core';
 import { FeatherCheck } from '@subframe/core';
+import { FeatherRefreshCw } from '@subframe/core';
 import { Table } from '../components/Table';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog } from '../components/Dialog';
@@ -28,6 +29,8 @@ import toast from 'react-hot-toast';
 import CaseStatusBadge from '../components/CaseStatusBadge';
 import supabase from '../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../helper/formatText';
+import RefinementSection from '../components/RefinementSection';
+import RefinementHistory from '../components/RefinementHistory';
 
 const CasePage = () => {
   const { caseData, error } = useLoaderData();
@@ -232,8 +235,24 @@ const CasePage = () => {
               Case-{caseData.id}
             </span>
             <CaseStatusBadge status={status} />
+            {caseData.parent_case_id && (
+              <Badge variant="brand" icon={<FeatherRefreshCw />}>
+                Refinement #{caseData.refinement_number || 1}
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2">
+            {caseData.parent_case_id && (
+              <Button
+                variant="neutral-secondary"
+                icon={<FeatherRefreshCw />}
+                asChild
+              >
+                <Link to={`/app/cases/${caseData.parent_case_id}`}>
+                  View Original Case
+                </Link>
+              </Button>
+            )}
             <Button variant="neutral-secondary" icon={<FeatherDownload />}>
               Download Files
             </Button>
@@ -296,6 +315,16 @@ const CasePage = () => {
               >
                 <Badge>{caseData.printing_method || 'Not specified'}</Badge>
               </DataFieldHorizontal>
+              {caseData.refinement_reason && (
+                <DataFieldHorizontal
+                  icon={<FeatherRefreshCw />}
+                  label="Refinement Reason"
+                >
+                  <span className="text-body font-body text-default-font">
+                    {caseData.refinement_reason}
+                  </span>
+                </DataFieldHorizontal>
+              )}
             </div>
           </div>
         </div>
@@ -572,6 +601,12 @@ const CasePage = () => {
             </Button>
           )}
         </div>
+
+        {/* Refinement Section */}
+        <RefinementSection caseData={caseData} />
+
+        {/* Refinement History */}
+        <RefinementHistory caseData={caseData} />
       </div>
 
       {isAbortDialogOpen && (

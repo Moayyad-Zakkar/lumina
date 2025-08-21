@@ -31,6 +31,11 @@ import supabase from '../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../helper/formatText';
 import RefinementSection from '../components/RefinementSection';
 import RefinementHistory from '../components/RefinementHistory';
+import {
+  downloadFileFromStorage,
+  initializeStorage,
+} from '../../helper/storageUtils';
+import DentalChart from '../components/DentalChart';
 
 const CasePage = () => {
   const { caseData, error } = useLoaderData();
@@ -38,41 +43,98 @@ const CasePage = () => {
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isAbortDialogOpen, setIsAbortDialogOpen] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
+  const [downloadingFiles, setDownloadingFiles] = useState(new Set());
 
-  const parseStorageUrl = (url) => {
+  // Initialize storage on component mount
+  useEffect(() => {
+    const initStorage = async () => {
+      const ready = await initializeStorage();
+      setStorageReady(ready);
+
+      if (!ready) {
+        // If storage is not ready, still allow the page to work
+        // but show a warning about downloads
+        console.warn('Storage not initialized, downloads may not work');
+      }
+    };
+
+    initStorage();
+  }, []);
+
+  // Enhanced file download handler
+  const handleFileDownload = async (storedUrl, fileName = 'download') => {
+    if (!storedUrl) {
+      toast.error('No file URL available');
+      return;
+    }
+
+    // Add to downloading set to show loading state
+    setDownloadingFiles((prev) => new Set([...prev, storedUrl]));
+
     try {
-      const parsed = new URL(url);
-      const pathParts = parsed.pathname.split('/').filter(Boolean);
-      const objectIdx = pathParts.findIndex((p) => p === 'object');
-      if (objectIdx === -1) return null;
-      // format: /storage/v1/object/{public|sign}/<bucket>/<objectPath>
-      const bucketName = pathParts[objectIdx + 2];
-      if (!bucketName) return null;
-      const objectPath = pathParts.slice(objectIdx + 3).join('/');
-      return { bucketName, objectPath: decodeURIComponent(objectPath) };
-    } catch {
-      return null;
+      console.log('Starting download for:', fileName);
+      const result = await downloadFileFromStorage(storedUrl);
+
+      if (result.success) {
+        toast.success(`${fileName} download started`);
+      } else {
+        toast.error(`Failed to download ${fileName}: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(`Download failed: ${error.message}`);
+    } finally {
+      // Remove from downloading set
+      setDownloadingFiles((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(storedUrl);
+        return newSet;
+      });
     }
   };
 
-  const openSignedFromStoredUrl = async (storedUrl) => {
-    if (!storedUrl) return;
-    try {
-      const parsed = parseStorageUrl(storedUrl);
-      if (!parsed) {
-        window.open(storedUrl, '_blank');
-        return;
+  // Download all files function
+  const handleDownloadAllFiles = async () => {
+    const filesToDownload = [];
+
+    if (caseData.upper_jaw_scan_url) {
+      filesToDownload.push({
+        url: caseData.upper_jaw_scan_url,
+        name: 'Upper Jaw Scan',
+      });
+    }
+    if (caseData.lower_jaw_scan_url) {
+      filesToDownload.push({
+        url: caseData.lower_jaw_scan_url,
+        name: 'Lower Jaw Scan',
+      });
+    }
+    if (caseData.bite_scan_url) {
+      filesToDownload.push({ url: caseData.bite_scan_url, name: 'Bite Scan' });
+    }
+    if (caseData.additional_files_urls?.length > 0) {
+      caseData.additional_files_urls.forEach((url, index) => {
+        filesToDownload.push({ url, name: `Additional File ${index + 1}` });
+      });
+    }
+
+    if (filesToDownload.length === 0) {
+      toast.error('No files available for download');
+      return;
+    }
+
+    toast.success(`Starting download of ${filesToDownload.length} file(s)`);
+
+    // Download files with a small delay between each to avoid overwhelming the browser
+    for (let i = 0; i < filesToDownload.length; i++) {
+      const file = filesToDownload[i];
+      await handleFileDownload(file.url, file.name);
+
+      // Small delay between downloads
+      if (i < filesToDownload.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      const { data, error: signError } = await supabase.storage
-        .from(parsed.bucketName)
-        .createSignedUrl(parsed.objectPath, 60 * 60);
-      if (signError || !data?.signedUrl) {
-        window.open(storedUrl, '_blank');
-        return;
-      }
-      window.open(data.signedUrl, '_blank');
-    } catch {
-      window.open(storedUrl, '_blank');
     }
   };
 
@@ -104,7 +166,7 @@ const CasePage = () => {
         return {
           title: 'Waiting for 3DA Acceptance',
           description:
-            "You're case is submitted successfully, please wait for 3DA acceptance",
+            'Your case is submitted successfully, please wait for 3DA acceptance',
         };
       case 'awaiting_user_approval':
         return {
@@ -134,7 +196,7 @@ const CasePage = () => {
         return {
           title: 'Aligners Delivered',
           description:
-            'You have received the aligners. Please advice your patient to follow the wear schedule and instructions.',
+            'You have received the aligners. Please advise your patient to follow the wear schedule and instructions.',
         };
       case 'completed':
         return {
@@ -157,6 +219,7 @@ const CasePage = () => {
   if (!caseData) {
     return <p className="text-neutral-500">Case not found.</p>;
   }
+
   const showPlanSection = [
     'awaiting_user_approval',
     'approved',
@@ -177,7 +240,7 @@ const CasePage = () => {
       if (updateError) throw updateError;
       setStatus('approved');
     } catch (e) {
-      setActionError(null);
+      setActionError(e.message || 'Failed to approve plan');
       toast.error(e.message || 'Failed to approve plan');
     } finally {
       setSaving(false);
@@ -195,7 +258,7 @@ const CasePage = () => {
       if (updateError) throw updateError;
       setStatus('user_rejected');
     } catch (e) {
-      setActionError(null);
+      setActionError(e.message || 'Failed to decline plan');
       toast.error(e.message || 'Failed to decline plan');
     } finally {
       setSaving(false);
@@ -212,13 +275,21 @@ const CasePage = () => {
         .eq('id', caseData.id);
       if (updateError) throw updateError;
       setStatus('user_rejected');
+      toast.success('Abortion request submitted');
     } catch (e) {
-      setActionError(null);
+      setActionError(e.message || 'Failed to request abortion');
       toast.error(e.message || 'Failed to request abortion');
     } finally {
       setSaving(false);
     }
   };
+
+  // Helper function to determine if a file is downloadable
+  const isFileDownloadable = (url) => {
+    if (!url) return false;
+    return true; // We'll handle the actual validation in the download function
+  };
+
   return (
     <>
       <div className="flex w-full flex-col items-start gap-2">
@@ -253,13 +324,30 @@ const CasePage = () => {
                 </Link>
               </Button>
             )}
-            <Button variant="neutral-secondary" icon={<FeatherDownload />}>
-              Download Files
+            <Button
+              variant="neutral-secondary"
+              icon={<FeatherDownload />}
+              onClick={handleDownloadAllFiles}
+              disabled={downloadingFiles.size > 0}
+            >
+              {downloadingFiles.size > 0
+                ? 'Downloading...'
+                : 'Download All Files'}
             </Button>
             <Button icon={<FeatherPlay />}>View Slideshow</Button>
           </div>
         </div>
       </div>
+
+      {!storageReady && (
+        <Alert
+          variant="warning"
+          icon={<FeatherAlertTriangle />}
+          title="Storage Warning"
+          description="File downloads may not work properly. Please ensure the 'case-files' storage bucket exists in your Supabase project."
+        />
+      )}
+
       {showPlanSection && (
         <Alert
           variant="brand"
@@ -328,6 +416,25 @@ const CasePage = () => {
             </div>
           </div>
         </div>
+
+        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <span className="text-heading-3 font-heading-3 text-default-font">
+            Dental Chart
+          </span>
+          <div>
+            <DentalChart
+              initialStatus={caseData.tooth_status || {}}
+              onChange={(updated) =>
+                supabase
+                  .from('cases')
+                  .update({ tooth_status: updated })
+                  .eq('id', caseData.id)
+              }
+              readOnly={true}
+            />
+          </div>
+        </div>
+
         {showPlanSection && (
           <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
             <span className="text-heading-3 font-heading-3 text-default-font">
@@ -385,6 +492,7 @@ const CasePage = () => {
                   </DataFieldHorizontal>
                 </div>
               </div>
+
               <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
               <div className="flex w-full items-center justify-between">
                 <span className="text-body font-body text-subtext-color">
@@ -403,33 +511,6 @@ const CasePage = () => {
                     : ''}
                 </span>
                 <div className="flex items-center gap-2">
-                  {/*status === 'awaiting_user_approval' ? (
-                    <>
-                      <Button
-                        variant="neutral-secondary"
-                        disabled={saving}
-                        onClick={declinePlan}
-                      >
-                        Decline Plan
-                      </Button>
-                      <Button
-                        icon={<FeatherCheck />}
-                        disabled={saving}
-                        onClick={approvePlan}
-                      >
-                        Approve Plan
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      variant="destructive-primary"
-                      icon={<FeatherX />}
-                      disabled={saving}
-                      onClick={requestAbortion}
-                    >
-                      Request Abortion
-                    </Button>
-                  )*/}
                   {status === 'awaiting_user_approval' && (
                     <>
                       <Button
@@ -462,7 +543,7 @@ const CasePage = () => {
               <Table.HeaderRow>
                 <Table.HeaderCell>File Name</Table.HeaderCell>
                 <Table.HeaderCell>Type</Table.HeaderCell>
-                <Table.HeaderCell>URL</Table.HeaderCell>
+                <Table.HeaderCell>Status</Table.HeaderCell>
                 <Table.HeaderCell>Actions</Table.HeaderCell>
               </Table.HeaderRow>
             }
@@ -487,8 +568,14 @@ const CasePage = () => {
                     <IconButton
                       icon={<FeatherDownload />}
                       onClick={() =>
-                        openSignedFromStoredUrl(caseData.upper_jaw_scan_url)
+                        handleFileDownload(
+                          caseData.upper_jaw_scan_url,
+                          'Upper Jaw Scan'
+                        )
                       }
+                      disabled={downloadingFiles.has(
+                        caseData.upper_jaw_scan_url
+                      )}
                     />
                   )}
                 </Table.Cell>
@@ -514,8 +601,14 @@ const CasePage = () => {
                     <IconButton
                       icon={<FeatherDownload />}
                       onClick={() =>
-                        openSignedFromStoredUrl(caseData.lower_jaw_scan_url)
+                        handleFileDownload(
+                          caseData.lower_jaw_scan_url,
+                          'Lower Jaw Scan'
+                        )
                       }
+                      disabled={downloadingFiles.has(
+                        caseData.lower_jaw_scan_url
+                      )}
                     />
                   )}
                 </Table.Cell>
@@ -541,8 +634,9 @@ const CasePage = () => {
                     <IconButton
                       icon={<FeatherDownload />}
                       onClick={() =>
-                        openSignedFromStoredUrl(caseData.bite_scan_url)
+                        handleFileDownload(caseData.bite_scan_url, 'Bite Scan')
                       }
+                      disabled={downloadingFiles.has(caseData.bite_scan_url)}
                     />
                   )}
                 </Table.Cell>
@@ -568,7 +662,13 @@ const CasePage = () => {
                   <Table.Cell>
                     <IconButton
                       icon={<FeatherDownload />}
-                      onClick={() => openSignedFromStoredUrl(fileUrl)}
+                      onClick={() =>
+                        handleFileDownload(
+                          fileUrl,
+                          `Additional File ${index + 1}`
+                        )
+                      }
+                      disabled={downloadingFiles.has(fileUrl)}
                     />
                   </Table.Cell>
                 </Table.Row>

@@ -38,6 +38,10 @@ import { capitalizeFirstSafe } from '../../../helper/formatText';
 import { Dialog } from '../../components/Dialog';
 import toast from 'react-hot-toast';
 import AdminRefinementManager from '../../components/AdminRefinementManager';
+import {
+  downloadFileFromStorage,
+  initializeStorage,
+} from '../../../helper/storageUtils';
 
 const AdminCasePage = () => {
   const { caseData, error } = useLoaderData();
@@ -70,40 +74,15 @@ const AdminCasePage = () => {
     [currentStatus]
   );
 
-  const parseStorageUrl = (url) => {
-    try {
-      const parsed = new URL(url);
-      const pathParts = parsed.pathname.split('/').filter(Boolean);
-      const objectIdx = pathParts.findIndex((p) => p === 'object');
-      if (objectIdx === -1) return null;
-      // format: /storage/v1/object/{public|sign}/<bucket>/<objectPath>
-      const bucketName = pathParts[objectIdx + 2];
-      if (!bucketName) return null;
-      const objectPath = pathParts.slice(objectIdx + 3).join('/');
-      return { bucketName, objectPath: decodeURIComponent(objectPath) };
-    } catch {
-      return null;
-    }
-  };
+  // Initialize storage on component mount
+  useEffect(() => {
+    initializeStorage();
+  }, []);
 
   const openSignedFromStoredUrl = async (storedUrl) => {
-    if (!storedUrl) return;
-    try {
-      const parsed = parseStorageUrl(storedUrl);
-      if (!parsed) {
-        window.open(storedUrl, '_blank');
-        return;
-      }
-      const { data, error: signError } = await supabase.storage
-        .from(parsed.bucketName)
-        .createSignedUrl(parsed.objectPath, 60 * 60);
-      if (signError || !data?.signedUrl) {
-        window.open(storedUrl, '_blank');
-        return;
-      }
-      window.open(data.signedUrl, '_blank');
-    } catch {
-      window.open(storedUrl, '_blank');
+    const result = await downloadFileFromStorage(storedUrl);
+    if (!result.success) {
+      console.error('Download failed:', result.error);
     }
   };
 

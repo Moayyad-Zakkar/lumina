@@ -10,6 +10,7 @@ import { Button } from '../../ui/components/Button';
 import { useEffect } from 'react';
 import Error from '../components/Error';
 import SuccessMessage from '../components/SuccessMessage';
+import DentalChart from '../components/DentalChart';
 
 const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
   return (
@@ -68,6 +69,7 @@ const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
 const CaseSubmit = () => {
   const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [methods, setMethods] = useState([]);
+  const [toothStatus, setToothStatus] = useState({});
   // acceptanceFee is not used currently; remove to satisfy linter
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -81,6 +83,7 @@ const CaseSubmit = () => {
     upperJawScan: null,
     lowerJawScan: null,
     biteScan: null,
+    toothStatus: {},
     additionalFiles: [],
   });
 
@@ -297,6 +300,7 @@ const CaseSubmit = () => {
         lower_jaw_scan_url: lowerJawScanUrl,
         bite_scan_url: biteScanUrl,
         additional_files_urls: additionalFilesUrls || [],
+        tooth_status: toothStatus,
         status: 'submitted',
       };
 
@@ -458,6 +462,18 @@ const CaseSubmit = () => {
             </div>
           </div>*/}
         </div>
+        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <span className="text-heading-3 font-heading-3 text-default-font">
+            Dental Chart
+          </span>
+          <div>
+            <DentalChart
+              initialStatus={{}} // empty when new case
+              onChange={setToothStatus}
+            />
+          </div>
+        </div>
+
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
             Required Scans

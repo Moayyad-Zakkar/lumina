@@ -31,10 +31,7 @@ import supabase from '../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../helper/formatText';
 import RefinementSection from '../components/RefinementSection';
 import RefinementHistory from '../components/RefinementHistory';
-import {
-  downloadFileFromStorage,
-  initializeStorage,
-} from '../../helper/storageUtils';
+import { downloadFile } from '../../helper/storageUtils';
 import DentalChart from '../components/DentalChart';
 
 const CasePage = () => {
@@ -43,26 +40,9 @@ const CasePage = () => {
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isAbortDialogOpen, setIsAbortDialogOpen] = useState(false);
-  const [storageReady, setStorageReady] = useState(false);
+
   const [downloadingFiles, setDownloadingFiles] = useState(new Set());
-
-  // Initialize storage on component mount
-  useEffect(() => {
-    const initStorage = async () => {
-      const ready = await initializeStorage();
-      setStorageReady(ready);
-
-      if (!ready) {
-        // If storage is not ready, still allow the page to work
-        // but show a warning about downloads
-        console.warn('Storage not initialized, downloads may not work');
-      }
-    };
-
-    initStorage();
-  }, []);
-
-  // Enhanced file download handler
+  // Enhanced file download handler - SIMPLIFIED
   const handleFileDownload = async (storedUrl, fileName = 'download') => {
     if (!storedUrl) {
       toast.error('No file URL available');
@@ -74,10 +54,12 @@ const CasePage = () => {
 
     try {
       console.log('Starting download for:', fileName);
-      const result = await downloadFileFromStorage(storedUrl);
+
+      // Use the simplified downloadFile function instead of downloadFileFromStorage
+      const result = await downloadFile(storedUrl);
 
       if (result.success) {
-        toast.success(`${fileName} download started`);
+        toast.success(`${fileName} downloaded successfully`);
       } else {
         toast.error(`Failed to download ${fileName}: ${result.error}`);
       }
@@ -94,10 +76,11 @@ const CasePage = () => {
     }
   };
 
-  // Download all files function
+  // Download all files function - IMPROVED with better error handling
   const handleDownloadAllFiles = async () => {
     const filesToDownload = [];
 
+    // Build list of files to download
     if (caseData.upper_jaw_scan_url) {
       filesToDownload.push({
         url: caseData.upper_jaw_scan_url,
@@ -111,11 +94,17 @@ const CasePage = () => {
       });
     }
     if (caseData.bite_scan_url) {
-      filesToDownload.push({ url: caseData.bite_scan_url, name: 'Bite Scan' });
+      filesToDownload.push({
+        url: caseData.bite_scan_url,
+        name: 'Bite Scan',
+      });
     }
     if (caseData.additional_files_urls?.length > 0) {
       caseData.additional_files_urls.forEach((url, index) => {
-        filesToDownload.push({ url, name: `Additional File ${index + 1}` });
+        filesToDownload.push({
+          url,
+          name: `Additional File ${index + 1}`,
+        });
       });
     }
 
@@ -124,20 +113,71 @@ const CasePage = () => {
       return;
     }
 
-    toast.success(`Starting download of ${filesToDownload.length} file(s)`);
+    // Show initial toast
+    const downloadToast = toast.loading(
+      `Downloading ${filesToDownload.length} file(s)...`
+    );
 
-    // Download files with a small delay between each to avoid overwhelming the browser
+    let successCount = 0;
+    let failCount = 0;
+
+    // Download files with error tracking
     for (let i = 0; i < filesToDownload.length; i++) {
       const file = filesToDownload[i];
-      await handleFileDownload(file.url, file.name);
 
-      // Small delay between downloads
+      try {
+        // Add to downloading set
+        setDownloadingFiles((prev) => new Set([...prev, file.url]));
+
+        const result = await downloadFile(file.url);
+
+        if (result.success) {
+          successCount++;
+          console.log(`✓ Downloaded: ${file.name}`);
+        } else {
+          failCount++;
+          console.error(`✗ Failed: ${file.name} - ${result.error}`);
+        }
+      } catch (error) {
+        failCount++;
+        console.error(`✗ Failed: ${file.name} - ${error.message}`);
+      } finally {
+        // Remove from downloading set
+        setDownloadingFiles((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(file.url);
+          return newSet;
+        });
+      }
+
+      // Small delay between downloads to avoid overwhelming browser
       if (i < filesToDownload.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Reduced to 500ms
       }
     }
+
+    // Update toast with final result
+    toast.dismiss(downloadToast);
+
+    if (failCount === 0) {
+      toast.success(`All ${successCount} files downloaded successfully!`);
+    } else if (successCount === 0) {
+      toast.error(`Failed to download all ${filesToDownload.length} files`);
+    } else {
+      toast.success(`Downloaded ${successCount} files (${failCount} failed)`);
+    }
+  };
+  /*
+  // Optional: Add individual file download with loading state for UI
+  const handleSingleFileDownload = (fileUrl, fileName) => {
+    return handleFileDownload(fileUrl, fileName);
   };
 
+  // Optional: Check if a file is currently being downloaded (for UI loading states)
+  const isFileDownloading = (fileUrl) => {
+    return downloadingFiles.has(fileUrl);
+  };
+*/
   // Mark notifications for this case as read when the doctor opens the case
   useEffect(() => {
     const markCaseNotificationsRead = async () => {
@@ -283,12 +323,13 @@ const CasePage = () => {
       setSaving(false);
     }
   };
-
+  /*
   // Helper function to determine if a file is downloadable
   const isFileDownloadable = (url) => {
     if (!url) return false;
     return true; // We'll handle the actual validation in the download function
   };
+  */
 
   return (
     <>
@@ -338,15 +379,6 @@ const CasePage = () => {
           </div>
         </div>
       </div>
-
-      {!storageReady && (
-        <Alert
-          variant="warning"
-          icon={<FeatherAlertTriangle />}
-          title="Storage Warning"
-          description="File downloads may not work properly. Please ensure the 'case-files' storage bucket exists in your Supabase project."
-        />
-      )}
 
       {showPlanSection && (
         <Alert

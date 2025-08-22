@@ -25,7 +25,9 @@ const Tooth = ({
   return (
     <div
       onClick={!readOnly ? onClick : undefined}
-      className="cursor-pointer flex flex-col items-center"
+      className={`cursor-${
+        readOnly ? 'default' : 'pointer'
+      } flex flex-col items-center`}
       style={{ width: '48px', minHeight: '64px' }} // Fixed container dimensions
     >
       {/* SVG Container with alignment based on jaw position */}

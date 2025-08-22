@@ -37,11 +37,8 @@ import supabase from '../../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 import { Dialog } from '../../components/Dialog';
 import toast from 'react-hot-toast';
-import AdminRefinementManager from '../../components/AdminRefinementManager';
-import {
-  downloadFileFromStorage,
-  initializeStorage,
-} from '../../../helper/storageUtils';
+import { downloadFile } from '../../../helper/storageUtils';
+import DentalChart from '../../components/DentalChart';
 
 const AdminCasePage = () => {
   const { caseData, error } = useLoaderData();
@@ -74,13 +71,8 @@ const AdminCasePage = () => {
     [currentStatus]
   );
 
-  // Initialize storage on component mount
-  useEffect(() => {
-    initializeStorage();
-  }, []);
-
   const openSignedFromStoredUrl = async (storedUrl) => {
-    const result = await downloadFileFromStorage(storedUrl);
+    const result = await downloadFile(storedUrl);
     if (!result.success) {
       console.error('Download failed:', result.error);
     }
@@ -444,6 +436,24 @@ status = ANY (ARRAY['submitted'::text,
                 </DataFieldHorizontal>
               )}
             </div>
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <span className="text-heading-3 font-heading-3 text-default-font">
+            Dental Chart
+          </span>
+          <div>
+            <DentalChart
+              initialStatus={caseData.tooth_status || {}}
+              onChange={(updated) =>
+                supabase
+                  .from('cases')
+                  .update({ tooth_status: updated })
+                  .eq('id', caseData.id)
+              }
+              readOnly={true}
+            />
           </div>
         </div>
 

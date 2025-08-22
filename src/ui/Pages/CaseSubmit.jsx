@@ -131,7 +131,6 @@ const CaseSubmit = () => {
 
     fetchServices();
   }, []);
-
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
@@ -152,8 +151,6 @@ const CaseSubmit = () => {
       }));
     }
   };
-
-  // removed unused uploadFile helper
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -210,7 +207,7 @@ const CaseSubmit = () => {
         throw new Error(validationErrors.join(', '));
       }
 
-      // File upload function with comprehensive error handling
+      // FIXED: File upload function that returns file path instead of public URL
       const uploadFileWithErrorHandling = async (file, path) => {
         if (!file) return null;
 
@@ -260,12 +257,9 @@ const CaseSubmit = () => {
             throw uploadError;
           }
 
-          // Get public URL
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from('case-files').getPublicUrl(filePath);
-
-          return publicUrl;
+          // CHANGED: Return file path instead of public URL
+          // This works with private buckets and your updated storage utils
+          return filePath;
         } catch (error) {
           console.error(`Comprehensive upload error for ${path}:`, error);
           throw error;
@@ -274,32 +268,32 @@ const CaseSubmit = () => {
 
       // Parallel file uploads with error handling
       const [
-        upperJawScanUrl,
-        lowerJawScanUrl,
-        biteScanUrl,
-        additionalFilesUrls,
+        upperJawScanPath,
+        lowerJawScanPath,
+        biteScanPath,
+        additionalFilesPaths,
       ] = await Promise.all([
         uploadFileWithErrorHandling(formData.upperJawScan, 'upper-jaw-scans'),
         uploadFileWithErrorHandling(formData.lowerJawScan, 'lower-jaw-scans'),
         uploadFileWithErrorHandling(formData.biteScan, 'bite-scans'),
         Promise.all(
           (formData.additionalFiles || []).map((file, index) =>
-            uploadFileWithErrorHandling(file, `additional-files/${index}`)
+            uploadFileWithErrorHandling(file, `additional-files`)
           )
         ),
       ]);
 
-      // Direct insert (RPC is currently misconfigured server-side)
+      // CHANGED: Store file paths instead of URLs in database
       const insertPayload = {
         user_id: user.id,
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         aligner_material: formData.alignerMaterial?.trim() || null,
         printing_method: formData.printingMethod?.trim() || null,
-        upper_jaw_scan_url: upperJawScanUrl,
-        lower_jaw_scan_url: lowerJawScanUrl,
-        bite_scan_url: biteScanUrl,
-        additional_files_urls: additionalFilesUrls || [],
+        upper_jaw_scan_url: upperJawScanPath, // Now stores path like "upper-jaw-scans/uuid_timestamp.stl"
+        lower_jaw_scan_url: lowerJawScanPath, // Now stores path like "lower-jaw-scans/uuid_timestamp.stl"
+        bite_scan_url: biteScanPath, // Now stores path like "bite-scans/uuid_timestamp.stl"
+        additional_files_urls: additionalFilesPaths || [], // Now stores array of paths
         tooth_status: toothStatus,
         status: 'submitted',
       };

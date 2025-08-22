@@ -7,102 +7,35 @@ import toast from 'react-hot-toast';
 export const STORAGE_BUCKET = 'case-files';
 
 /**
- * Simple storage verification that bypasses listing permissions
- * Since downloads work, we just need to verify basic bucket access
- */
-export const verifyStorageBucket = async () => {
-  try {
-    // Try to generate a public URL - this is the most lightweight check
-    const { data } = supabase.storage
-      .from(STORAGE_BUCKET)
-      .getPublicUrl('test-file.txt');
-
-    if (data?.publicUrl) {
-      return { exists: true, error: null };
-    }
-
-    return { exists: false, error: 'Could not access storage bucket' };
-  } catch (error) {
-    console.error('Error verifying storage bucket:', error);
-    return { exists: false, error: error.message };
-  }
-};
-
-/**
- * Upload file to storage with comprehensive error handling
- */
-export const uploadFileToStorage = async (file, path, options = {}) => {
-  try {
-    // Validate file
-    if (!file) {
-      throw new Error('No file provided');
-    }
-
-    const maxFileSize = options.maxFileSize || 50 * 1024 * 1024; // 50MB default
-    if (file.size > maxFileSize) {
-      throw new Error(
-        `File size exceeds limit of ${maxFileSize / (1024 * 1024)}MB`
-      );
-    }
-
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop().toLowerCase();
-    const fileName = `${Date.now()}_${Math.random()
-      .toString(36)
-      .substring(2)}.${fileExt}`;
-    const filePath = `${path}/${fileName}`;
-
-    // Upload file
-    const { error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: file.type,
-        ...options,
-      });
-
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw uploadError;
-    }
-
-    // Get public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
-
-    return { publicUrl, filePath, success: true };
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-/**
  * Parse storage URL to extract the file path
  */
-export const parseStorageUrl = (url) => {
+export const parseStorageUrl = (urlOrPath) => {
   try {
-    const parsed = new URL(url);
+    // If it's just a file path (like "upper-jaw-scans/file.stl"), return it directly
+    if (!urlOrPath.startsWith('http')) {
+      return {
+        bucketName: STORAGE_BUCKET,
+        objectPath: urlOrPath,
+      };
+    }
+
+    // Handle full URLs
+    const parsed = new URL(urlOrPath);
     const pathParts = parsed.pathname.split('/').filter(Boolean);
 
     // Handle Supabase storage URLs
-    // Format: /storage/v1/object/public/bucket-name/path/to/file.ext
     const objectIndex = pathParts.findIndex((part) => part === 'object');
 
     if (objectIndex !== -1 && pathParts[objectIndex + 1] === 'public') {
-      // Public URL format
       const bucketName = pathParts[objectIndex + 2];
       const objectPath = pathParts.slice(objectIndex + 3).join('/');
-
       return {
         bucketName: bucketName,
         objectPath: decodeURIComponent(objectPath),
       };
     }
 
-    // Fallback: try to extract from the end of the URL
+    // Fallback
     if (pathParts.length >= 2) {
       return {
         bucketName: STORAGE_BUCKET,
@@ -118,98 +51,124 @@ export const parseStorageUrl = (url) => {
 };
 
 /**
- * Download file from storage - streamlined version
+ * SIMPLIFIED: Direct download function - no initialization needed!
+ * Just click button → download file. That's it.
  */
-export const downloadFileFromStorage = async (storedUrl) => {
+export const downloadFile = async (storedUrlOrPath) => {
   try {
-    if (!storedUrl) {
-      throw new Error('No URL provided');
+    if (!storedUrlOrPath) {
+      toast.error('No file specified');
+      return { success: false, error: 'No file specified' };
     }
 
-    console.log('Attempting to download from URL:', storedUrl);
+    // Parse the file path
+    const parsed = parseStorageUrl(storedUrlOrPath);
 
-    // Parse the storage URL
-    const parsed = parseStorageUrl(storedUrl);
-    console.log('Parsed URL:', parsed);
+    if (!parsed?.objectPath) {
+      toast.error('Invalid file path');
+      return { success: false, error: 'Invalid file path' };
+    }
 
-    // Method 1: Try direct browser download (works based on your logs)
+    // Method 1: Try Supabase client download (most reliable)
     try {
-      // Create a temporary link and click it to trigger download
-      const a = document.createElement('a');
-      a.href = storedUrl;
-      a.download = parsed?.objectPath?.split('/').pop() || 'download';
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .download(parsed.objectPath);
 
-      console.log('File download triggered successfully');
-      return { success: true };
-    } catch (directError) {
-      console.log('Direct download failed, trying fallback:', directError);
-    }
+      if (!downloadError && fileData) {
+        // Create blob URL and trigger download
+        const url = URL.createObjectURL(fileData);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = parsed.objectPath.split('/').pop() || 'download';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-    // Method 2: Try signed URL if we have the parsed path
-    if (parsed?.objectPath) {
-      try {
-        const { data: signedUrlData, error: signError } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .createSignedUrl(parsed.objectPath, 3600);
-
-        if (!signError && signedUrlData?.signedUrl) {
-          const a = document.createElement('a');
-          a.href = signedUrlData.signedUrl;
-          a.download = parsed.objectPath.split('/').pop() || 'download';
-          a.target = '_blank';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-
-          console.log('File downloaded via signed URL');
-          return { success: true };
-        }
-      } catch (signError) {
-        console.log('Signed URL failed:', signError);
+        toast.success('Download started');
+        return { success: true };
       }
+    } catch (downloadError) {
+      console.log('Direct download failed, trying signed URL:', downloadError);
     }
 
-    // Method 3: Simple window.open as final fallback
-    window.open(storedUrl, '_blank');
-    console.log('Opened file in new tab');
-    return { success: true };
+    // Method 2: Fallback to signed URL
+    try {
+      const { data: signedUrlData, error: signError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(parsed.objectPath, 3600);
+
+      if (!signError && signedUrlData?.signedUrl) {
+        window.open(signedUrlData.signedUrl, '_blank');
+        toast.success('Download started');
+        return { success: true };
+      }
+
+      throw signError;
+    } catch (signError) {
+      console.error('All download methods failed:', signError);
+      throw signError;
+    }
   } catch (error) {
-    console.error('Error downloading file:', error);
-    toast.error(`Download failed: ${error.message}`);
+    console.error('Download failed:', error);
+    const errorMessage = error.message.includes('not found')
+      ? 'File not found'
+      : error.message.includes('permission')
+      ? 'Access denied'
+      : `Download failed: ${error.message}`;
+
+    toast.error(errorMessage);
     return { success: false, error: error.message };
   }
 };
 
 /**
- * Initialize storage - simplified version that doesn't require listing permissions
+ * Upload file to storage - simplified version
  */
-export const initializeStorage = async () => {
+export const uploadFile = async (file, folderPath) => {
   try {
-    const bucketCheck = await verifyStorageBucket();
-
-    if (!bucketCheck.exists) {
-      console.warn(
-        'Storage bucket verification failed, but downloads might still work'
-      );
-      // Don't show error toast since downloads actually work
-      return true; // Return true to allow the app to continue
+    if (!file) {
+      throw new Error('No file provided');
     }
 
-    console.log('Storage initialized successfully');
-    return true;
+    // Basic validation
+    const maxFileSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxFileSize) {
+      throw new Error('File too large (max 50MB)');
+    }
+
+    // Generate unique filename
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const fileName = `${Date.now()}_${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExt}`;
+    const filePath = `${folderPath}/${fileName}`;
+
+    // Upload
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    toast.success('File uploaded successfully');
+    return { success: true, filePath };
   } catch (error) {
-    console.error('Error initializing storage:', error);
-    // Still return true since downloads work
-    return true;
+    console.error('Upload failed:', error);
+    toast.error(`Upload failed: ${error.message}`);
+    return { success: false, error: error.message };
   }
 };
 
 /**
- * Get file extension from URL or filename
+ * Get file extension from filename
  */
 export const getFileExtension = (filename) => {
   return filename.split('.').pop()?.toLowerCase() || '';
@@ -223,3 +182,21 @@ export const isAllowedFileType = (filename) => {
   const extension = getFileExtension(filename);
   return allowedExtensions.includes(extension);
 };
+
+// REMOVED: verifyStorageBucket, initializeStorage, and other unnecessary functions
+// You don't need to "initialize" storage - it's always ready!
+
+/* 
+OLD APPROACH (unnecessary complexity):
+1. App starts
+2. Call initializeStorage() 
+3. Check if bucket exists
+4. Show "Storage initialized" message
+5. User clicks download button
+6. Download file
+
+NEW APPROACH (simple):
+1. User clicks download button  
+2. Download file
+That's it!
+*/

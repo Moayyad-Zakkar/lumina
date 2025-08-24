@@ -449,6 +449,7 @@ const CasePage = () => {
           </div>
         </div>
 
+        {/* Dental Chart */}
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
             Dental Chart
@@ -467,6 +468,7 @@ const CasePage = () => {
           </div>
         </div>
 
+        {/* Treatment Plan Section */}
         {showPlanSection && (
           <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
             <span className="text-heading-3 font-heading-3 text-default-font">

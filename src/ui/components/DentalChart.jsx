@@ -5,7 +5,8 @@ import { toothPaths } from '../../assets/toothPaths';
 // Define tooth statuses with colors
 const TOOTH_STATUSES = {
   //movable: '#4CAF50', // green
-  movable: '#0284c7', // blue
+  //movable: '#0284c7', // blue
+  movable: '#00adef', // 3da blue
   unmovable: '#F44336', // red
   missing: '#9E9E9E', // gray
   note: '#fa9600', // orange

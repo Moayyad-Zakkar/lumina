@@ -20,6 +20,9 @@ import { FeatherPlusCircle } from '@subframe/core';
 import { FeatherCalculator } from '@subframe/core';
 import { FeatherCheck } from '@subframe/core';
 import { FeatherRefreshCw } from '@subframe/core';
+import { FeatherFileText } from '@subframe/core';
+import { FeatherEdit3 } from '@subframe/core';
+import { FeatherSave } from '@subframe/core';
 import { Table } from '../components/Table';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog } from '../components/Dialog';
@@ -40,6 +43,12 @@ const CasePage = () => {
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isAbortDialogOpen, setIsAbortDialogOpen] = useState(false);
+
+  // Note editing state
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [noteText, setNoteText] = useState(caseData?.user_note || '');
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteError, setNoteError] = useState(null);
 
   const [downloadingFiles, setDownloadingFiles] = useState(new Set());
   // Enhanced file download handler - SIMPLIFIED
@@ -167,17 +176,7 @@ const CasePage = () => {
       toast.success(`Downloaded ${successCount} files (${failCount} failed)`);
     }
   };
-  /*
-  // Optional: Add individual file download with loading state for UI
-  const handleSingleFileDownload = (fileUrl, fileName) => {
-    return handleFileDownload(fileUrl, fileName);
-  };
 
-  // Optional: Check if a file is currently being downloaded (for UI loading states)
-  const isFileDownloading = (fileUrl) => {
-    return downloadingFiles.has(fileUrl);
-  };
-*/
   // Mark notifications for this case as read when the doctor opens the case
   useEffect(() => {
     const markCaseNotificationsRead = async () => {
@@ -323,13 +322,43 @@ const CasePage = () => {
       setSaving(false);
     }
   };
-  /*
-  // Helper function to determine if a file is downloadable
-  const isFileDownloadable = (url) => {
-    if (!url) return false;
-    return true; // We'll handle the actual validation in the download function
+
+  // Note management functions
+  const handleEditNote = () => {
+    setIsEditingNote(true);
+    setNoteError(null);
   };
-  */
+
+  const handleCancelEditNote = () => {
+    setIsEditingNote(false);
+    setNoteText(caseData?.user_note || '');
+    setNoteError(null);
+  };
+
+  const handleSaveNote = async () => {
+    try {
+      setNoteSaving(true);
+      setNoteError(null);
+
+      const { error: updateError } = await supabase
+        .from('cases')
+        .update({ user_note: noteText.trim() || null })
+        .eq('id', caseData.id);
+
+      if (updateError) throw updateError;
+
+      // Update local case data
+      caseData.user_note = noteText.trim() || null;
+      setIsEditingNote(false);
+      toast.success('Note updated successfully');
+    } catch (error) {
+      console.error('Error saving note:', error);
+      setNoteError(error.message || 'Failed to save note');
+      toast.error('Failed to save note');
+    } finally {
+      setNoteSaving(false);
+    }
+  };
 
   return (
     <>
@@ -449,6 +478,97 @@ const CasePage = () => {
           </div>
         </div>
 
+        {/* Case Notes Section */}
+        <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <div className="flex w-full items-center justify-between">
+            <span className="text-heading-3 font-heading-3 text-default-font">
+              Case Notes
+            </span>
+            {!isEditingNote && (
+              <Button
+                variant="neutral-secondary"
+                size="small"
+                icon={<FeatherEdit3 />}
+                onClick={handleEditNote}
+              >
+                {caseData.user_note ? 'Edit Note' : 'Add Note'}
+              </Button>
+            )}
+          </div>
+
+          {noteError && (
+            <div className="w-full">
+              <Error error={noteError} />
+            </div>
+          )}
+
+          <div className="w-full">
+            {isEditingNote ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="noteTextarea"
+                    className="text-body-bold font-body-bold text-default-font"
+                  >
+                    Additional Notes
+                  </label>
+                  <textarea
+                    id="noteTextarea"
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="Enter any special instructions, patient history, or additional details..."
+                    rows={6}
+                    className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[120px] placeholder:text-subtext-color"
+                    disabled={noteSaving}
+                  />
+                  <span className="text-caption font-caption text-subtext-color">
+                    Add any additional information or special instructions for
+                    this case
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    icon={<FeatherSave />}
+                    onClick={handleSaveNote}
+                    disabled={noteSaving}
+                    size="small"
+                  >
+                    {noteSaving ? 'Saving...' : 'Save Note'}
+                  </Button>
+                  <Button
+                    variant="neutral-secondary"
+                    onClick={handleCancelEditNote}
+                    disabled={noteSaving}
+                    size="small"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full">
+                {caseData.user_note ? (
+                  <div className="w-full bg-white border border-neutral-200 rounded-md p-4 shadow-sm hover:border-neutral-300 transition-colors">
+                    <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+                      {caseData.user_note}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8 text-subtext-color border-2 border-dashed border-neutral-300 rounded-lg">
+                    <div className="text-center">
+                      <FeatherFileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-body font-body">No notes added yet</p>
+                      <p className="text-caption font-caption">
+                        Click "Add Note" to include additional information
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Dental Chart */}
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
@@ -526,6 +646,29 @@ const CasePage = () => {
                   </DataFieldHorizontal>
                 </div>
               </div>
+
+              {/* Admin Note Section */}
+
+              <div className="flex w-full items-center justify-between">
+                <span className="text-heading-3 font-heading-3 text-default-font">
+                  3DA Notes
+                </span>
+              </div>
+
+              <div className="w-full">
+                {caseData.admin_note ? (
+                  <div className="w-full bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
+                    <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+                      {caseData.admin_note}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full bg-neutral-50 text-sm text-neutral-500 rounded-md p-3">
+                    No Lab notes added yet.
+                  </div>
+                )}
+              </div>
+              {/* End of Admin notes */}
 
               <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
               <div className="flex w-full items-center justify-between">

@@ -38,39 +38,10 @@ const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
   );
 };
 
-/*
-const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
-  return (
-    <fieldset className="flex flex-col gap-2">
-      <legend className="text-body-bold font-body-bold text-default-font mb-2">
-        {label}
-      </legend>
-      {options.map((option) => (
-        <label
-          key={option.value}
-          className="flex items-center gap-2 cursor-pointer text-body font-body text-default-font group-disabled/0f804ad9:text-subtext-color"
-        >
-          <input
-            type="radio"
-            name={name}
-            value={option.value}
-            checked={selectedValue === option.value}
-            onChange={onChange}
-            className="accent-blue-600"
-          />
-          {option.label}
-        </label>
-      ))}
-    </fieldset>
-  );
-};
-*/
-
 const CaseSubmit = () => {
   const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [methods, setMethods] = useState([]);
   const [toothStatus, setToothStatus] = useState({});
-  // acceptanceFee is not used currently; remove to satisfy linter
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -85,23 +56,10 @@ const CaseSubmit = () => {
     biteScan: null,
     toothStatus: {},
     additionalFiles: [],
+    userNote: '', // Added note field
   });
 
   const navigate = useNavigate();
-
-  /*
-  useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/login');
-      }
-    };
-    checkAuth();
-  }, [navigate]);
-*/
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -110,7 +68,7 @@ const CaseSubmit = () => {
       const { data, error } = await supabase
         .from('services')
         .select('*')
-        .eq('is_active', true); // only active items
+        .eq('is_active', true);
 
       if (error) {
         console.error('Error fetching services:', error);
@@ -118,19 +76,17 @@ const CaseSubmit = () => {
         return;
       }
 
-      // Split data based on type
       setAlignerMaterials(
         data.filter((item) => item.type === 'aligners_material')
       );
       setMethods(data.filter((item) => item.type === 'printing_method'));
-
-      // acceptance fee can be derived later if needed
 
       setLoading(false);
     };
 
     fetchServices();
   }, []);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
@@ -207,7 +163,7 @@ const CaseSubmit = () => {
         throw new Error(validationErrors.join(', '));
       }
 
-      // FIXED: File upload function that returns file path instead of public URL
+      // File upload function
       const uploadFileWithErrorHandling = async (file, path) => {
         if (!file) return null;
 
@@ -257,8 +213,6 @@ const CaseSubmit = () => {
             throw uploadError;
           }
 
-          // CHANGED: Return file path instead of public URL
-          // This works with private buckets and your updated storage utils
           return filePath;
         } catch (error) {
           console.error(`Comprehensive upload error for ${path}:`, error);
@@ -283,18 +237,19 @@ const CaseSubmit = () => {
         ),
       ]);
 
-      // CHANGED: Store file paths instead of URLs in database
+      // Store file paths and user note in database
       const insertPayload = {
         user_id: user.id,
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         aligner_material: formData.alignerMaterial?.trim() || null,
         printing_method: formData.printingMethod?.trim() || null,
-        upper_jaw_scan_url: upperJawScanPath, // Now stores path like "upper-jaw-scans/uuid_timestamp.stl"
-        lower_jaw_scan_url: lowerJawScanPath, // Now stores path like "lower-jaw-scans/uuid_timestamp.stl"
-        bite_scan_url: biteScanPath, // Now stores path like "bite-scans/uuid_timestamp.stl"
-        additional_files_urls: additionalFilesPaths || [], // Now stores array of paths
+        upper_jaw_scan_url: upperJawScanPath,
+        lower_jaw_scan_url: lowerJawScanPath,
+        bite_scan_url: biteScanPath,
+        additional_files_urls: additionalFilesPaths || [],
         tooth_status: toothStatus,
+        user_note: formData.userNote?.trim() || null, // Added user note
         status: 'submitted',
       };
 
@@ -385,17 +340,6 @@ const CaseSubmit = () => {
                 selectedValue={formData.alignerMaterial}
                 onChange={handleChange}
               />
-
-              {/*<RadioGroup
-                label="Preferred Aligner Material"
-                name="alignerMaterial"
-                options={alignerMaterials.map((mat) => ({
-                  label: `${mat.name} (${mat.price}$/aligner).`,
-                  value: mat.name,
-                }))}
-                selectedValue={formData.alignerMaterial}
-                onChange={handleChange}
-              />*/}
             </div>
           </div>
 
@@ -413,58 +357,46 @@ const CaseSubmit = () => {
                 selectedValue={formData.printingMethod}
                 onChange={handleChange}
               />
-
-              {/*<RadioGroup
-                label="Preferred Printing Method"
-                name="printingMethod"
-                options={methods.map((m) => ({
-                  label: `${m.name} (${
-                    m.price ? `$${m.price}/model` : 'No price'
-                  }).`,
-                  value: m.name,
-                }))}
-                selectedValue={formData.printingMethod}
-                onChange={handleChange}
-              />*/}
             </div>
           </div>
-
-          {/* Fixed options Radio buttons */
-          /*
-          <div className="flex w-full items-start gap-4">
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-
-
-              <RadioGroup
-                label="Preferred Aligner Material"
-                name="alignerMaterial"
-                options={['3da elite', '3da auto', '3da lite']}
-                selectedValue={formData.alignerMaterial}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-          <div className="flex w-full items-start gap-4">
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-              <RadioGroup
-                label="Preferred Printing Method"
-                name="printingMethod"
-                options={['Standard', 'SLA']}
-                selectedValue={formData.printingMethod}
-                onChange={handleChange}
-              />
-            </div>
-          </div>*/}
         </div>
+
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
             Dental Chart
           </span>
           <div>
-            <DentalChart
-              initialStatus={{}} // empty when new case
-              onChange={setToothStatus}
-            />
+            <DentalChart initialStatus={{}} onChange={setToothStatus} />
+          </div>
+        </div>
+
+        {/* Added Note Section */}
+        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <span className="text-heading-3 font-heading-3 text-default-font">
+            Case Notes
+          </span>
+          <div className="w-full">
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="userNote"
+                className="text-body-bold font-body-bold text-default-font"
+              >
+                Additional Notes
+              </label>
+              <textarea
+                id="userNote"
+                name="userNote"
+                value={formData.userNote}
+                onChange={handleChange}
+                placeholder="Enter any special instructions, patient history, or additional details..."
+                rows={4}
+                className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[100px] placeholder:text-subtext-color"
+              />
+              <span className="text-caption font-caption text-subtext-color">
+                Add any additional information or special instructions for this
+                case
+              </span>
+            </div>
           </div>
         </div>
 
@@ -475,7 +407,6 @@ const CaseSubmit = () => {
           <Alert
             title="File Requirements"
             description="Please ensure all scan files are in STL or PLY format"
-            //actions={<IconButton size="medium" icon={<FeatherX />} />}
           />
 
           <div>
@@ -570,33 +501,6 @@ const CaseSubmit = () => {
               </div>
             )}
           </div>
-
-          {/*<div className="flex w-full flex-col items-start gap-4">
-            <div className="flex w-full items-center gap-2">
-              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
-                Upload Upper Jaw Scan
-              </Button>
-              <Badge variant="neutral">Required</Badge>
-            </div>
-            <div className="flex w-full items-center gap-2">
-              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
-                Upload Lower Jaw Scan
-              </Button>
-              <Badge variant="neutral">Required</Badge>
-            </div>
-            <div className="flex w-full items-center gap-2">
-              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
-                Upload Bite Scan
-              </Button>
-              <Badge variant="neutral">Required</Badge>
-            </div>
-            <div className="flex w-full items-center gap-2">
-              <Button variant="neutral-secondary" icon={<FeatherUpload />}>
-                Upload Additional Files
-              </Button>
-              <Badge variant="neutral">Optional</Badge>
-            </div>
-          </div>*/}
         </div>
 
         {error && <Error error={error} />}

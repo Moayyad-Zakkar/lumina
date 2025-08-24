@@ -31,6 +31,9 @@ import {
   FeatherPhone,
   FeatherHospital,
   FeatherRefreshCw,
+  FeatherFileText,
+  FeatherEdit3,
+  FeatherSave,
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
@@ -63,6 +66,8 @@ const AdminCasePage = () => {
   const [editBackup, setEditBackup] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const [downloadingFiles, setDownloadingFiles] = useState(false);
+
   const isDisabled = useMemo(() => saving, [saving]);
 
   const isPlanEditAllowed = useMemo(
@@ -70,6 +75,45 @@ const AdminCasePage = () => {
       !['ready_for_delivery', 'delivered', 'completed'].includes(currentStatus),
     [currentStatus]
   );
+
+  /* Admin Note Logic */
+  const [adminNote, setAdminNote] = useState(caseData?.admin_note || '');
+  const [isEditingAdminNote, setIsEditingAdminNote] = useState(false);
+  const [adminNoteBackup, setAdminNoteBackup] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+  const [noteError, setNoteError] = useState(null);
+
+  const handleEditAdminNote = () => {
+    setAdminNoteBackup(adminNote);
+    setIsEditingAdminNote(true);
+  };
+
+  const handleCancelEditAdminNote = () => {
+    setAdminNote(adminNoteBackup);
+    setIsEditingAdminNote(false);
+    setNoteError(null);
+  };
+
+  const handleSaveAdminNote = async () => {
+    try {
+      setSavingNote(true);
+      setNoteError(null);
+      const { error } = await supabase
+        .from('cases')
+        .update({ admin_note: adminNote })
+        .eq('id', caseData.id);
+      if (error) throw error;
+      toast.success('Admin note saved');
+      setIsEditingAdminNote(false);
+    } catch (err) {
+      setNoteError(err.message || 'Failed to save note');
+      toast.error(err.message || 'Failed to save note');
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  /* Storage Logic */
 
   const openSignedFromStoredUrl = async (storedUrl) => {
     const result = await downloadFile(storedUrl);
@@ -252,6 +296,83 @@ const AdminCasePage = () => {
     }
   };
 
+  const handleDownloadAllFiles = async () => {
+    setDownloadingFiles(true);
+    try {
+      const filesToDownload = [];
+
+      // Collect all available file URLs
+      if (caseData.upper_jaw_scan_url) {
+        filesToDownload.push({
+          url: caseData.upper_jaw_scan_url,
+          name: `Case-${caseData.id}-Upper-Jaw-Scan`,
+        });
+      }
+      if (caseData.lower_jaw_scan_url) {
+        filesToDownload.push({
+          url: caseData.lower_jaw_scan_url,
+          name: `Case-${caseData.id}-Lower-Jaw-Scan`,
+        });
+      }
+      if (caseData.bite_scan_url) {
+        filesToDownload.push({
+          url: caseData.bite_scan_url,
+          name: `Case-${caseData.id}-Bite-Scan`,
+        });
+      }
+      if (
+        caseData.additional_files_urls &&
+        caseData.additional_files_urls.length > 0
+      ) {
+        caseData.additional_files_urls.forEach((url, index) => {
+          filesToDownload.push({
+            url: url,
+            name: `Case-${caseData.id}-Additional-File-${index + 1}`,
+          });
+        });
+      }
+
+      if (filesToDownload.length === 0) {
+        toast.error('No files available to download');
+        return;
+      }
+
+      // Download each file
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const file of filesToDownload) {
+        try {
+          const result = await downloadFile(file.url);
+          if (result.success) {
+            successCount++;
+          } else {
+            failCount++;
+            console.error(`Failed to download ${file.name}:`, result.error);
+          }
+        } catch (error) {
+          failCount++;
+          console.error(`Error downloading ${file.name}:`, error);
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(
+          `Successfully downloaded ${successCount} file(s)${
+            failCount > 0 ? `, ${failCount} failed` : ''
+          }`
+        );
+      } else {
+        toast.error('Failed to download files');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download files');
+    } finally {
+      setDownloadingFiles(false);
+    }
+  };
+
   /*
 
 status = ANY (ARRAY['submitted'::text,
@@ -303,11 +424,10 @@ status = ANY (ARRAY['submitted'::text,
             <Button
               variant="neutral-secondary"
               icon={<FeatherDownload />}
-              onClick={() => {
-                // No-op; add bulk download if needed
-              }}
+              onClick={handleDownloadAllFiles}
+              disabled={downloadingFiles}
             >
-              Download Files
+              {downloadingFiles ? 'Downloading...' : 'Download Files'}
             </Button>
           </div>
         </div>
@@ -439,6 +559,22 @@ status = ANY (ARRAY['submitted'::text,
           </div>
         </div>
 
+        {caseData.notes && (
+          <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+            <div className="flex items-center gap-2">
+              <FeatherFileText className="h-5 w-5 text-neutral-600" />
+              <span className="text-heading-3 font-heading-3 text-default-font">
+                Doctor Notes
+              </span>
+            </div>
+            <div className="w-full p-4 rounded-md bg-neutral-50 border border-neutral-200">
+              <p className="text-body font-body text-default-font whitespace-pre-wrap">
+                {caseData.notes}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
             Dental Chart
@@ -542,6 +678,92 @@ status = ANY (ARRAY['submitted'::text,
                 </DataFieldHorizontal>
               </div>
             </div>
+            <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
+
+            {/* Admin Note Section */}
+
+            <div className="flex w-full items-center justify-between">
+              <span className="text-heading-3 font-heading-3 text-default-font">
+                3DA Notes
+              </span>
+              {!isEditingAdminNote && (
+                <Button
+                  variant="neutral-secondary"
+                  size="small"
+                  icon={<FeatherEdit3 />}
+                  onClick={handleEditAdminNote}
+                >
+                  {adminNote ? 'Edit Note' : 'Add Note'}
+                </Button>
+              )}
+            </div>
+
+            {noteError && (
+              <div className="w-full">
+                <Error error={noteError} />
+              </div>
+            )}
+
+            <div className="w-full">
+              {isEditingAdminNote ? (
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="adminNoteTextarea"
+                      className="text-body-bold font-body-bold text-default-font"
+                    >
+                      Additional Notes
+                    </label>
+                    <textarea
+                      id="adminNoteTextarea"
+                      value={adminNote}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                      placeholder="Enter any special instructions, internal comments, etc..."
+                      rows={6}
+                      className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[120px] placeholder:text-subtext-color"
+                      disabled={savingNote}
+                    />
+                    <span className="text-caption font-caption text-subtext-color">
+                      Add any additional information or internal notes about
+                      this case.
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      icon={<FeatherSave />}
+                      onClick={handleSaveAdminNote}
+                      disabled={savingNote}
+                      size="small"
+                    >
+                      {savingNote ? 'Saving...' : 'Save Note'}
+                    </Button>
+                    <Button
+                      variant="neutral-secondary"
+                      onClick={handleCancelEditAdminNote}
+                      disabled={savingNote}
+                      size="small"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full">
+                  {adminNote ? (
+                    <div className="w-full bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
+                      <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+                        {adminNote}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full bg-neutral-50 text-sm text-neutral-500 rounded-md p-3">
+                      No admin notes added yet.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
             <div className="flex w-full items-center justify-between">
               <span className="text-body font-body text-subtext-color">

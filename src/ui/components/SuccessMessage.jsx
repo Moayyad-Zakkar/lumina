@@ -16,7 +16,7 @@ export default function SuccessMessage({ successMessage }) {
 
 import { useState } from 'react';
 
-export function SuccessMessage({ successMessage }) {
+export default function SuccessMessage({ successMessage }) {
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) return null;

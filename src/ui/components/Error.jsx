@@ -13,7 +13,7 @@ export default function Error({ error }) {
 */
 import { useState } from 'react';
 
-export function Error({ error }) {
+export default function Error({ error }) {
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) return null;

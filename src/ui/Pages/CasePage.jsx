@@ -554,7 +554,13 @@ const CasePage = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center py-8 text-subtext-color border-2 border-dashed border-neutral-300 rounded-lg">
+                  <div className="w-full bg-neutral-50 text-sm text-neutral-500 rounded-md p-3">
+                    No notes added yet
+                  </div>
+                )}
+                {/*
+                // this is another styling for the no notes added yet
+                <div className="flex items-center justify-center py-8 text-subtext-color border-2 border-dashed border-neutral-300 rounded-lg">
                     <div className="text-center">
                       <FeatherFileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       <p className="text-body font-body">No notes added yet</p>
@@ -562,8 +568,7 @@ const CasePage = () => {
                         Click "Add Note" to include additional information
                       </p>
                     </div>
-                  </div>
-                )}
+                  </div>*/}
               </div>
             )}
           </div>
@@ -648,26 +653,23 @@ const CasePage = () => {
               </div>
 
               {/* Admin Note Section */}
+              {caseData.admin_note && (
+                <>
+                  <div className="flex w-full items-center justify-between">
+                    <span className="text-heading-3 font-heading-3 text-default-font">
+                      3DA Notes
+                    </span>
+                  </div>
 
-              <div className="flex w-full items-center justify-between">
-                <span className="text-heading-3 font-heading-3 text-default-font">
-                  3DA Notes
-                </span>
-              </div>
-
-              <div className="w-full">
-                {caseData.admin_note ? (
-                  <div className="w-full bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
-                    <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
-                      {caseData.admin_note}
+                  <div className="w-full">
+                    <div className="w-full bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
+                      <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+                        {caseData.admin_note}
+                      </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="w-full bg-neutral-50 text-sm text-neutral-500 rounded-md p-3">
-                    No Lab notes added yet.
-                  </div>
-                )}
-              </div>
+                </>
+              )}
               {/* End of Admin notes */}
 
               <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />

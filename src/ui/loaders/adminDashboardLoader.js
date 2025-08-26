@@ -22,9 +22,17 @@ export async function adminDashboardLoader() {
     throw redirect('/unauthorized');
   }
 
-  // Fetch total number of cases and recent cases in parallel
-  const [countRes, recentRes] = await Promise.all([
+  // Fetch all counts and recent cases in parallel
+  const [countRes, submittedRes, completedRes, recentRes] = await Promise.all([
     supabase.from('cases').select('id', { count: 'exact', head: true }),
+    supabase
+      .from('cases')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'submitted'),
+    supabase
+      .from('cases')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'completed'),
     supabase
       .from('cases')
       .select(
@@ -34,7 +42,9 @@ export async function adminDashboardLoader() {
       .limit(5),
   ]);
 
-  const { count, error: countError } = countRes;
+  const { count: totalCount, error: countError } = countRes;
+  const { count: submittedCount, error: submittedError } = submittedRes;
+  const { count: completedCount, error: completedError } = completedRes;
   const { data: recentCases, error: recentError } = recentRes;
 
   const normalizedCases = (recentCases || []).map((c) => ({
@@ -50,8 +60,12 @@ export async function adminDashboardLoader() {
   }));
 
   return {
-    totalCases: countError ? '—' : count,
+    totalCases: countError ? '—' : totalCount,
+    submittedCases: submittedError ? '—' : submittedCount,
+    completedCases: completedError ? '—' : completedCount,
     recentCases: normalizedCases,
     casesError: recentError?.message || null,
+    submittedError: submittedError?.message || null,
+    completedError: completedError?.message || null,
   };
 }

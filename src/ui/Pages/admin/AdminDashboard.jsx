@@ -8,7 +8,13 @@ import { Avatar } from '../../components/Avatar';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 
 function AdminDashboard() {
-  const { totalCases, recentCases, casesError } = useLoaderData();
+  const {
+    totalCases,
+    recentCases,
+    casesError,
+    submittedCases,
+    completedCases,
+  } = useLoaderData();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const isLoading = navigation.state === 'loading';
@@ -30,15 +36,15 @@ function AdminDashboard() {
             PENDING REVIEW
           </span>
           <span className="text-heading-2 font-heading-2 text-warning-700">
-            8
+            {submittedCases}
           </span>
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
-            COMPLETED THIS MONTH
+            COMPLETED BY 3DA
           </span>
           <span className="text-heading-2 font-heading-2 text-success-700">
-            45
+            {completedCases}
           </span>
         </div>
       </div>

@@ -20,7 +20,10 @@ import {
 import CaseStatusBadge from '../../components/CaseStatusBadge';
 
 import supabase from '../../../helper/supabaseClient';
-import { capitalizeFirst } from '../../../helper/formatText';
+import {
+  capitalizeFirst,
+  capitalizeFirstSafe,
+} from '../../../helper/formatText';
 import { Avatar } from '../../components/Avatar';
 
 const CASES_PER_PAGE = 10;
@@ -646,7 +649,20 @@ const AdminCasesPage = () => {
                   <Avatar
                     size="small"
                     image={caseItem.profiles?.avatar_url || undefined}
-                  />
+                  >
+                    {!caseItem.profiles?.avatar_url && (
+                      <>
+                        {capitalizeFirstSafe(
+                          caseItem.profiles?.full_name?.split(' ')[0]?.[0]
+                        )}
+                        {capitalizeFirstSafe(
+                          caseItem.profiles?.full_name
+                            ?.split(' ')
+                            .slice(-1)[0]?.[0]
+                        )}
+                      </>
+                    )}
+                  </Avatar>
                   <span className="whitespace-nowrap text-body font-body text-neutral-700">
                     {caseItem.profiles?.full_name || '-'}
                   </span>

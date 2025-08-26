@@ -502,7 +502,16 @@ const AdminDoctorsPage = () => {
             >
               <Table.Cell>
                 <div className="flex items-center gap-2">
-                  <Avatar size="small" image={doc.avatar_url || undefined} />
+                  <Avatar size="small" image={doc.avatar_url || undefined}>
+                    {!doc.avatar_url && (
+                      <>
+                        {capitalizeFirstSafe(doc.full_name?.split(' ')[0]?.[0])}
+                        {capitalizeFirstSafe(
+                          doc.full_name?.split(' ').slice(-1)[0]?.[0]
+                        )}
+                      </>
+                    )}
+                  </Avatar>
                   <span className="whitespace-nowrap text-body-bold font-body-bold text-neutral-700">
                     {capitalizeFirstSafe(doc.full_name) || '-'}
                   </span>

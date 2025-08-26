@@ -108,7 +108,20 @@ function AdminDashboard() {
                     <Avatar
                       size="small"
                       image={caseItem.profiles?.avatar_url || undefined}
-                    />
+                    >
+                      {!caseItem.profiles?.avatar_url && (
+                        <>
+                          {capitalizeFirstSafe(
+                            caseItem.profiles?.full_name?.split(' ')[0]?.[0]
+                          )}
+                          {capitalizeFirstSafe(
+                            caseItem.profiles?.full_name
+                              ?.split(' ')
+                              .slice(-1)[0]?.[0]
+                          )}
+                        </>
+                      )}
+                    </Avatar>
                     <span>
                       {capitalizeFirstSafe(caseItem.profiles?.full_name) || '-'}
                     </span>

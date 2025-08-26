@@ -153,10 +153,10 @@ function UserDashboard() {
               >
                 <Table.Cell>
                   <div className="flex items-center gap-2">
-                    <Avatar size="small">
+                    {/*<Avatar size="small">
                       {capitalizeFirstSafe(caseItem.first_name)?.[0]}
                       {capitalizeFirstSafe(caseItem.last_name)?.[0]}
-                    </Avatar>
+                    </Avatar>*/}
                     <span className="whitespace-nowrap text-body font-body text-neutral-500">
                       {capitalizeFirstSafe(caseItem.first_name)}{' '}
                       {capitalizeFirstSafe(caseItem.last_name)}

@@ -9,7 +9,7 @@ import { FeatherRefreshCw } from '@subframe/core';
 import { FeatherX } from '@subframe/core';
 import { Table } from '../components/Table';
 import { Badge } from '../components/Badge';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import supabase from '../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../helper/formatText';
 import { Loader } from '../components/Loader';
@@ -167,96 +167,105 @@ const CasesPage = () => {
     }
   };
 
-  const fetchCases = async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      let baseQuery = supabase.from('cases').select('*', { count: 'exact' });
-
-      // Apply search filter
-      if (search.length >= 3) {
-        baseQuery = baseQuery.or(
-          `first_name.ilike.%${search}%,last_name.ilike.%${search}%`
-        );
-      }
-
-      // Apply status filter
-      if (selectedStatus) {
-        baseQuery = baseQuery.eq('status', selectedStatus);
-      }
-
-      // Apply date range filter
-      if (selectedDateRange) {
-        const dateRange = getDateRange(selectedDateRange);
-        if (dateRange) {
-          baseQuery = baseQuery
-            .gte('created_at', dateRange.start.toISOString())
-            .lt('created_at', dateRange.end.toISOString());
+  // Fixed fetchCases function with useCallback to prevent infinite loops
+  const fetchCases = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
         }
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        // Apply sorting
+        const sortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
+        const sortColumn = sortOption?.column || 'created_at';
+        const sortAscending = sortOption?.ascending || false;
+
+        // Fetch paginated cases with count in a single query
+        const from = (page - 1) * CASES_PER_PAGE;
+        const to = from + CASES_PER_PAGE - 1;
+
+        let query = supabase
+          .from('cases')
+          .select('*', { count: 'exact' })
+          .order(sortColumn, { ascending: sortAscending })
+          .range(from, to);
+
+        // Apply search filter
+        if (search.length >= 3) {
+          query = query.or(
+            `first_name.ilike.%${search}%,last_name.ilike.%${search}%`
+          );
+        }
+
+        // Apply status filter
+        if (selectedStatus) {
+          query = query.eq('status', selectedStatus);
+        }
+
+        // Apply date range filter
+        if (selectedDateRange) {
+          const dateRange = getDateRange(selectedDateRange);
+          if (dateRange) {
+            query = query
+              .gte('created_at', dateRange.start.toISOString())
+              .lt('created_at', dateRange.end.toISOString());
+          }
+        }
+
+        const { data, error, count } = await query;
+
+        if (error) {
+          console.error('Supabase error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            full: error,
+          });
+          throw error;
+        }
+
+        setCases(data || []);
+        setTotalCases(count || 0);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+        setError(error.message || 'Failed to fetch cases');
+        setCases([]);
+        setTotalCases(0);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
+    },
+    [page, search, selectedStatus, selectedDateRange, sortBy]
+  );
 
-      // Get total count
-      const { count: total, error: countError } = await baseQuery;
-      if (countError) throw countError;
-      setTotalCases(total);
-
-      // Apply sorting
-      const sortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
-      const sortColumn = sortOption?.column || 'created_at';
-      const sortAscending = sortOption?.ascending || false;
-
-      // Fetch paginated cases
-      const from = (page - 1) * CASES_PER_PAGE;
-      const to = from + CASES_PER_PAGE - 1;
-      let query = baseQuery
-        .select('*')
-        .order(sortColumn, { ascending: sortAscending })
-        .range(from, to);
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setCases(data);
-
-      // Clear any previous errors on successful fetch
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching cases:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
+  // Main effect - now fetchCases won't change unless dependencies change
   useEffect(() => {
     fetchCases();
-  }, [page, search, selectedStatus, selectedDateRange, sortBy]);
+  }, [fetchCases]);
 
   // Handle search input and debounce
   useEffect(() => {
     const handler = setTimeout(() => {
-      setPage(1); // Reset to first page on new search
-      setSearch(searchInput.trim());
+      if (searchInput.trim() !== search) {
+        setPage(1); // Reset to first page on new search
+        setSearch(searchInput.trim());
+      }
     }, 300);
     return () => clearTimeout(handler);
-  }, [searchInput]);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [selectedStatus, selectedDateRange, sortBy]);
+  }, [searchInput, search]);
 
   const handleRefresh = () => {
     fetchCases(true);
@@ -268,6 +277,24 @@ const CasesPage = () => {
     setSortBy('created_at_desc');
     setSearchInput('');
     setSearch('');
+    setPage(1);
+  };
+
+  // Helper functions for filter changes that reset page
+  const handleStatusChange = (status) => {
+    setSelectedStatus(status);
+    setPage(1);
+    setShowStatusDropdown(false);
+  };
+
+  const handleDateRangeChange = (range) => {
+    setSelectedDateRange(range);
+    setPage(1);
+    setShowDateDropdown(false);
+  };
+
+  const handleSortChange = (sortValue) => {
+    setSortBy(sortValue);
     setPage(1);
   };
 
@@ -345,10 +372,7 @@ const CasesPage = () => {
                 <div className="py-1">
                   <button
                     className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
-                    onClick={() => {
-                      setSelectedStatus('');
-                      setShowStatusDropdown(false);
-                    }}
+                    onClick={() => handleStatusChange('')}
                   >
                     All Statuses
                   </button>
@@ -360,10 +384,7 @@ const CasesPage = () => {
                           ? 'bg-neutral-100 text-neutral-900'
                           : 'text-neutral-700'
                       }`}
-                      onClick={() => {
-                        setSelectedStatus(option.value);
-                        setShowStatusDropdown(false);
-                      }}
+                      onClick={() => handleStatusChange(option.value)}
                     >
                       {option.label}
                     </button>
@@ -397,10 +418,7 @@ const CasesPage = () => {
                 <div className="py-1">
                   <button
                     className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
-                    onClick={() => {
-                      setSelectedDateRange('');
-                      setShowDateDropdown(false);
-                    }}
+                    onClick={() => handleDateRangeChange('')}
                   >
                     All Dates
                   </button>
@@ -412,10 +430,7 @@ const CasesPage = () => {
                           ? 'bg-neutral-100 text-neutral-900'
                           : 'text-neutral-700'
                       }`}
-                      onClick={() => {
-                        setSelectedDateRange(option.value);
-                        setShowDateDropdown(false);
-                      }}
+                      onClick={() => handleDateRangeChange(option.value)}
                     >
                       {option.label}
                     </button>
@@ -470,7 +485,7 @@ const CasesPage = () => {
                           name="sort"
                           value={option.value}
                           checked={sortBy === option.value}
-                          onChange={(e) => setSortBy(e.target.value)}
+                          onChange={(e) => handleSortChange(e.target.value)}
                           className="mr-2"
                         />
                         <span className="text-sm text-neutral-700">
@@ -494,7 +509,10 @@ const CasesPage = () => {
             <Badge variant="neutral" className="text-xs">
               Status: {getStatusLabel()}
               <button
-                onClick={() => setSelectedStatus('')}
+                onClick={() => {
+                  setSelectedStatus('');
+                  setPage(1);
+                }}
                 className="ml-1 hover:text-neutral-800"
               >
                 ×
@@ -505,7 +523,10 @@ const CasesPage = () => {
             <Badge variant="neutral" className="text-xs">
               Date: {getDateLabel()}
               <button
-                onClick={() => setSelectedDateRange('')}
+                onClick={() => {
+                  setSelectedDateRange('');
+                  setPage(1);
+                }}
                 className="ml-1 hover:text-neutral-800"
               >
                 ×
@@ -519,6 +540,7 @@ const CasesPage = () => {
                 onClick={() => {
                   setSearch('');
                   setSearchInput('');
+                  setPage(1);
                 }}
                 className="ml-1 hover:text-neutral-800"
               >
@@ -561,20 +583,6 @@ const CasesPage = () => {
                     ? 'No cases match your filters.'
                     : 'No cases found.'}
                 </span>
-                {
-                  // Clear filter button under the table when there are no search results
-                  /*hasActiveFilters && (
-                  <div className="mt-2">
-                    <Button
-                      size="sm"
-                      variant="neutral-tertiary"
-                      onClick={clearFilters}
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                )*/
-                }
               </div>
             </Table.Cell>
           </Table.Row>

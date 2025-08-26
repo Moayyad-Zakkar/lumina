@@ -559,7 +559,7 @@ status = ANY (ARRAY['submitted'::text,
           </div>
         </div>
 
-        {caseData.notes && (
+        {caseData.user_note && (
           <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
             <div className="flex items-center gap-2">
               <FeatherFileText className="h-5 w-5 text-neutral-600" />
@@ -569,7 +569,7 @@ status = ANY (ARRAY['submitted'::text,
             </div>
             <div className="w-full p-4 rounded-md bg-neutral-50 border border-neutral-200">
               <p className="text-body font-body text-default-font whitespace-pre-wrap">
-                {caseData.notes}
+                {caseData.user_note}
               </p>
             </div>
           </div>

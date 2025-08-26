@@ -248,14 +248,14 @@ const DefaultPageLayoutRoot = React.forwardRef<
             Home
           </SidebarWithLargeItems.NavItem>
         </Link>
-        <Link to="/app/notifications">
+        {/*<Link to="/app/notifications">
           <SidebarWithLargeItems.NavItem
             icon={<FeatherBell />}
             selected={pathname === '/app/notifications'}
           >
             Notifications
           </SidebarWithLargeItems.NavItem>
-        </Link>
+        </Link>*/}
         <Link to="/app/cases">
           <SidebarWithLargeItems.NavItem
             icon={<FeatherInbox />}
@@ -275,7 +275,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
           </SidebarWithLargeItems.NavItem>
         </Link>
         <SidebarWithLargeItems.NavItem icon={<FeatherBarChart2 />}>
-          Reports
+          Billing
         </SidebarWithLargeItems.NavItem>
       </SidebarWithLargeItems>
       <Toaster position="top-right" />

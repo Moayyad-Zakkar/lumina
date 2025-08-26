@@ -247,7 +247,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
           </SidebarWithLargeItems.NavItem>
         </Link>
         <SidebarWithLargeItems.NavItem icon={<FeatherBarChart2 />}>
-          Reports
+          Billing
         </SidebarWithLargeItems.NavItem>
       </SidebarWithLargeItems>
       <Toaster position="top-right" />

@@ -1,5 +1,4 @@
 import React from 'react';
-import { capitalizeFirstSafe } from '../../helper/formatText';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
 import { FeatherSearch } from '@subframe/core';
@@ -10,52 +9,81 @@ import { FeatherFilter } from '@subframe/core';
 import { Table } from '../components/Table';
 import { Badge } from '../components/Badge';
 import { useState, useEffect } from 'react';
+import supabase from '../../helper/supabaseClient';
+import { capitalizeFirstSafe } from '../../helper/formatText';
 import { Loader } from '../components/Loader';
 import Error from '../components/Error';
 import Headline from '../components/Headline';
-import {
-  useLoaderData,
-  useNavigate,
-  useNavigation,
-  useSearchParams,
-} from 'react-router';
+import { useNavigate } from 'react-router';
+import CaseStatusBadge from '../components/CaseStatusBadge';
+
+const CASES_PER_PAGE = 10;
 
 const CasesPage = () => {
-  const { cases, totalCases, page, search, CASES_PER_PAGE, error } =
-    useLoaderData();
-  const navigation = useNavigation();
-  const isLoading = navigation.state === 'loading';
-
-  console.log('CasesPage data:', {
-    cases,
-    totalCases,
-    page,
-    search,
-    CASES_PER_PAGE,
-    error,
-  });
-
-  const [searchInput, setSearchInput] = useState(search);
+  const [cases, setCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalCases, setTotalCases] = useState(0);
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
-  // 🔁 Handle debounced search
   useEffect(() => {
-    const delay = setTimeout(() => {
-      const trimmed = searchInput.trim();
-      const params = new URLSearchParams();
-      if (trimmed.length >= 3) params.set('search', trimmed);
-      params.set('page', '1');
-      navigate(`/app/cases?${params.toString()}`);
-    }, 300);
-    return () => clearTimeout(delay);
-  }, [searchInput, navigate]);
+    const fetchCases = async () => {
+      try {
+        setLoading(true);
 
-  const handlePageChange = (newPage) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', newPage);
-    navigate(`/app/cases?${params.toString()}`);
-  };
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        let baseQuery = supabase.from('cases').select('*', { count: 'exact' });
+        if (search.length >= 3) {
+          baseQuery = baseQuery.or(
+            `first_name.ilike.%${search}%,last_name.ilike.%${search}%`
+          );
+        }
+
+        // Get total count
+        const { count: total, error: countError } = await baseQuery;
+        if (countError) throw countError;
+        setTotalCases(total);
+
+        // Fetch paginated cases
+        const from = (page - 1) * CASES_PER_PAGE;
+        const to = from + CASES_PER_PAGE - 1;
+        let query = baseQuery
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, to);
+
+        const { data, error } = await query;
+        if (error) throw error;
+        setCases(data);
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCases();
+  }, [page, search]);
+
+  // Handle search input and debounce
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setPage(1); // Reset to first page on new search
+      setSearch(searchInput.trim());
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchInput]);
 
   // Show error at the top, but keep the rest of the page visible
   return (
@@ -63,33 +91,54 @@ const CasesPage = () => {
       {error && <Error error={error} />}
       <Headline>Cases</Headline>
 
-      <div className="flex w-full flex-wrap items-center gap-4">
-        <div className="flex grow shrink-0 basis-0 items-center gap-2">
-          <TextField
-            className="w-100"
-            variant="filled"
-            label=""
-            helpText=""
-            icon={<FeatherSearch />}
-          >
-            <TextField.Input
-              placeholder="Search cases..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </TextField>
-          <Button variant="neutral-tertiary" iconRight={<FeatherChevronDown />}>
-            Status
-          </Button>
-          <Button variant="neutral-tertiary" iconRight={<FeatherChevronDown />}>
-            Date Range
-          </Button>
+      <div className="flex w-full justify-between items-center gap-4">
+        {/* Left Side: Search + Status + Date */}
+        <div className="flex items-center gap-2 flex-1">
+          {/* Search Bar with bounded width */}
+          <div className="flex-grow max-w-[300px] min-w-[200px]">
+            <TextField
+              className="w-full"
+              variant="filled"
+              label=""
+              helpText=""
+              icon={<FeatherSearch />}
+            >
+              <TextField.Input
+                placeholder="Search cases..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+            </TextField>
+          </div>
+
+          {/* Compact buttons */}
+          <div className="flex-shrink-0 flex gap-2">
+            <Button
+              size="sm"
+              variant="neutral-tertiary"
+              className="px-3"
+              iconRight={<FeatherChevronDown />}
+            >
+              Status
+            </Button>
+            <Button
+              size="sm"
+              variant="neutral-tertiary"
+              className="px-3"
+              iconRight={<FeatherChevronDown />}
+            >
+              Date
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Right Side: Icons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <IconButton icon={<FeatherRefreshCw />} />
           <IconButton icon={<FeatherFilter />} />
         </div>
       </div>
+
       <Table
         header={
           <Table.HeaderRow>
@@ -100,7 +149,7 @@ const CasesPage = () => {
           </Table.HeaderRow>
         }
       >
-        {isLoading ? (
+        {loading ? (
           <Table.Row>
             <Table.Cell colSpan={4}>
               <div className="flex w-full h-full min-h-[100px] justify-center items-center">
@@ -108,17 +157,17 @@ const CasesPage = () => {
               </div>
             </Table.Cell>
           </Table.Row>
-        ) : !cases || cases.length === 0 ? (
+        ) : cases.length === 0 ? (
           <Table.Row>
             <Table.Cell colSpan={4}>
               <span className="text-neutral-500 py-4">No cases found.</span>
             </Table.Cell>
           </Table.Row>
         ) : (
-          cases?.map((caseItem) => (
+          cases.map((caseItem) => (
             <Table.Row
               key={caseItem.id}
-              clickable
+              clickable={true}
               onClick={() => {
                 navigate(`/app/cases/${caseItem.id}`);
               }}
@@ -130,7 +179,7 @@ const CasesPage = () => {
                 </span>
               </Table.Cell>
               <Table.Cell>
-                <Badge
+                {/*<Badge
                   variant={
                     caseItem.status === 'completed'
                       ? 'success'
@@ -148,7 +197,8 @@ const CasesPage = () => {
                     : caseItem.status === 'completed'
                     ? 'Completed'
                     : caseItem.status}
-                </Badge>
+                </Badge>*/}
+                <CaseStatusBadge status={caseItem.status} />
               </Table.Cell>
               <Table.Cell>
                 <span className="whitespace-nowrap text-body font-body text-neutral-500">
@@ -182,7 +232,7 @@ const CasesPage = () => {
           {page > 1 && (
             <Button
               variant="neutral-secondary"
-              onClick={() => handlePageChange(page - 1)}
+              onClick={() => setPage(page - 1)}
             >
               Previous
             </Button>
@@ -190,7 +240,7 @@ const CasesPage = () => {
           {page * CASES_PER_PAGE < totalCases && (
             <Button
               variant="neutral-secondary"
-              onClick={() => handlePageChange(page + 1)}
+              onClick={() => setPage(page + 1)}
             >
               Next
             </Button>

@@ -4,9 +4,6 @@ import { Progress } from '../components/Progress';
 import { TextField } from '../components/TextField';
 import { Table } from '../components/Table';
 import { Avatar } from '../components/Avatar';
-import { Badge } from '../components/Badge';
-import { IconButton } from '../components/IconButton';
-import { FeatherMoreHorizontal } from '@subframe/core';
 import { useLoaderData, useNavigate, useNavigation } from 'react-router';
 
 import { Loader } from '../components/Loader';
@@ -22,7 +19,13 @@ function UserDashboard() {
   const [recentCases, setRecentCases] = useState([]);
   const [casesError, setCasesError] = useState(null);
   */
-  const { totalCases, recentCases, casesError } = useLoaderData();
+  const {
+    totalCases,
+    recentCases,
+    casesError,
+    submittedCases,
+    completedCases,
+  } = useLoaderData();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const isLoading = navigation.state === 'loading';
@@ -78,25 +81,25 @@ function UserDashboard() {
           <span className="text-heading-2 font-heading-2 text-default-font">
             {totalCases === null ? <Loader size="small" /> : totalCases}
           </span>
-          <Progress value={75} />
+          {/*<Progress value={75} />*/}
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
             PENDING REVIEW
           </span>
           <span className="text-heading-2 font-heading-2 text-warning-700">
-            8
+            {submittedCases}
           </span>
-          <Progress value={25} />
+          {/*<Progress value={75} />*/}
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
-            COMPLETED THIS MONTH
+            COMPLETED WITH 3DA
           </span>
           <span className="text-heading-2 font-heading-2 text-success-700">
-            45
+            {completedCases}
           </span>
-          <Progress value={45} />
+          {/*<Progress value={75} />*/}
         </div>
       </div>
       <div className="flex w-full flex-col items-start gap-4">
@@ -113,7 +116,7 @@ function UserDashboard() {
             <Table.HeaderRow>
               <Table.HeaderCell>Patient Name</Table.HeaderCell>
               <Table.HeaderCell>Status</Table.HeaderCell>
-              {/*<Table.HeaderCell>Material</Table.HeaderCell>*/}
+
               <Table.HeaderCell>Submission Date</Table.HeaderCell>
               <Table.HeaderCell>Case ID</Table.HeaderCell>
             </Table.HeaderRow>

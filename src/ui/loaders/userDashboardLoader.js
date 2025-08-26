@@ -17,6 +17,19 @@ export async function userDashboardLoader() {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id);
 
+  // Fetch submitted cases count
+  const { count: submittedCount, error: submittedError } = await supabase
+    .from('cases')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'submitted');
+
+  const { count: completedCount, error: completedError } = await supabase
+    .from('cases')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'completed');
+
   // Fetch recent cases
   const { data: recentCases, error: recentError } = await supabase
     .from('cases')
@@ -27,7 +40,10 @@ export async function userDashboardLoader() {
 
   return {
     totalCases: countError ? '—' : count,
+    submittedCases: submittedError ? '—' : submittedCount,
+    completedCases: completedError ? '_' : completedCount,
     recentCases: recentCases || [],
     casesError: recentError?.message || null,
+    submittedError: submittedError?.message || null,
   };
 }

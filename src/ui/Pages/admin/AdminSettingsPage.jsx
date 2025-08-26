@@ -310,13 +310,14 @@ function AdminSettingsPage() {
                 <span className="block text-body font-body text-subtext-color mb-4">
                   This fee is charged when a new case is accepted.
                 </span>
-                <div className="flex items-end gap-3">
-                  <TextField className="h-auto w-40" label="Amount (USD)">
+                <div className="flex items-end justify-between gap-3">
+                  <TextField className="h-auto w-60" label="Amount (USD)">
                     <TextField.Input
                       type="number"
                       min={0}
                       step="0.01"
                       placeholder="0.00"
+                      id="feeAmount"
                       value={feeAmount}
                       onChange={(e) => setFeeAmount(e.target.value)}
                     />

@@ -12,10 +12,13 @@ function SettingsPage() {
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  /*
+  // remove the comments when activating the notifications through email or sms
   const [notifications, setNotifications] = useState({
     email: true,
     sms: false,
   });
+  */
 
   const isValidEmail = (value) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -118,6 +121,7 @@ function SettingsPage() {
         </div>
 
         {/* Notifications Section */}
+        {/*
         <div className="flex w-full flex-col gap-6 rounded-md border border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <div>
             <span className="text-heading-3 font-heading-3 text-default-font">
@@ -150,11 +154,12 @@ function SettingsPage() {
 
           <Button
             variant="secondary"
-            onClick={() => toast.success('Preferences saved (not persisted).')}
+            onClick={() => toast.success('Preferences saved')}
           >
             Save Notification Preferences
           </Button>
         </div>
+        */}
       </div>
     </>
   );

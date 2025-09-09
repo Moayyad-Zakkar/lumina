@@ -305,7 +305,7 @@ function AdminSettingsPage() {
             <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-6">
               <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
                 <span className="text-heading-3 font-heading-3 text-default-font">
-                  Case Acceptance Fee
+                  Case Study Fee
                 </span>
                 <span className="block text-body font-body text-subtext-color mb-4">
                   This fee is charged when a new case is accepted.

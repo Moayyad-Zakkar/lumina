@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import supabase from '../../helper/supabaseClient';
-import { Breadcrumbs } from '../../ui/components/Breadcrumbs';
-import { TextField } from '../../ui/components/TextField';
-
-import { Alert } from '../../ui/components/Alert';
-import { Button } from '../../ui/components/Button';
-
+import { useRef } from 'react';
 import { useEffect } from 'react';
-import Error from '../components/Error';
-import SuccessMessage from '../components/SuccessMessage';
-import DentalChart from '../components/DentalChart';
+import { Link, useNavigate } from 'react-router';
+import supabase from '../../../helper/supabaseClient';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
+import { TextField } from '../../components/TextField';
+
+import { Alert } from '../../components/Alert';
+import { Button } from '../../components/Button';
+
+import Error from '../../components/Error';
+import SuccessMessage from '../../components/SuccessMessage';
+import DentalChart from '../../components/DentalChart';
+import { FeatherEraser } from '@subframe/core';
 
 const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
   return (
@@ -38,21 +40,25 @@ const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
   );
 };
 
-const CaseSubmit = () => {
+const AdminCaseSubmit = () => {
   const [alignerMaterials, setAlignerMaterials] = useState([]);
-  //const [methods, setMethods] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [toothStatus, setToothStatus] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
   const [formData, setFormData] = useState({
+    selectedUserId: '',
+    selectedUserName: '',
     firstName: '',
     lastName: '',
     isUrgent: false,
     urgentDeliveryDate: '',
     alignerMaterial: '',
-    //printingMethod: '',
     uploadMethod: 'individual', // Default to individual files
     upperJawScan: null,
     lowerJawScan: null,
@@ -72,33 +78,87 @@ const CaseSubmit = () => {
     molarLeftClass: '',
     treatmentArch: '',
   });
-
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchData = async () => {
       setLoading(true);
 
-      const { data, error } = await supabase
+      // Fetch services (aligner materials)
+      const { data: servicesData, error: servicesError } = await supabase
         .from('services')
         .select('*')
         .eq('is_active', true);
 
-      if (error) {
-        console.error('Error fetching services:', error);
-        setLoading(false);
-        return;
+      if (servicesError) {
+        console.error('Error fetching services:', servicesError);
+      } else {
+        setAlignerMaterials(
+          servicesData.filter((item) => item.type === 'aligners_material')
+        );
       }
 
-      setAlignerMaterials(
-        data.filter((item) => item.type === 'aligners_material')
-      );
-      //setMethods(data.filter((item) => item.type === 'printing_method'));
+      // Fetch users (doctors)
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .order('full_name');
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+      } else {
+        setUsers(usersData || []);
+        setFilteredUsers(usersData || []);
+      }
 
       setLoading(false);
     };
 
-    fetchServices();
+    fetchData();
+  }, []);
+
+  // Handle user search
+  useEffect(() => {
+    if (userSearchQuery.trim() === '') {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter((user) => {
+        const fullName = user?.full_name?.toLowerCase();
+        const email = user?.email?.toLowerCase();
+        const query = userSearchQuery.toLowerCase();
+        return fullName?.includes(query) || email?.includes(query);
+      });
+      setFilteredUsers(filtered);
+    }
+  }, [userSearchQuery, users]);
+
+  const handleUserSearch = (e) => {
+    setUserSearchQuery(e.target.value);
+    setShowUserDropdown(true);
+  };
+
+  const handleUserSelect = (user) => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedUserId: user.id,
+      selectedUserName: `${user.full_name} (${user.email})`,
+    }));
+    setUserSearchQuery(`${user.full_name} (${user.email})`);
+    setShowUserDropdown(false);
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -161,6 +221,7 @@ const CaseSubmit = () => {
       }
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -175,19 +236,24 @@ const CaseSubmit = () => {
       let compressedScansPath = null;
       let additionalFilesPaths = [];
 
-      // Ensure user is authenticated
+      // Ensure admin is authenticated
       const {
-        data: { user },
+        data: { user: currentUser },
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError || !user) {
-        throw new Error('User must be authenticated to submit a case');
+      if (userError || !currentUser) {
+        throw new Error('Admin must be authenticated to submit a case');
       }
 
       // Comprehensive validation
       const validateSubmission = () => {
         const errors = [];
+
+        // Check if user is selected
+        if (!formData.selectedUserId) {
+          errors.push('Please select a doctor for this case');
+        }
 
         // Check required personal info
         if (!formData.firstName?.trim()) {
@@ -212,24 +278,7 @@ const CaseSubmit = () => {
           }
         }
 
-        // Check required scan files based on upload method
-        if (formData.uploadMethod === 'individual') {
-          const requiredScans = [
-            { key: 'upperJawScan', name: 'Upper Jaw Scan' },
-            { key: 'lowerJawScan', name: 'Lower Jaw Scan' },
-            { key: 'biteScan', name: 'Bite Scan' },
-          ];
-
-          requiredScans.forEach((scan) => {
-            if (!formData[scan.key]) {
-              errors.push(`${scan.name} is required`);
-            }
-          });
-        } else if (formData.uploadMethod === 'compressed') {
-          if (!formData.compressedScans) {
-            errors.push('Compressed scan archive is required');
-          }
-        }
+        // Note: File uploads are optional for admin, so no file validation needed
 
         // Optional: Additional validations
         if (formData.additionalFiles && formData.additionalFiles.length > 5) {
@@ -244,7 +293,7 @@ const CaseSubmit = () => {
         throw new Error(validationErrors.join(', '));
       }
 
-      // File upload function
+      // File upload function (same as original but optional)
       const uploadFileWithErrorHandling = async (file, path) => {
         if (!file) return null;
 
@@ -280,7 +329,7 @@ const CaseSubmit = () => {
           }
 
           // Generate unique filename
-          const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+          const fileName = `admin_${currentUser.id}_${Date.now()}.${fileExt}`;
           const filePath = `${path}/${fileName}`;
 
           // Upload to storage
@@ -304,7 +353,7 @@ const CaseSubmit = () => {
         }
       };
 
-      // Handle different upload methods
+      // Handle different upload methods (optional files)
       if (formData.uploadMethod === 'individual') {
         // Parallel file uploads for individual files
         const uploadResults = await Promise.all([
@@ -333,7 +382,7 @@ const CaseSubmit = () => {
 
       // Store file paths and user note in database
       const insertPayload = {
-        user_id: user.id,
+        user_id: formData.selectedUserId, // Use selected user ID instead of current admin
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         is_urgent: formData.isUrgent,
@@ -342,7 +391,6 @@ const CaseSubmit = () => {
             ? formData.urgentDeliveryDate
             : null,
         aligner_material: formData.alignerMaterial?.trim() || null,
-        //printing_method: formData.printingMethod?.trim() || null,
         upload_method: formData.uploadMethod,
         upper_jaw_scan_url: upperJawScanPath,
         lower_jaw_scan_url: lowerJawScanPath,
@@ -362,6 +410,8 @@ const CaseSubmit = () => {
         molar_left_class: formData.molarLeftClass?.trim() || null,
         treatment_arch: formData.treatmentArch?.trim() || null,
         status: 'submitted',
+        created_by_admin: true, // Flag to indicate admin created this case
+        admin_id: currentUser.id, // Store admin ID who created the case
       };
 
       const { error: insertError } = await supabase
@@ -373,8 +423,8 @@ const CaseSubmit = () => {
         throw insertError;
       }
 
-      setSuccessMessage('Case submitted successfully!');
-      navigate('/app/cases');
+      setSuccessMessage('Case submitted successfully for the selected doctor!');
+      navigate('/admin/cases');
     } catch (error) {
       console.error('Comprehensive submit error:', error);
       setError(error.message || 'An unexpected error occurred');
@@ -394,14 +444,14 @@ const CaseSubmit = () => {
     <>
       <div className="flex w-full flex-col items-start gap-2">
         <Breadcrumbs>
-          <Link to="/app/cases">
+          <Link to="/admin/cases">
             <Breadcrumbs.Item>Cases</Breadcrumbs.Item>
           </Link>
           <Breadcrumbs.Divider />
           <Breadcrumbs.Item active={true}>New Case</Breadcrumbs.Item>
         </Breadcrumbs>
         <span className="text-heading-2 font-heading-2 text-default-font">
-          Submit New Case
+          Submit New Case (Admin)
         </span>
       </div>
       <form
@@ -409,11 +459,116 @@ const CaseSubmit = () => {
         className="flex w-full flex-col items-start gap-6"
       >
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          {/* Doctor Selection */}
+          {/*
+
+          <div className="w-full">
+            <div className="relative">
+              <TextField
+                className="h-auto w-full flex-none"
+                label="Select Doctor"
+                helpText="Search and select the doctor for this case"
+              >
+                <TextField.Input
+                  placeholder="Search by doctor name or email..."
+                  type="text"
+                  value={userSearchQuery}
+                  onChange={handleUserSearch}
+                  onFocus={() => setShowUserDropdown(true)}
+                  required
+                />
+              </TextField>
+
+              {showUserDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        onClick={() => handleUserSelect(user)}
+                      >
+                        <div className="font-medium">{user.full_name}</div>
+                        <div className="text-gray-500">{user.email}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-sm text-gray-500">
+                      No doctors found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+*/}
+
+          <div className="w-full">
+            <div className="relative" ref={dropdownRef}>
+              <TextField
+                className="h-auto w-full flex-none"
+                label="Select Doctor"
+                helpText="Search and select the doctor for this case"
+              >
+                <div className="relative w-full">
+                  <TextField.Input
+                    placeholder="Search by doctor name or email..."
+                    type="text"
+                    value={userSearchQuery}
+                    onChange={handleUserSearch}
+                    onFocus={() => setShowUserDropdown(true)}
+                    required
+                    className="pr-8" // space for icon
+                  />
+
+                  {/* Clear button */}
+                  {userSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserSearchQuery('');
+                        setShowUserDropdown(false);
+                      }}
+                      className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      <FeatherEraser />
+                    </button>
+                  )}
+                </div>
+              </TextField>
+
+              {/* Dropdown */}
+              {showUserDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        onClick={() => handleUserSelect(user)}
+                      >
+                        <div className="font-medium">{user.full_name}</div>
+                        <div className="text-gray-500">{user.email}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-sm text-gray-500">
+                      No doctors found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Patient information */}
+
           <div className="flex w-full items-start gap-4">
             <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
               <TextField
                 className="h-auto w-full flex-none"
-                label="First Name"
+                label="Patient First Name"
                 helpText=""
               >
                 <TextField.Input
@@ -430,7 +585,7 @@ const CaseSubmit = () => {
             <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
               <TextField
                 className="h-auto w-full flex-none"
-                label="Last Name"
+                label="Patient Last Name"
                 helpText=""
               >
                 <TextField.Input
@@ -518,9 +673,7 @@ const CaseSubmit = () => {
                 label="Preferred Aligner Material"
                 name="alignerMaterial"
                 options={alignerMaterials.map((mat) => ({
-                  //label: `${mat.name} (${mat.price}$/aligner).`,
                   label: `${mat.name}.`,
-
                   value: mat.name,
                 }))}
                 selectedValue={formData.alignerMaterial}
@@ -528,26 +681,6 @@ const CaseSubmit = () => {
               />
             </div>
           </div>
-
-          {/*Printing Method Selection*/}
-          {/*
-          <div className="flex w-full items-start gap-4">
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-              <RadioGroup
-                label="Preferred Printing Method"
-                name="printingMethod"
-                options={methods.map((m) => ({
-                  label: `${m.name} (${
-                    m.price ? `$${m.price}/model` : 'No price'
-                  }).`,
-                  value: m.name,
-                }))}
-                selectedValue={formData.printingMethod}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-*/}
         </div>
 
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
@@ -749,14 +882,19 @@ const CaseSubmit = () => {
 
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
-            Required Scans
+            Scan Files (Optional)
           </span>
+
+          <Alert
+            title="Admin Note"
+            description="File uploads are optional when submitting cases as an admin. You can submit the case without any files and add them later if needed."
+          />
 
           {/* Upload Method Selection */}
           <div className="w-full border-b border-neutral-border pb-4">
             <fieldset className="flex flex-col gap-3">
               <legend className="text-body-bold font-body-bold text-default-font mb-3">
-                Choose Upload Method
+                Choose Upload Method (Optional)
               </legend>
               <label className="flex items-center gap-3 cursor-pointer text-body font-body text-default-font">
                 <input
@@ -789,7 +927,7 @@ const CaseSubmit = () => {
             <>
               <Alert
                 title="Individual Files"
-                description="Please upload each scan file separately. Ensure all scan files are in STL, OBJ, or PLY format."
+                description="Upload each scan file separately if available. All files are optional for admin submissions."
               />
 
               <div>
@@ -797,7 +935,7 @@ const CaseSubmit = () => {
                   htmlFor="upperJawScan"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Upper Jaw Scan <span className="text-red-500">*</span>
+                  Upper Jaw Scan (Optional)
                 </label>
                 <input
                   type="file"
@@ -805,7 +943,6 @@ const CaseSubmit = () => {
                   name="upperJawScan"
                   accept=".stl,.obj,.ply"
                   onChange={handleChange}
-                  required={formData.uploadMethod === 'individual'}
                   className="mt-1 block w-full text-sm text-gray-500
                   file:mr-4 file:rounded-md file:border-0
                   file:text-sm file:font-medium
@@ -819,7 +956,7 @@ const CaseSubmit = () => {
                   htmlFor="lowerJawScan"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Lower Jaw Scan <span className="text-red-500">*</span>
+                  Lower Jaw Scan (Optional)
                 </label>
                 <input
                   type="file"
@@ -827,7 +964,6 @@ const CaseSubmit = () => {
                   name="lowerJawScan"
                   accept=".stl,.obj,.ply"
                   onChange={handleChange}
-                  required={formData.uploadMethod === 'individual'}
                   className="mt-1 block w-full text-sm text-gray-500
                   file:mr-4 file:rounded-md file:border-0
                   file:text-sm file:font-medium
@@ -841,7 +977,7 @@ const CaseSubmit = () => {
                   htmlFor="biteScan"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Bite Scan <span className="text-red-500">*</span>
+                  Bite Scan (Optional)
                 </label>
                 <input
                   type="file"
@@ -849,7 +985,6 @@ const CaseSubmit = () => {
                   name="biteScan"
                   accept=".stl,.obj,.ply"
                   onChange={handleChange}
-                  required={formData.uploadMethod === 'individual'}
                   className="mt-1 block w-full text-sm text-gray-500
                   file:mr-4 file:rounded-md file:border-0
                   file:text-sm file:font-medium
@@ -863,8 +998,8 @@ const CaseSubmit = () => {
           {formData.uploadMethod === 'compressed' && (
             <>
               <Alert
-                title="Compressed Archive Requirements"
-                description="Upload a single ZIP or RAR file containing all three required scans: Upper Jaw, Lower Jaw, and Bite scans. Please name your files clearly (e.g., upper_jaw.stl, lower_jaw.stl, bite.stl) for easy identification."
+                title="Compressed Archive"
+                description="Upload a single ZIP or RAR file containing scan files if available. This is optional for admin submissions."
               />
 
               <div>
@@ -872,8 +1007,7 @@ const CaseSubmit = () => {
                   htmlFor="compressedScans"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Compressed Scan Archive{' '}
-                  <span className="text-red-500">*</span>
+                  Compressed Scan Archive (Optional)
                 </label>
                 <input
                   type="file"
@@ -881,21 +1015,12 @@ const CaseSubmit = () => {
                   name="compressedScans"
                   accept=".zip,.rar,.7z"
                   onChange={handleChange}
-                  required={formData.uploadMethod === 'compressed'}
                   className="mt-1 block w-full text-sm text-gray-500
                   file:mr-4 file:rounded-md file:border-0
                   file:text-sm file:font-medium
                   file:bg-sky-50 file:text-sky-700
                   hover:file:bg-sky-100"
                 />
-                {/*<div className="mt-2 text-sm text-gray-600">
-                  <strong>File naming suggestions:</strong>
-                  <ul className="list-disc list-inside mt-1 ml-2">
-                    <li>upper_jaw.stl or upper.stl</li>
-                    <li>lower_jaw.stl or lower.stl</li>
-                    <li>bite.stl or bite_scan.stl</li>
-                  </ul>
-                </div>*/}
               </div>
             </>
           )}
@@ -949,4 +1074,4 @@ const CaseSubmit = () => {
   );
 };
 
-export default CaseSubmit;
+export default AdminCaseSubmit;

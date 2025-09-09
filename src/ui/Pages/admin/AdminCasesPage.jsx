@@ -25,6 +25,7 @@ import {
   capitalizeFirstSafe,
 } from '../../../helper/formatText';
 import { Avatar } from '../../components/Avatar';
+import AdminHeadline from '../../components/AdminHeadline';
 
 const CASES_PER_PAGE = 10;
 
@@ -360,7 +361,7 @@ const AdminCasesPage = () => {
   return (
     <>
       {error && <Error error={error} />}
-      <Headline>All Cases</Headline>
+      <AdminHeadline>All Cases</AdminHeadline>
 
       <div className="flex w-full justify-between items-center gap-4">
         {/* Left Side: Search + Filters */}

@@ -38,6 +38,7 @@ const Tooth = ({
           width: '48px',
           height: '72px',
           alignItems: isUpperJaw ? 'flex-end' : 'flex-start', // Align to bottom for upper, top for lower
+          marginBottom: isUpperJaw ? '10px' : 0, // This is because i've designed the svgs with different allignment depending on the jaws
         }}
       >
         <svg

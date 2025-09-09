@@ -8,7 +8,7 @@ export default function AdminHeadline({ children }) {
       <span className="text-heading-1 font-heading-1 text-default-font">
         {children}
       </span>
-      <Link to="/app/cases/new" className="hidden">
+      <Link to="/admin/cases/new">
         <Button size="large" icon={<FeatherPlus />}>
           Submit New Case
         </Button>

@@ -37,6 +37,7 @@ import AdminDoctorDetailsPage from './ui/Pages/admin/AdminDoctorDetailsPage';
 import { adminDoctorsLoader } from './ui/loaders/adminDoctorsLoader';
 import { adminDoctorDetailsLoader } from './ui/loaders/adminDoctorDetailsLoader';
 import AdminSettingsPage from './ui/Pages/admin/AdminSettingsPage';
+import AdminCaseSubmit from './ui/Pages/admin/AdminCaseSubmit';
 
 const router = createBrowserRouter([
   {
@@ -132,6 +133,10 @@ const router = createBrowserRouter([
       {
         element: <AdminCasesPage />,
         path: '/admin/cases',
+      },
+      {
+        element: <AdminCaseSubmit />,
+        path: '/admin/cases/new',
       },
       {
         path: '/admin/cases/:caseId',

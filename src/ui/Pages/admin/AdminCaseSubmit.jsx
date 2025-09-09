@@ -511,7 +511,7 @@ const AdminCaseSubmit = () => {
                 label="Select Doctor"
                 helpText="Search and select the doctor for this case"
               >
-                <div className="relative w-full">
+                <div className="relative w-full h-full">
                   <TextField.Input
                     placeholder="Search by doctor name or email..."
                     type="text"

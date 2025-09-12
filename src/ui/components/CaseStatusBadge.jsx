@@ -2,6 +2,7 @@ import { Badge } from './Badge';
 
 const statusDisplayText = {
   submitted: 'Submitted',
+  accepted: 'Accepted',
   under_review: 'Under Review',
   rejected: 'Rejected',
   awaiting_patient_approval: 'Awaiting Approval',

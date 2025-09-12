@@ -75,10 +75,16 @@ const AdminCasePage = () => {
   const [isDecliningCase, setIsDecliningCase] = useState(false);
 
   // Prices and fees
-  const [caseStudyFee, setCaseStudyFee] = useState('0.00');
+  const [caseStudyFee, setCaseStudyFee] = useState(
+    caseData?.case_study_fee?.toFixed(2) || '0.00'
+  );
   const [alignerUnitPrice, setAlignerUnitPrice] = useState(0); // just the unit price from DB
-  const [alignersPrice, setAlignersPrice] = useState('0.00');
-  const [deliveryCharges, setDeliveryCharges] = useState('25.00');
+  const [alignersPrice, setAlignersPrice] = useState(
+    caseData?.aligners_price?.toFixed(2) || '0.00'
+  );
+  const [deliveryCharges, setDeliveryCharges] = useState(
+    caseData?.delivery_charges?.toFixed(2) || '25.00'
+  );
 
   // Add undo decline state
   const [isUndoingDecline, setIsUndoingDecline] = useState(false);
@@ -131,17 +137,20 @@ const AdminCasePage = () => {
   /* Pricing Logic */
   useEffect(() => {
     const fetchDefaults = async () => {
-      // 1. Case Study Fee
-      const { data: feeData } = await supabase
-        .from('services')
-        .select('price')
-        .eq('type', 'acceptance_fee')
-        .eq('is_active', true)
-        .single();
+      // Only fetch defaults if no existing pricing data
+      if (!caseData?.case_study_fee) {
+        // 1. Case Study Fee
+        const { data: feeData } = await supabase
+          .from('services')
+          .select('price')
+          .eq('type', 'acceptance_fee')
+          .eq('is_active', true)
+          .single();
 
-      setCaseStudyFee(feeData?.price?.toFixed(2) || '0.00');
+        setCaseStudyFee(feeData?.price?.toFixed(2) || '0.00');
+      }
 
-      // 2. Aligner Material Price
+      // 2. Aligner Material Price (always fetch for calculation)
       const { data: materialData } = await supabase
         .from('services')
         .select('price')
@@ -154,14 +163,22 @@ const AdminCasePage = () => {
     };
 
     fetchDefaults();
-  }, [caseData?.aligner_material]);
+  }, [caseData?.aligner_material, caseData?.case_study_fee]);
 
   useEffect(() => {
-    const totalAligners =
-      parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
-    const totalPrice = totalAligners * alignerUnitPrice;
-    setAlignersPrice(totalPrice.toFixed(2));
-  }, [upperJawAligners, lowerJawAligners, alignerUnitPrice]);
+    // Only auto-calculate if no existing aligners price data
+    if (!caseData?.aligners_price) {
+      const totalAligners =
+        parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
+      const totalPrice = totalAligners * alignerUnitPrice;
+      setAlignersPrice(totalPrice.toFixed(2));
+    }
+  }, [
+    upperJawAligners,
+    lowerJawAligners,
+    alignerUnitPrice,
+    caseData?.aligners_price,
+  ]);
 
   /* Storage Logic */
 
@@ -294,11 +311,23 @@ const AdminCasePage = () => {
       toast.error('Please enter valid positive numbers for all fields');
       return;
     }
+
+    // Calculate total cost
+    const totalCost =
+      parseFloat(caseStudyFee || 0) +
+      parseFloat(alignersPrice || 0) +
+      parseFloat(deliveryCharges || 0);
+
     await updateCase({
       upper_jaw_aligners: u,
       lower_jaw_aligners: l,
       estimated_duration_months: d,
       status: 'awaiting_user_approval',
+      // Save pricing information to database
+      case_study_fee: parseFloat(caseStudyFee || 0),
+      aligners_price: parseFloat(alignersPrice || 0),
+      delivery_charges: parseFloat(deliveryCharges || 0),
+      total_cost: totalCost,
     });
     setIsEditingPlan(false);
     setEditBackup(null);

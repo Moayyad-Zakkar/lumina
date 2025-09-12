@@ -627,18 +627,35 @@ const CasePage = () => {
                 <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
                   <DataFieldHorizontal
                     icon={<FeatherDollarSign />}
-                    label="Base Price"
+                    label="Case Study Fee"
                   >
                     <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
-                      $—
+                      $
+                      {caseData.case_study_fee
+                        ? parseFloat(caseData.case_study_fee).toFixed(2)
+                        : '0'}
+                    </span>
+                  </DataFieldHorizontal>
+                  <DataFieldHorizontal
+                    icon={<FeatherGrid />}
+                    label="Aligners Price"
+                  >
+                    <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
+                      $
+                      {caseData.aligners_price
+                        ? parseFloat(caseData.aligners_price).toFixed(2)
+                        : '0'}
                     </span>
                   </DataFieldHorizontal>
                   <DataFieldHorizontal
                     icon={<FeatherPlusCircle />}
-                    label="Additional Charges"
+                    label="Delivery Charges"
                   >
                     <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
-                      $—
+                      $
+                      {caseData.delivery_charges
+                        ? parseFloat(caseData.delivery_charges).toFixed(2)
+                        : '0'}
                     </span>
                   </DataFieldHorizontal>
                   <DataFieldHorizontal
@@ -646,7 +663,10 @@ const CasePage = () => {
                     label="Total Cost"
                   >
                     <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
-                      $—
+                      $
+                      {caseData.total_cost
+                        ? parseFloat(caseData.total_cost).toFixed(2)
+                        : '0'}
                     </span>
                   </DataFieldHorizontal>
                 </div>

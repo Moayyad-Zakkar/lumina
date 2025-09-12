@@ -2,14 +2,25 @@
 import React, { useState } from 'react';
 import { toothPaths } from '../../assets/toothPaths';
 
-// Define tooth statuses with colors
+// Define tooth statuses with colors and descriptions
 const TOOTH_STATUSES = {
-  //movable: '#4CAF50', // green
-  //movable: '#0284c7', // blue
-  movable: '#00adef', // 3da blue
-  unmovable: '#F44336', // red
-  missing: '#9E9E9E', // gray
-  note: '#fa9600', // orange
+  movable: {
+    color: '#00adef', // 3da blue
+    description: 'Can be moved orthodontically',
+  },
+  unmovable: {
+    color: '#F44336', // red
+    description: 'Dental implant, bridge, or ankylosed teeth',
+  },
+  missing: {
+    color: '#9E9E9E', // gray
+    description: 'Missing or to be extracted',
+  },
+  note: {
+    color: '#fa9600', // orange
+    description:
+      'Please write a note about this tooth(s) in the notes field below',
+  },
 };
 
 // Reusable Tooth component
@@ -21,7 +32,7 @@ const Tooth = ({
   isUpperJaw,
   readOnly = false,
 }) => {
-  const color = TOOTH_STATUSES[status];
+  const color = TOOTH_STATUSES[status]?.color;
 
   return (
     <div
@@ -135,17 +146,24 @@ const DentalChart = ({ initialStatus = {}, onChange, readOnly = false }) => {
         })}
       </div>
 
-      {/* Legend */}
-      <div className="flex gap-4 mt-4 flex-wrap justify-center">
-        {Object.entries(TOOTH_STATUSES).map(([status, color]) => (
-          <div key={status} className="flex items-center gap-1">
-            <div
-              style={{ backgroundColor: color }}
-              className="w-5 h-5 border"
-            />
-            <span className="capitalize text-sm">{status}</span>
-          </div>
-        ))}
+      {/* Legend with descriptions */}
+      <div className="flex flex-col gap-3 mt-4 max-w-2xl">
+        {Object.entries(TOOTH_STATUSES).map(
+          ([status, { color, description }]) => (
+            <div key={status} className="flex items-center gap-3">
+              <div
+                style={{ backgroundColor: color }}
+                className="w-5 h-5 border flex-shrink-0"
+              />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <span className="capitalize font-medium text-sm">
+                  {status}:
+                </span>
+                <span className="text-sm text-gray-600">{description}</span>
+              </div>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

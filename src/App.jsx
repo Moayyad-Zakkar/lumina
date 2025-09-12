@@ -38,6 +38,7 @@ import { adminDoctorsLoader } from './ui/loaders/adminDoctorsLoader';
 import { adminDoctorDetailsLoader } from './ui/loaders/adminDoctorDetailsLoader';
 import AdminSettingsPage from './ui/Pages/admin/AdminSettingsPage';
 import AdminCaseSubmit from './ui/Pages/admin/AdminCaseSubmit';
+import AdminBillingPage from './ui/Pages/admin/AdminBillingPage';
 
 const router = createBrowserRouter([
   {
@@ -156,6 +157,10 @@ const router = createBrowserRouter([
       {
         path: '/admin/settings',
         element: <AdminSettingsPage />,
+      },
+      {
+        path: '/admin/billing',
+        element: <AdminBillingPage />,
       },
     ],
   },

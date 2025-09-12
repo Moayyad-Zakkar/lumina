@@ -11,32 +11,7 @@ import { useEffect } from 'react';
 import Error from '../components/Error';
 import SuccessMessage from '../components/SuccessMessage';
 import DentalChart from '../components/DentalChart';
-
-const RadioGroup = ({ label, name, options, selectedValue, onChange }) => {
-  return (
-    <fieldset className="flex flex-col gap-2">
-      <legend className="text-body-bold font-body-bold text-default-font mb-2">
-        {label}
-      </legend>
-      {options.map((option) => (
-        <label
-          key={option.value}
-          className="flex items-center gap-2 cursor-pointer text-body font-body text-default-font group-disabled/0f804ad9:text-subtext-color"
-        >
-          <input
-            type="radio"
-            name={name}
-            value={option.value}
-            checked={selectedValue === option.value}
-            onChange={onChange}
-            className="accent-blue-600"
-          />
-          {option.label}
-        </label>
-      ))}
-    </fieldset>
-  );
-};
+import RadioGroup from '../components/RadioGroup';
 
 const CaseSubmit = () => {
   const [alignerMaterials, setAlignerMaterials] = useState([]);
@@ -413,7 +388,7 @@ const CaseSubmit = () => {
             <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
               <TextField
                 className="h-auto w-full flex-none"
-                label="First Name"
+                label="First Name (required)"
                 helpText=""
               >
                 <TextField.Input
@@ -430,7 +405,7 @@ const CaseSubmit = () => {
             <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
               <TextField
                 className="h-auto w-full flex-none"
-                label="Last Name"
+                label="Last Name (required)"
                 helpText=""
               >
                 <TextField.Input

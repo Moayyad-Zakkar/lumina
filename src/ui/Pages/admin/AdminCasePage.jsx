@@ -34,6 +34,8 @@ import {
   FeatherFileText,
   FeatherEdit3,
   FeatherSave,
+  FeatherRotateCcw,
+  FeatherTruck,
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
@@ -42,6 +44,7 @@ import { Dialog } from '../../components/Dialog';
 import toast from 'react-hot-toast';
 import { downloadFile } from '../../../helper/storageUtils';
 import DentalChart from '../../components/DentalChart';
+import DeclineCaseDialog from '../../components/DeclineCaseDialog';
 
 const AdminCasePage = () => {
   const { caseData, error } = useLoaderData();
@@ -67,6 +70,18 @@ const AdminCasePage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const [downloadingFiles, setDownloadingFiles] = useState(false);
+
+  const [showDeclineDialog, setShowDeclineDialog] = useState(false);
+  const [isDecliningCase, setIsDecliningCase] = useState(false);
+
+  // Prices and fees
+  const [caseStudyFee, setCaseStudyFee] = useState('0.00');
+  const [alignerUnitPrice, setAlignerUnitPrice] = useState(0); // just the unit price from DB
+  const [alignersPrice, setAlignersPrice] = useState('0.00');
+  const [deliveryCharges, setDeliveryCharges] = useState('25.00');
+
+  // Add undo decline state
+  const [isUndoingDecline, setIsUndoingDecline] = useState(false);
 
   const isDisabled = useMemo(() => saving, [saving]);
 
@@ -113,6 +128,41 @@ const AdminCasePage = () => {
     }
   };
 
+  /* Pricing Logic */
+  useEffect(() => {
+    const fetchDefaults = async () => {
+      // 1. Case Study Fee
+      const { data: feeData } = await supabase
+        .from('services')
+        .select('price')
+        .eq('type', 'acceptance_fee')
+        .eq('is_active', true)
+        .single();
+
+      setCaseStudyFee(feeData?.price?.toFixed(2) || '0.00');
+
+      // 2. Aligner Material Price
+      const { data: materialData } = await supabase
+        .from('services')
+        .select('price')
+        .eq('type', 'aligners_material')
+        .eq('name', caseData?.aligner_material) // pass this prop or fetch once
+        .eq('is_active', true)
+        .single();
+
+      setAlignerUnitPrice(parseFloat(materialData?.price || 0));
+    };
+
+    fetchDefaults();
+  }, [caseData?.aligner_material]);
+
+  useEffect(() => {
+    const totalAligners =
+      parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
+    const totalPrice = totalAligners * alignerUnitPrice;
+    setAlignersPrice(totalPrice.toFixed(2));
+  }, [upperJawAligners, lowerJawAligners, alignerUnitPrice]);
+
   /* Storage Logic */
 
   const openSignedFromStoredUrl = async (storedUrl) => {
@@ -152,6 +202,13 @@ const AdminCasePage = () => {
 
   const alertContent = useMemo(() => {
     switch (currentStatus) {
+      case 'rejected':
+        return {
+          title: 'Case has been declined',
+          description:
+            'This case was declined and is no longer active. You can undo this action if needed.',
+          variant: 'destructive',
+        };
       case 'approved':
         return {
           title: 'Doctor approved the treatment plan',
@@ -218,10 +275,6 @@ const AdminCasePage = () => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleDecline = async () => {
-    await updateCase({ status: 'rejected' });
   };
 
   const handleSendForApproval = async () => {
@@ -374,18 +427,88 @@ const AdminCasePage = () => {
   };
 
   /*
-
-status = ANY (ARRAY['submitted'::text,
- 'under_review'::text,
-  'rejected'::text,
-   'awaiting_user_approval'::text,
-    'user_rejected'::text, 'approved'::text,
-     'in_production'::text, 'ready_for_delivery'::text,
-      'delivered'::text, 
-      'completed'::text])
-
-
+Decline Reason Dialog
 */
+
+  // Update your handleDecline function
+  const handleDecline = () => {
+    setShowDeclineDialog(true);
+  };
+
+  // Add this new function to handle the actual decline with reason
+  const handleConfirmDecline = async (reason) => {
+    setIsDecliningCase(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const { error: updateError } = await supabase
+        .from('cases')
+        .update({
+          status: 'rejected',
+          decline_reason: reason,
+          declined_at: new Date().toISOString(),
+          declined_by: user?.id,
+        })
+        .eq('id', caseData.id);
+
+      if (updateError) throw updateError;
+
+      setCurrentStatus('rejected');
+      // Update local case data to reflect the decline
+      caseData.decline_reason = reason;
+      caseData.declined_at = new Date().toISOString();
+      caseData.declined_by = user?.id;
+
+      setShowDeclineDialog(false);
+      setIsEditingPlan(false);
+      setEditBackup(null);
+      toast.success('Case declined successfully');
+    } catch (error) {
+      console.error('Error declining case:', error);
+      toast.error(error.message || 'Failed to decline case');
+    } finally {
+      setIsDecliningCase(false);
+    }
+  };
+
+  // Add this function to handle dialog close
+  const handleCloseDeclineDialog = () => {
+    setShowDeclineDialog(false);
+  };
+
+  // Add undo decline functionality
+  const handleUndoDecline = async () => {
+    setIsUndoingDecline(true);
+    try {
+      const { error: updateError } = await supabase
+        .from('cases')
+        .update({
+          status: 'submitted',
+          decline_reason: null,
+          declined_at: null,
+          declined_by: null,
+        })
+        .eq('id', caseData.id);
+
+      if (updateError) throw updateError;
+
+      setCurrentStatus('submitted');
+      setIsEditingPlan(true);
+      // Clear local decline data
+      caseData.decline_reason = null;
+      caseData.declined_at = null;
+      caseData.declined_by = null;
+
+      toast.success('Case decline has been undone');
+    } catch (error) {
+      console.error('Error undoing decline:', error);
+      toast.error(error.message || 'Failed to undo decline');
+    } finally {
+      setIsUndoingDecline(false);
+    }
+  };
 
   return (
     <>
@@ -421,6 +544,17 @@ status = ANY (ARRAY['submitted'::text,
                 </Link>
               </Button>
             )}
+            {/*
+            {currentStatus === 'rejected' && (
+              <Button
+                variant="brand-secondary"
+                icon={<FeatherRotateCcw />}
+                onClick={handleUndoDecline}
+                disabled={isUndoingDecline}
+              >
+                {isUndoingDecline ? 'Undoing...' : 'Undo Decline'}
+              </Button>
+            )}*/}
             <Button
               variant="neutral-secondary"
               icon={<FeatherDownload />}
@@ -466,13 +600,50 @@ status = ANY (ARRAY['submitted'::text,
         </Dialog>
       )}
 
-      <Alert
-        variant="brand"
-        icon={<FeatherBell />}
-        title={alertContent.title}
-        description={alertContent.description}
-        actions={null}
-      />
+      {/* Show decline reason alert for rejected cases */}
+      {currentStatus === 'rejected' && caseData.decline_reason && (
+        <Alert
+          variant="destructive"
+          icon={<FeatherAlertTriangle />}
+          title="Case Declined"
+          description={
+            <div className="space-y-2">
+              <p>
+                <strong>Reason:</strong> {caseData.decline_reason}
+              </p>
+              {caseData.declined_at && (
+                <p className="text-sm opacity-75">
+                  Declined on{' '}
+                  {new Date(caseData.declined_at).toLocaleDateString()} at{' '}
+                  {new Date(caseData.declined_at).toLocaleTimeString()}
+                </p>
+              )}
+            </div>
+          }
+          actions={
+            <Button
+              variant="destructive-secondary"
+              size="small"
+              icon={<FeatherRotateCcw />}
+              onClick={handleUndoDecline}
+              disabled={isUndoingDecline}
+            >
+              {isUndoingDecline ? 'Undoing...' : 'Undo Decline'}
+            </Button>
+          }
+        />
+      )}
+
+      {/* Standard status alert for non-rejected cases */}
+      {currentStatus !== 'rejected' && (
+        <Alert
+          variant={alertContent.variant || 'brand'}
+          icon={<FeatherBell />}
+          title={alertContent.title}
+          description={alertContent.description}
+          actions={null}
+        />
+      )}
 
       {actionError && <Error error={actionError} />}
       {actionSuccess && (
@@ -539,12 +710,12 @@ status = ANY (ARRAY['submitted'::text,
               >
                 <Badge>{caseData.aligner_material || 'Not specified'}</Badge>
               </DataFieldHorizontal>
-              <DataFieldHorizontal
+              {/*<DataFieldHorizontal
                 icon={<FeatherPrinter />}
                 label="Printing Method"
               >
                 <Badge>{caseData.printing_method || 'Not specified'}</Badge>
-              </DataFieldHorizontal>
+              </DataFieldHorizontal>*/}
               {caseData.refinement_reason && (
                 <DataFieldHorizontal
                   icon={<FeatherRefreshCw />}
@@ -602,6 +773,13 @@ status = ANY (ARRAY['submitted'::text,
               <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
                 {isEditingPlan ? (
                   <>
+                    <div className="flex items-center gap-2 text-caption-bold font-caption-bold text-default-font">
+                      Aligner Material:
+                      <Badge>
+                        {caseData.aligner_material} ({alignerUnitPrice}$)
+                      </Badge>
+                    </div>
+
                     <TextField label="Upper Jaw Aligners">
                       <TextField.Input
                         type="number"
@@ -645,7 +823,7 @@ status = ANY (ARRAY['submitted'::text,
                     </DataFieldHorizontal>
                     <DataFieldHorizontal
                       icon={<FeatherClock />}
-                      label="Estimated Duration (months)"
+                      label="Estimated Duration"
                     >
                       <span className="whitespace-nowrap text-body font-body text-default-font">
                         {estimatedDurationMonths || '—'} Months
@@ -655,27 +833,93 @@ status = ANY (ARRAY['submitted'::text,
                 )}
               </div>
               <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-                <DataFieldHorizontal
-                  icon={<FeatherDollarSign />}
-                  label="Base Price"
-                >
-                  <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
-                    $—
-                  </span>
-                </DataFieldHorizontal>
-                <DataFieldHorizontal
-                  icon={<FeatherPlusCircle />}
-                  label="Additional Charges"
-                >
-                  <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
-                    $—
-                  </span>
-                </DataFieldHorizontal>
-                <DataFieldHorizontal icon={<FeatherClock />} label="Total Cost">
-                  <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
-                    $—
-                  </span>
-                </DataFieldHorizontal>
+                {isEditingPlan ? (
+                  <>
+                    <TextField label="Case Study Fee">
+                      <TextField.Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={caseStudyFee}
+                        onChange={(e) => setCaseStudyFee(e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </TextField>
+                    <TextField label="Aligners Price">
+                      <TextField.Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={alignersPrice}
+                        onChange={(e) => setAlignersPrice(e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </TextField>
+                    <TextField label="Delivery Charges">
+                      <TextField.Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={deliveryCharges}
+                        onChange={(e) => setDeliveryCharges(e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </TextField>
+                    <DataFieldHorizontal
+                      icon={<FeatherDollarSign />}
+                      label="Total Cost"
+                    >
+                      <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
+                        $
+                        {(
+                          parseFloat(caseStudyFee || 0) +
+                          parseFloat(alignersPrice || 0) +
+                          parseFloat(deliveryCharges || 0)
+                        ).toFixed(2)}
+                      </span>
+                    </DataFieldHorizontal>
+                  </>
+                ) : (
+                  <>
+                    <DataFieldHorizontal
+                      icon={<FeatherFileText />}
+                      label="Case Study Fee"
+                    >
+                      <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
+                        ${parseFloat(caseStudyFee || 0).toFixed(2)}
+                      </span>
+                    </DataFieldHorizontal>
+                    <DataFieldHorizontal
+                      icon={<FeatherGrid />}
+                      label="Aligners Price"
+                    >
+                      <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
+                        ${parseFloat(alignersPrice || 0).toFixed(2)}
+                      </span>
+                    </DataFieldHorizontal>
+                    <DataFieldHorizontal
+                      icon={<FeatherTruck />}
+                      label="Delivery Charges"
+                    >
+                      <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
+                        ${parseFloat(deliveryCharges || 0).toFixed(2)}
+                      </span>
+                    </DataFieldHorizontal>
+                    <DataFieldHorizontal
+                      icon={<FeatherDollarSign />}
+                      label="Total Cost"
+                    >
+                      <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
+                        $
+                        {(
+                          parseFloat(caseStudyFee || 0) +
+                          parseFloat(alignersPrice || 0) +
+                          parseFloat(deliveryCharges || 0)
+                        ).toFixed(2)}
+                      </span>
+                    </DataFieldHorizontal>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
@@ -757,7 +1001,7 @@ status = ANY (ARRAY['submitted'::text,
                     </div>
                   ) : (
                     <div className="w-full bg-neutral-50 text-sm text-neutral-500 rounded-md p-3">
-                      No admin notes added yet.
+                      No lab notes added yet.
                     </div>
                   )}
                 </div>
@@ -768,18 +1012,20 @@ status = ANY (ARRAY['submitted'::text,
             <div className="flex w-full items-center justify-between">
               <span className="text-body font-body text-subtext-color">
                 {isEditingPlan
-                  ? 'After setting plan details, choose to decline or send to doctor for approval.'
+                  ? 'Choose to decline the case or set plan details and send to the doctor for approval.'
                   : currentStatus === 'awaiting_user_approval'
                   ? 'Plan details are awaiting doctor approval.'
                   : currentStatus === 'approved'
                   ? 'Plan approved by doctor. Proceed with manufacturing.'
+                  : currentStatus === 'rejected'
+                  ? 'Case has been declined and is inactive.'
                   : currentStatus === 'in_production'
                   ? 'Manufacturing in progress.'
                   : currentStatus === 'ready_for_delivery'
                   ? 'Ready for delivery to patient.'
                   : currentStatus === 'delivered'
                   ? 'Delivered to patient. Mark completed when treatment ends.'
-                  : '—'}
+                  : ''}
               </span>
               <div className="flex items-center gap-2">
                 {isEditingPlan ? (
@@ -807,7 +1053,7 @@ status = ANY (ARRAY['submitted'::text,
                       Send for Doctor Approval
                     </Button>
                   </>
-                ) : isPlanEditAllowed ? (
+                ) : isPlanEditAllowed && currentStatus !== 'rejected' ? (
                   <IconButton
                     icon={<FeatherEdit2 />}
                     onClick={handleStartEdit}
@@ -818,6 +1064,15 @@ status = ANY (ARRAY['submitted'::text,
             </div>
           </div>
         </div>
+
+        <DeclineCaseDialog
+          isOpen={showDeclineDialog}
+          onClose={handleCloseDeclineDialog}
+          onConfirm={handleConfirmDecline}
+          isLoading={isDecliningCase}
+        />
+
+        {/* Progress Update */}
 
         {(currentStatus === 'approved' ||
           currentStatus === 'in_production' ||
@@ -870,8 +1125,6 @@ status = ANY (ARRAY['submitted'::text,
             </div>
           </div>
         )}
-
-        {/*<AdminRefinementManager caseId={caseData.id} />*/}
 
         <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">

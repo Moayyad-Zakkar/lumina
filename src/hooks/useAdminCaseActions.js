@@ -121,9 +121,11 @@ export const useAdminCaseActions = (caseData) => {
 
   // Accept case
   const acceptCase = async () => {
+    const caseStudyFeeAmount = parseFloat(caseStudyFee || 0);
     await updateCase({
       status: 'accepted',
-      case_study_fee: parseFloat(caseStudyFee || 0),
+      case_study_fee: caseStudyFeeAmount,
+      total_cost: caseStudyFeeAmount, // Update total cost when case study fee is set
     });
     toast.success('Case accepted successfully');
   };
@@ -223,19 +225,21 @@ export const useAdminCaseActions = (caseData) => {
       return;
     }
 
+    // Calculate total cost by adding aligners price and delivery charges to existing case study fee
+    const existingCaseStudyFee = parseFloat(caseData?.case_study_fee || 0);
+    const newAlignersPrice = parseFloat(alignersPrice || 0);
+    const newDeliveryCharges = parseFloat(deliveryCharges || 0);
     const totalCost =
-      parseFloat(caseStudyFee || 0) +
-      parseFloat(alignersPrice || 0) +
-      parseFloat(deliveryCharges || 0);
+      existingCaseStudyFee + newAlignersPrice + newDeliveryCharges;
 
     await updateCase({
       upper_jaw_aligners: u,
       lower_jaw_aligners: l,
       estimated_duration_months: d,
       status: 'awaiting_user_approval',
-      case_study_fee: parseFloat(caseStudyFee || 0),
-      aligners_price: parseFloat(alignersPrice || 0),
-      delivery_charges: parseFloat(deliveryCharges || 0),
+      // Don't update case_study_fee here - it was already set during acceptance
+      aligners_price: newAlignersPrice,
+      delivery_charges: newDeliveryCharges,
       total_cost: totalCost,
     });
     setIsEditingPlan(false);

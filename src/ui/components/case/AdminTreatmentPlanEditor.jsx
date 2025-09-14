@@ -26,7 +26,6 @@ const AdminTreatmentPlanEditor = ({
   estimatedDurationMonths,
   setEstimatedDurationMonths,
   caseStudyFee,
-  setCaseStudyFee,
   alignersPrice,
   setAlignersPrice,
   deliveryCharges,
@@ -128,14 +127,14 @@ const AdminTreatmentPlanEditor = ({
           <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
             {isEditingPlan ? (
               <>
-                <TextField label="Case Study Fee">
+                <TextField label="Case Study Fee" disabled>
                   <TextField.Input
                     type="number"
                     min={0}
                     step="0.01"
                     value={caseStudyFee}
-                    onChange={(e) => setCaseStudyFee(e.target.value)}
                     placeholder="0.00"
+                    disabled
                   />
                 </TextField>
                 <TextField label="Aligners Price">

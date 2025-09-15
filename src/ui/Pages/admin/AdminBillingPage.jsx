@@ -570,9 +570,9 @@ function AdminBillingPage() {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 w-full">
               {/* Doctor Selection */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 w-auto">
                 <label className="text-body-bold font-body-bold text-default-font">
                   Doctor *
                 </label>
@@ -724,7 +724,7 @@ function AdminBillingPage() {
             </div>
 
             {/* Dialog Actions */}
-            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-neutral-border">
+            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-neutral-border w-full">
               <Button
                 variant="neutral-secondary"
                 onClick={handleClosePaymentDialog}

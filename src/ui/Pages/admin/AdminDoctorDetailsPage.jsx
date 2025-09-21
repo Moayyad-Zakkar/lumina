@@ -152,6 +152,7 @@ export default function AdminDoctorDetailsPage() {
     () =>
       new Set([
         'submitted',
+        'accepted',
         'under_review',
         'awaiting_patient_approval',
         'awaiting_user_approval',

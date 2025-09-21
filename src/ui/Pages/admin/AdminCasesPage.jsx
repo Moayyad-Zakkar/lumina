@@ -361,7 +361,7 @@ const AdminCasesPage = () => {
   return (
     <>
       {error && <Error error={error} />}
-      <AdminHeadline>All Cases</AdminHeadline>
+      <AdminHeadline submit={true}>All Cases</AdminHeadline>
 
       <div className="flex w-full justify-between items-center gap-4">
         {/* Left Side: Search + Filters */}

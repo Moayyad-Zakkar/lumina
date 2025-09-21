@@ -21,7 +21,7 @@ function AdminDashboard() {
 
   return (
     <>
-      <AdminHeadline>Dashboard</AdminHeadline>
+      <AdminHeadline submit={true}>Dashboard</AdminHeadline>
       <div className="flex w-full flex-wrap items-start gap-4">
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">

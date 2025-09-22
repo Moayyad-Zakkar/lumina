@@ -10,7 +10,7 @@ const calculateCasePaymentInfo = (case_, allPayments = []) => {
   if (totalCost <= 0) {
     return {
       remainingAmount: 0,
-      status: 'not_applicable',
+      paymentStatus: 'not_applicable',
       totalPaid: 0,
       paymentPercentage: 0,
     };
@@ -27,18 +27,18 @@ const calculateCasePaymentInfo = (case_, allPayments = []) => {
   const remainingAmount = Math.max(0, totalCost - totalPaid);
   const paymentPercentage = totalCost > 0 ? (totalPaid / totalCost) * 100 : 0;
 
-  let status;
+  let paymentStatus;
   if (remainingAmount === 0 && totalPaid > 0) {
-    status = 'paid';
+    paymentStatus = 'paid';
   } else if (totalPaid > 0) {
-    status = 'partially_paid';
+    paymentStatus = 'partially_paid';
   } else {
-    status = 'unpaid';
+    paymentStatus = 'unpaid';
   }
 
   return {
     remainingAmount,
-    status,
+    paymentStatus,
     totalPaid,
     paymentPercentage: Math.round(paymentPercentage * 100) / 100,
   };
@@ -112,7 +112,7 @@ export const useBillingData = () => {
           );
           return {
             ...case_,
-            ...paymentInfo, // This adds remainingAmount, status, totalPaid, paymentPercentage
+            ...paymentInfo, // This adds remainingAmount, paymentStatus, totalPaid, paymentPercentage
           };
         });
 
@@ -140,7 +140,7 @@ export const useBillingData = () => {
           unpaidCasesCount: unpaidCases.length,
           totalDueAmount,
           lastPaymentDate,
-          status: totalDueAmount > 0 ? 'due' : 'current',
+          paymentStatus: totalDueAmount > 0 ? 'due' : 'current',
         };
       });
 

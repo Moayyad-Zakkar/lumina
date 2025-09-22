@@ -6,6 +6,8 @@ import { Loader } from '../../components/Loader';
 import { TextField } from '../../components/TextField';
 import { Avatar } from '../../components/Avatar';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
+import BillingStats from '../../components/billing/BillingStats';
+import { useBillingData } from '../../../hooks/useBillingData';
 
 function AdminDashboard() {
   const {
@@ -15,6 +17,9 @@ function AdminDashboard() {
     submittedCases,
     completedCases,
   } = useLoaderData();
+
+  const { totalEarnings, totalDue, totalExpenses } = useBillingData();
+
   const navigation = useNavigation();
   const navigate = useNavigate();
   const isLoading = navigation.state === 'loading';
@@ -145,6 +150,16 @@ function AdminDashboard() {
           )}
         </Table>
       </div>
+
+      <BillingStats
+        totalEarnings={totalEarnings}
+        totalDue={totalDue}
+        totalExpenses={totalExpenses}
+        withButtons={false}
+        // onReceivePayment={handleReceivePayment}
+        // onMakePayment={handleMakePayment}
+      />
+      {/*
       <div className="flex w-full flex-col items-start gap-4">
         <span className="text-heading-2 font-heading-2 text-default-font">
           Payment Overview
@@ -175,7 +190,7 @@ function AdminDashboard() {
             </span>
           </div>
         </div>
-      </div>
+      </div>*/}
     </>
   );
 }

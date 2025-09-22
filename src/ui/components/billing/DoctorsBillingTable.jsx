@@ -51,7 +51,7 @@ const DoctorRow = ({ doctor, onCollectPayment }) => (
       <DueAmount amount={doctor.totalDueAmount} />
     </Table.Cell>
     <Table.Cell>
-      <StatusBadge status={doctor.status} />
+      <StatusBadge paymentStatus={doctor.paymentStatus} />
     </Table.Cell>
     <Table.Cell>
       <LastPaymentDate date={doctor.lastPaymentDate} />
@@ -108,9 +108,9 @@ const DueAmount = ({ amount }) => (
   </span>
 );
 
-const StatusBadge = ({ status }) => (
-  <Badge variant={status === 'due' ? 'error' : 'success'}>
-    {status === 'due' ? 'Due' : 'Current'}
+const StatusBadge = ({ paymentStatus }) => (
+  <Badge variant={paymentStatus === 'due' ? 'error' : 'success'}>
+    {paymentStatus === 'due' ? 'Due' : 'Current'}
   </Badge>
 );
 

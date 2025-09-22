@@ -283,8 +283,8 @@ const statusDisplayText = {
 };
 
 // Enhanced payment status badges
-const PaymentStatusBadge = ({ status, paymentPercentage }) => {
-  const statusConfig = {
+const PaymentStatusBadge = ({ paymentStatus, paymentPercentage }) => {
+  const paymentStatusConfig = {
     unpaid: {
       color: 'text-red-600 bg-red-50 border-red-200',
       text: 'Unpaid',
@@ -303,7 +303,8 @@ const PaymentStatusBadge = ({ status, paymentPercentage }) => {
     },
   };
 
-  const config = statusConfig[status] || statusConfig.unpaid;
+  const config =
+    paymentStatusConfig[paymentStatus] || paymentStatusConfig.unpaid;
 
   return (
     <span
@@ -348,48 +349,51 @@ const CasesList = ({
   );
 };
 
-const CaseItem = ({ case_, isSelected, onSelectionChange }) => (
-  <div className="flex items-center gap-3 p-3 border-b border-neutral-border last:border-b-0 hover:bg-neutral-50">
-    <input
-      type="checkbox"
-      id={`case-${case_.id}`}
-      checked={isSelected}
-      onChange={(e) => onSelectionChange(case_.id, e.target.checked)}
-      className="w-4 h-4 text-brand-600 border-neutral-border rounded focus:ring-brand-500"
-    />
-    <div className="flex-1">
-      <div className="flex items-center justify-between mb-1">
-        <label
-          htmlFor={`case-${case_.id}`}
-          className="text-body font-body text-default-font cursor-pointer"
-        >
-          Case #{case_.id} - {case_.first_name} {case_.last_name}
-        </label>
-        <div className="flex items-center gap-2">
-          <PaymentStatusBadge
-            status={case_.status}
-            paymentPercentage={case_.paymentPercentage || 0}
-          />
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="text-caption font-caption text-subtext-color">
-          Status: {statusDisplayText[case_.status]} | Created:{' '}
-          {new Date(case_.created_at).toLocaleDateString()}
-        </div>
-        <div className="text-right">
-          <div className="text-body-bold font-body-bold text-default-font">
-            ${case_.remainingAmount.toFixed(2)} remaining
+const CaseItem = ({ case_, isSelected, onSelectionChange }) => {
+  console.log(case_.status);
+  return (
+    <div className="flex items-center gap-3 p-3 border-b border-neutral-border last:border-b-0 hover:bg-neutral-50">
+      <input
+        type="checkbox"
+        id={`case-${case_.id}`}
+        checked={isSelected}
+        onChange={(e) => onSelectionChange(case_.id, e.target.checked)}
+        className="w-4 h-4 text-brand-600 border-neutral-border rounded focus:ring-brand-500"
+      />
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <label
+            htmlFor={`case-${case_.id}`}
+            className="text-body font-body text-default-font cursor-pointer"
+          >
+            Case #{case_.id} - {case_.first_name} {case_.last_name}
+          </label>
+          <div className="flex items-center gap-2">
+            <PaymentStatusBadge
+              paymentStatus={case_.paymentStatus}
+              paymentPercentage={case_.paymentPercentage || 0}
+            />
           </div>
-          <div className="text-caption font-caption text-neutral-500">
-            ${case_.totalPaid?.toFixed(2) || '0.00'} paid of $
-            {parseFloat(case_.total_cost || 0).toFixed(2)}
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="text-caption font-caption text-subtext-color">
+            Status: {statusDisplayText[case_.status]} | Created:{' '}
+            {new Date(case_.created_at).toLocaleDateString()}
+          </div>
+          <div className="text-right">
+            <div className="text-body-bold font-body-bold text-default-font">
+              ${case_.remainingAmount.toFixed(2)} remaining
+            </div>
+            <div className="text-caption font-caption text-neutral-500">
+              ${case_.totalPaid?.toFixed(2) || '0.00'} paid of $
+              {parseFloat(case_.total_cost || 0).toFixed(2)}
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const PaymentSummary = ({
   calculateSelectedCasesTotal,

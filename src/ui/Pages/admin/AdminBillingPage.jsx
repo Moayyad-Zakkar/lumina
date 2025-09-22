@@ -106,8 +106,10 @@ function AdminBillingPage() {
 }
 
 const PageHeader = () => (
-  <div className="flex w-full flex-wrap items-center gap-2">
-    <AdminHeadline submit={false}>Billing Management</AdminHeadline>
+  <div className="flex w-full flex-wrap items-center justify-between gap-2">
+    <div className="w-auto">
+      <AdminHeadline submit={false}>Billing Management</AdminHeadline>
+    </div>
     {/*
     <span className="grow shrink-0 basis-0 text-heading-2 font-heading-2 text-default-font">
       Billing Management

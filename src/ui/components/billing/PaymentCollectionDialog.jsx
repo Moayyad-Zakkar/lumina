@@ -188,7 +188,7 @@ const DoctorSelection = ({ doctors, selectedDoctor, onDoctorChange }) => (
 const PaymentAmountInput = ({ paymentAmount, setPaymentAmount }) => (
   <div className="flex flex-col gap-2">
     <label className="text-body-bold font-body-bold text-default-font">
-      Payment Amount *
+      Payment Amount (USD) *
     </label>
     <TextField>
       <TextField.Input
@@ -350,7 +350,6 @@ const CasesList = ({
 };
 
 const CaseItem = ({ case_, isSelected, onSelectionChange }) => {
-  console.log(case_.status);
   return (
     <div className="flex items-center gap-3 p-3 border-b border-neutral-border last:border-b-0 hover:bg-neutral-50">
       <input

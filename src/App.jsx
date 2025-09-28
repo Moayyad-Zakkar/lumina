@@ -41,6 +41,7 @@ import AdminCaseSubmit from './ui/Pages/admin/AdminCaseSubmit';
 import AdminBillingPage from './ui/Pages/admin/AdminBillingPage';
 import CasePageRefactored from './ui/Pages/CasePageRefactored';
 import CaseSubmitRefactored from './ui/Pages/CaseSubmitRefactored';
+import DoctorBillingPage from './ui/Pages/DoctorBillingPage';
 import AdminCasePageRefactored from './ui/Pages/admin/AdminCasePageRefactored';
 
 const router = createBrowserRouter([
@@ -108,6 +109,10 @@ const router = createBrowserRouter([
       {
         element: <CaseSubmitRefactored />,
         path: '/app/cases/new',
+      },
+      {
+        element: <DoctorBillingPage />,
+        path: '/app/billing',
       },
       {
         path: '/app/profile',

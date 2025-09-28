@@ -296,7 +296,8 @@ const CasePageRefactored = () => {
           handleFileDownload={downloadSingleFile}
         />
 
-        <div className="flex w-full items-center justify-end">
+        {/* Abort Button */
+        /*<div className="flex w-full items-center justify-end">
           {(status === 'approved' || status === 'in_production') && (
             <Button
               variant="destructive-primary"
@@ -308,7 +309,7 @@ const CasePageRefactored = () => {
               Request Abortion
             </Button>
           )}
-        </div>
+        </div>*/}
 
         {/* Refinement Section */}
         <RefinementSection caseData={caseData} />
@@ -317,7 +318,8 @@ const CasePageRefactored = () => {
         <RefinementHistory caseData={caseData} />
       </div>
 
-      {isAbortDialogOpen && (
+      {/*
+      isAbortDialogOpen && (
         <Dialog open={isAbortDialogOpen} onOpenChange={setIsAbortDialogOpen}>
           <Dialog.Content className="p-6 max-w-[480px]">
             <div className="flex items-start gap-3">
@@ -351,7 +353,8 @@ const CasePageRefactored = () => {
             </div>
           </Dialog.Content>
         </Dialog>
-      )}
+      )
+      */}
     </>
   );
 };

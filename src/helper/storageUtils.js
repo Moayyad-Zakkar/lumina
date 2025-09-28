@@ -182,21 +182,3 @@ export const isAllowedFileType = (filename) => {
   const extension = getFileExtension(filename);
   return allowedExtensions.includes(extension);
 };
-
-// REMOVED: verifyStorageBucket, initializeStorage, and other unnecessary functions
-// You don't need to "initialize" storage - it's always ready!
-
-/* 
-OLD APPROACH (unnecessary complexity):
-1. App starts
-2. Call initializeStorage() 
-3. Check if bucket exists
-4. Show "Storage initialized" message
-5. User clicks download button
-6. Download file
-
-NEW APPROACH (simple):
-1. User clicks download button  
-2. Download file
-That's it!
-*/

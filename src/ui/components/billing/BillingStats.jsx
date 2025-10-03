@@ -34,9 +34,7 @@ const BillingStats = ({
 const EarningsCard = ({ totalEarnings }) => (
   <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
     <div className="flex w-full flex-col items-start gap-2">
-      <span className="text-body font-body text-subtext-color">
-        Total Earnings
-      </span>
+      <span className="text-body font-body text-subtext-color">Net Income</span>
       <div className="flex items-end gap-2">
         <span className="text-heading-1 font-heading-1 text-success-600">
           $

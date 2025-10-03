@@ -105,12 +105,14 @@ const CasePageRefactored = () => {
   };
 
   const declinePlan = async () => {
+    const CaseStudyFee = parseFloat(caseData?.case_study_fee || 0);
+
     try {
       setSaving(true);
       setActionError(null);
       const { error: updateError } = await supabase
         .from('cases')
-        .update({ status: 'user_rejected' })
+        .update({ status: 'user_rejected', total_cost: CaseStudyFee })
         .eq('id', caseData.id);
       if (updateError) throw updateError;
       setStatus('user_rejected');

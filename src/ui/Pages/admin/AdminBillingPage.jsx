@@ -11,6 +11,7 @@ import ExpensesDialog from '../../components/billing/ExpensesDialog';
 import BillingStats from '../../components/billing/BillingStats';
 import { useBillingData } from '../../../hooks/useBillingData';
 import AdminHeadline from '../../components/AdminHeadline';
+import { Link } from 'react-router';
 
 function AdminBillingPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -105,26 +106,29 @@ function AdminBillingPage() {
   );
 }
 
-const PageHeader = () => (
-  <div className="flex w-full flex-wrap items-center justify-between gap-2">
-    <div className="w-auto">
-      <AdminHeadline submit={false}>Billing Management</AdminHeadline>
-    </div>
-    {/*
+const PageHeader = () => {
+  return (
+    <div className="flex w-full flex-wrap items-center justify-between gap-2">
+      <div className="w-auto">
+        <AdminHeadline submit={false}>Billing Management</AdminHeadline>
+      </div>
+      {/*
     <span className="grow shrink-0 basis-0 text-heading-2 font-heading-2 text-default-font">
       Billing Management
     </span>
     */}
-
-    <Button
-      variant="neutral-secondary"
-      icon={<FeatherLogs />}
-      className="w-auto"
-    >
-      Transaction Log
-    </Button>
-  </div>
-);
+      <Link to="/admin/billing/log">
+        <Button
+          variant="neutral-secondary"
+          icon={<FeatherLogs />}
+          className="w-auto"
+        >
+          Transaction Log
+        </Button>
+      </Link>
+    </div>
+  );
+};
 
 const DoctorsSection = ({
   searchTerm,

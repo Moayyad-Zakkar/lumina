@@ -31,7 +31,7 @@ export const useAdminCaseActions = (caseData) => {
     caseData?.estimated_duration_months ?? ''
   );
   const [isEditingPlan, setIsEditingPlan] = useState(
-    caseData?.status === 'submitted'
+    caseData?.status === 'submitted' || 'accepted'
   );
   const [editBackup, setEditBackup] = useState(null);
 
@@ -130,7 +130,7 @@ export const useAdminCaseActions = (caseData) => {
     toast.success('Case accepted successfully');
   };
 
-  // Reject case
+  // Reject case by admin
   const handleDecline = () => {
     setShowDeclineDialog(true);
   };
@@ -149,6 +149,8 @@ export const useAdminCaseActions = (caseData) => {
           decline_reason: reason,
           declined_at: new Date().toISOString(),
           declined_by: user?.id,
+          case_study_fee: 0,
+          total_cost: 0,
         })
         .eq('id', caseData.id);
 
@@ -226,7 +228,7 @@ export const useAdminCaseActions = (caseData) => {
     }
 
     // Calculate total cost by adding aligners price and delivery charges to existing case study fee
-    const existingCaseStudyFee = parseFloat(caseData?.case_study_fee || 0);
+    const existingCaseStudyFee = parseFloat(caseStudyFee || 0);
     const newAlignersPrice = parseFloat(alignersPrice || 0);
     const newDeliveryCharges = parseFloat(deliveryCharges || 0);
     const totalCost =

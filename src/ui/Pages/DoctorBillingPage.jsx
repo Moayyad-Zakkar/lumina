@@ -10,10 +10,11 @@ import DoctorBillingStats from '../components/billing/DoctorBillingStats';
 //import TransactionLogDialog from '../../components/billing/TransactionLogDialog';
 import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
 import Headline from '../components/Headline';
+import { Link } from 'react-router';
 
 function DoctorBillingPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showTransactionLog, setShowTransactionLog] = useState(false);
+  // const [showTransactionLog, setShowTransactionLog] = useState(false);
 
   const {
     cases,
@@ -34,7 +35,7 @@ function DoctorBillingPage() {
       case_item.case_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_item.treatment_type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  /*
   const handleShowTransactionLog = () => {
     setShowTransactionLog(true);
   };
@@ -42,6 +43,7 @@ function DoctorBillingPage() {
   const handleCloseTransactionLog = () => {
     setShowTransactionLog(false);
   };
+  */
 
   if (loading) {
     return <Loader />;
@@ -54,7 +56,7 @@ function DoctorBillingPage() {
   return (
     <>
       <div className="flex w-full flex-col items-start gap-6">
-        <PageHeader onShowTransactionLog={handleShowTransactionLog} />
+        <PageHeader />
         <DoctorBillingStats
           totalCases={totalCases}
           totalDue={totalDue}
@@ -81,20 +83,20 @@ function DoctorBillingPage() {
   );
 }
 
-const PageHeader = ({ onShowTransactionLog }) => (
+const PageHeader = () => (
   <div className="flex w-full flex-wrap items-center justify-between gap-2">
     <div className="w-auto">
       <Headline submit={false}>My Billing</Headline>
     </div>
-
-    <Button
-      variant="neutral-secondary"
-      icon={<FeatherLogs />}
-      className="w-auto"
-      onClick={onShowTransactionLog}
-    >
-      Transaction Log
-    </Button>
+    <Link to="/app/billing/log">
+      <Button
+        variant="neutral-secondary"
+        icon={<FeatherLogs />}
+        className="w-auto"
+      >
+        Payments History
+      </Button>
+    </Link>
   </div>
 );
 

@@ -43,6 +43,8 @@ import CasePageRefactored from './ui/Pages/CasePageRefactored';
 import CaseSubmitRefactored from './ui/Pages/CaseSubmitRefactored';
 import DoctorBillingPage from './ui/Pages/DoctorBillingPage';
 import AdminCasePageRefactored from './ui/Pages/admin/AdminCasePageRefactored';
+import AdminTransactionLogPage from './ui/Pages/admin/ِAdminTransactionLogPage';
+import DoctorTransactionLogPage from './ui/Pages/DoctorTransactionLogPage';
 
 const router = createBrowserRouter([
   {
@@ -115,6 +117,10 @@ const router = createBrowserRouter([
         path: '/app/billing',
       },
       {
+        element: <DoctorTransactionLogPage />,
+        path: '/app/billing/log',
+      },
+      {
         path: '/app/profile',
         element: <ProfilePage />,
       },
@@ -169,6 +175,10 @@ const router = createBrowserRouter([
       {
         path: '/admin/billing',
         element: <AdminBillingPage />,
+      },
+      {
+        path: '/admin/billing/log',
+        element: <AdminTransactionLogPage />,
       },
     ],
   },

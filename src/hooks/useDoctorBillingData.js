@@ -120,14 +120,18 @@ export const useDoctorBillingData = () => {
           ...case_,
           ...paymentInfo,
           // Format for table display
-          case_id: `CASE-${case_.id}`, // Generate case ID since it's not in schema
+          case_id: `CASE-${case_.id}`,
           patient_name:
             `${case_.first_name || ''} ${case_.last_name || ''}`.trim() ||
             'Unknown Patient',
           case_date: case_.created_at,
           amount: parseFloat(case_.total_cost || 0),
           treatment_type: `${case_.aligner_material || 'Standard'} - ${
-            case_.treatment_arch || 'Both'
+            case_.treatment_arch
+              ? case_.treatment_arch === 'both'
+                ? 'both arches'
+                : `${case_.treatment_arch} arch only`
+              : 'Both Arches'
           }`,
           payment_status:
             paymentInfo.paymentStatus === 'paid'

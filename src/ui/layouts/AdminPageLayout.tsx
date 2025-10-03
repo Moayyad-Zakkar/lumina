@@ -247,7 +247,10 @@ const DefaultPageLayoutRoot = React.forwardRef<
           </SidebarWithLargeItems.NavItem>
         </Link>
         <Link to="/admin/billing">
-          <SidebarWithLargeItems.NavItem icon={<FeatherBarChart2 />}>
+          <SidebarWithLargeItems.NavItem
+            selected={pathname.startsWith('/admin/billing')}
+            icon={<FeatherBarChart2 />}
+          >
             Billing
           </SidebarWithLargeItems.NavItem>
         </Link>

@@ -96,6 +96,7 @@ const CasePageRefactored = () => {
         .eq('id', caseData.id);
       if (updateError) throw updateError;
       setStatus('approved');
+      toast.success('Plan approved successfully');
     } catch (e) {
       setActionError(e.message || 'Failed to approve plan');
       toast.error(e.message || 'Failed to approve plan');
@@ -116,6 +117,7 @@ const CasePageRefactored = () => {
         .eq('id', caseData.id);
       if (updateError) throw updateError;
       setStatus('user_rejected');
+      toast.success('Plan declined successfully');
     } catch (e) {
       setActionError(e.message || 'Failed to decline plan');
       toast.error(e.message || 'Failed to decline plan');

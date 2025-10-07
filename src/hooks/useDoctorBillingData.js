@@ -112,13 +112,13 @@ export const useDoctorBillingData = () => {
         allPayments = allPaymentsData || [];
       }
 
-      // Process cases with payment info (similar to admin hook logic)
+      // Process cases with payment info (same logic as AdminDoctorDetailsPage)
       const casesWithPaymentInfo = (casesData || []).map((case_) => {
         const paymentInfo = calculateCasePaymentInfo(case_, allPayments);
 
         return {
           ...case_,
-          ...paymentInfo,
+          ...paymentInfo, // This adds: remainingAmount, paymentStatus, totalPaid, paymentPercentage
           // Format for table display
           case_id: `CASE-${case_.id}`,
           patient_name:
@@ -133,12 +133,6 @@ export const useDoctorBillingData = () => {
                 : `${case_.treatment_arch} arch only`
               : 'Both Arches'
           }`,
-          payment_status:
-            paymentInfo.paymentStatus === 'paid'
-              ? 'paid'
-              : paymentInfo.paymentStatus === 'partially_paid'
-              ? 'pending'
-              : 'due',
           // Additional case details
           aligners_count: `${case_.upper_jaw_aligners || 0}U / ${
             case_.lower_jaw_aligners || 0

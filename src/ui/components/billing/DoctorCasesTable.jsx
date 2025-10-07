@@ -59,7 +59,10 @@ const CaseRow = ({ case_item, navigate }) => (
       <CaseAmount amount={case_item.amount} />
     </Table.Cell>
     <Table.Cell>
-      <PaymentStatusBadge paymentStatus={case_item.payment_status} />
+      <PaymentStatusBadge
+        paymentStatus={case_item.paymentStatus}
+        paymentPercentage={case_item.paymentPercentage}
+      />
     </Table.Cell>
     <Table.Cell>
       <ViewDetailsButton case_item={case_item} navigate={navigate} />
@@ -135,46 +138,50 @@ const CaseAmount = ({ amount }) => (
     })}
   </span>
 );
-
-const PaymentStatusBadge = ({ paymentStatus }) => {
-  const getStatusVariant = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'paid':
-        return 'success';
-      case 'due':
-      case 'overdue':
-        return 'error';
-      case 'pending':
-        return 'warning';
-      case 'processing':
-        return 'brand';
-      default:
-        return 'neutral';
-    }
+const PaymentStatusBadge = ({ paymentStatus, paymentPercentage = 0 }) => {
+  const statusConfig = {
+    unpaid: {
+      color: 'error',
+      text: 'Unpaid',
+    },
+    partially_paid: {
+      color: 'warning',
+      text: `${paymentPercentage.toFixed(0)}% Paid`,
+    },
+    paid: {
+      color: 'success',
+      text: 'Paid',
+    },
+    not_applicable: {
+      color: 'neutral',
+      text: 'No Cost',
+    },
+    // Legacy statuses for backwards compatibility
+    due: {
+      color: 'error',
+      text: 'Due',
+    },
+    overdue: {
+      color: 'error',
+      text: 'Overdue',
+    },
+    pending: {
+      color: 'warning',
+      text: 'Pending',
+    },
+    processing: {
+      color: 'brand',
+      text: 'Processing',
+    },
   };
 
-  const getStatusLabel = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'paid':
-        return 'Paid';
-      case 'due':
-        return 'Due';
-      case 'overdue':
-        return 'Overdue';
-      case 'pending':
-        return 'Pending';
-      case 'processing':
-        return 'Processing';
-      default:
-        return 'Unknown';
-    }
+  const normalizedStatus = paymentStatus?.toLowerCase() || 'unpaid';
+  const config = statusConfig[normalizedStatus] || {
+    color: 'neutral',
+    text: 'Unknown',
   };
 
-  return (
-    <Badge variant={getStatusVariant(paymentStatus)}>
-      {getStatusLabel(paymentStatus)}
-    </Badge>
-  );
+  return <Badge variant={config.color}>{config.text}</Badge>;
 };
 
 const ViewDetailsButton = ({ case_item, navigate }) => (

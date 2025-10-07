@@ -13,8 +13,8 @@ const CaseAcceptanceCard = ({
   handleDecline,
 }) => {
   // Show this card for submitted cases (for acceptance) and accepted cases (for display only)
-  if (currentStatus !== 'submitted' && currentStatus !== 'accepted')
-    return null;
+  //if (currentStatus !== 'submitted' && currentStatus !== 'accepted')
+  if (currentStatus !== 'submitted') return null;
 
   return (
     <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">

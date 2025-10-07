@@ -267,6 +267,8 @@ const CasePageRefactored = () => {
                     ? 'Your aligners have been delivered. Follow your treatment schedule.'
                     : status === 'completed'
                     ? 'Your treatment is completed.'
+                    : status === 'user_rejected'
+                    ? 'You have declined the treatment plan.'
                     : ''}
                 </span>
                 <div className="flex items-center gap-2">

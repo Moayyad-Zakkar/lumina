@@ -64,6 +64,7 @@ export const useCaseStatus = (initialStatus) => {
 
   const showPlanSection = useMemo(() => {
     return [
+      'user_rejected',
       'awaiting_user_approval',
       'approved',
       'in_production',

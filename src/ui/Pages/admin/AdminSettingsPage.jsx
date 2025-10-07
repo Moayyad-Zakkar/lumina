@@ -302,8 +302,9 @@ function AdminSettingsPage() {
 
         {activeTab === 'services' ? (
           <div className="flex w-full flex-col items-start gap-6">
-            <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
+            {/*<div className="grid w-full grid-row-1 md:grid-cols-2 gap-6">*/}
+            <div className="flex w-full flex-col items-start gap-6">
+              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm  w-full">
                 <span className="text-heading-3 font-heading-3 text-default-font">
                   Case Study Fee
                 </span>
@@ -331,13 +332,16 @@ function AdminSettingsPage() {
                   </Button>
                 </div>
               </div>
-              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
+              {/*
+                     <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
                 <AdminOptionManager
                   type="printing_method"
                   label="Printing Methods"
                 />
               </div>
-              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm">
+*/}
+
+              <div className="rounded-md border border-neutral-border bg-default-background p-6 shadow-sm  w-full">
                 <AdminOptionManager
                   type="aligners_material"
                   label="Aligner Materials"

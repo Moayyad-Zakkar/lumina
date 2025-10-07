@@ -10,6 +10,8 @@ import { Loader } from '../components/Loader';
 import Headline from '../components/Headline';
 import { capitalizeFirstSafe } from '../../helper/formatText';
 import CaseStatusBadge from '../components/CaseStatusBadge';
+import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
+import DoctorBillingStats from '../components/billing/DoctorBillingStats';
 
 function UserDashboard() {
   /*
@@ -26,49 +28,10 @@ function UserDashboard() {
     submittedCases,
     completedCases,
   } = useLoaderData();
+  const { totalDue, totalPaid, pendingCases } = useDoctorBillingData();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const isLoading = navigation.state === 'loading';
-  /*
-  useEffect(() => {
-    const checkAuthAndFetchCases = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      // Fetch total cases for this user
-      const { count, error } = await supabase
-        .from('cases')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-      if (!error) {
-        setTotalCases(count);
-      } else {
-        setTotalCases('—');
-      }
-      // Fetch recent cases for this user (limit 3 for dashboard)
-      setCasesLoading(true);
-      const { data: casesData, error: casesErr } = await supabase
-        .from('cases')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
-      if (!casesErr) {
-        setRecentCases(casesData);
-        setCasesError(null);
-      } else {
-        setRecentCases([]);
-        setCasesError(casesErr.message);
-      }
-      setCasesLoading(false);
-    };
-    checkAuthAndFetchCases();
-  }, [navigate]);
-*/
 
   return (
     <>
@@ -197,32 +160,12 @@ function UserDashboard() {
         <span className="text-heading-2 font-heading-2 text-default-font">
           Payment Overview
         </span>
-        <div className="flex w-full items-start gap-4">
-          <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-success-50 px-6 py-6">
-            <span className="text-caption-bold font-caption-bold text-success-700">
-              TOTAL RECEIVED
-            </span>
-            <span className="text-heading-2 font-heading-2 text-success-700">
-              $45,200
-            </span>
-          </div>
-          <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-warning-50 px-6 py-6">
-            <span className="text-caption-bold font-caption-bold text-warning-700">
-              PENDING
-            </span>
-            <span className="text-heading-2 font-heading-2 text-warning-700">
-              $12,400
-            </span>
-          </div>
-          <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-error-50 px-6 py-6">
-            <span className="text-caption-bold font-caption-bold text-error-700">
-              OVERDUE
-            </span>
-            <span className="text-heading-2 font-heading-2 text-error-700">
-              $5,800
-            </span>
-          </div>
-        </div>
+
+        <DoctorBillingStats
+          totalDue={totalDue}
+          totalPaid={totalPaid}
+          isDashboard={true}
+        />
       </div>
     </>
   );

@@ -10,6 +10,7 @@ const DoctorBillingStats = ({
   totalCases,
   totalDue,
   totalPaid,
+  isDashboard = false,
   pendingCases,
   completedCases,
   withButtons = false,
@@ -17,7 +18,9 @@ const DoctorBillingStats = ({
   return (
     <>
       <div className="flex w-full flex-wrap items-start gap-4">
-        <TotalCasesCard totalCases={totalCases} />
+        {isDashboard === false ? (
+          <TotalCasesCard totalCases={totalCases} />
+        ) : null}
         <DuePaymentCard totalDue={totalDue} />
         <TotalPaidCard totalPaid={totalPaid} />
       </div>

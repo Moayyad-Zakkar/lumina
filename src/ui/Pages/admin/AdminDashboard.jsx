@@ -150,15 +150,20 @@ function AdminDashboard() {
           )}
         </Table>
       </div>
+      <div className="flex w-full flex-col items-start gap-4">
+        <span className="text-heading-2 font-heading-2 text-default-font">
+          Payment Overview
+        </span>
+        <BillingStats
+          totalEarnings={totalEarnings}
+          totalDue={totalDue}
+          totalExpenses={totalExpenses}
+          withButtons={false}
+          // onReceivePayment={handleReceivePayment}
+          // onMakePayment={handleMakePayment}
+        />
+      </div>
 
-      <BillingStats
-        totalEarnings={totalEarnings}
-        totalDue={totalDue}
-        totalExpenses={totalExpenses}
-        withButtons={false}
-        // onReceivePayment={handleReceivePayment}
-        // onMakePayment={handleMakePayment}
-      />
       {/*
       <div className="flex w-full flex-col items-start gap-4">
         <span className="text-heading-2 font-heading-2 text-default-font">

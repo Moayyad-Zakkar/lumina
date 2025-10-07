@@ -66,7 +66,15 @@ const AdminTreatmentPlanEditor = ({
       <div className="flex w-full flex-col items-start gap-6">
         <div className="flex w-full flex-wrap items-start gap-6">
           <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-            {isEditingPlan ? (
+            {isEditingPlan &&
+            ![
+              'approved',
+              'in_production',
+              'ready_for_delivery',
+              'delivered',
+              'completed',
+              'user_rejected',
+            ].includes(currentStatus) ? (
               <>
                 <div className="flex items-center gap-2 text-caption-bold font-caption-bold text-default-font">
                   Aligner Material:
@@ -126,7 +134,15 @@ const AdminTreatmentPlanEditor = ({
             )}
           </div>
           <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-            {isEditingPlan ? (
+            {isEditingPlan &&
+            ![
+              'approved',
+              'in_production',
+              'ready_for_delivery',
+              'delivered',
+              'completed',
+              'user_rejected',
+            ].includes(currentStatus) ? (
               <>
                 <TextField label="Case Study Fee" disabled>
                   <TextField.Input
@@ -210,7 +226,15 @@ const AdminTreatmentPlanEditor = ({
 
         <div className="flex w-full items-center justify-between">
           <span className="text-body font-body text-subtext-color">
-            {isEditingPlan
+            {isEditingPlan &&
+            ![
+              'approved',
+              'in_production',
+              'ready_for_delivery',
+              'delivered',
+              'completed',
+              'user_rejected',
+            ].includes(currentStatus)
               ? 'Choose to decline the case or set plan details and send to the doctor for approval.'
               : currentStatus === 'awaiting_user_approval'
               ? 'Plan details are awaiting doctor approval.'
@@ -229,7 +253,15 @@ const AdminTreatmentPlanEditor = ({
               : ''}
           </span>
           <div className="flex items-center gap-2">
-            {isEditingPlan ? (
+            {isEditingPlan &&
+            ![
+              'approved',
+              'in_production',
+              'ready_for_delivery',
+              'delivered',
+              'completed',
+              'user_rejected',
+            ].includes(currentStatus) ? (
               <>
                 <Button
                   variant="neutral-tertiary"
@@ -254,7 +286,9 @@ const AdminTreatmentPlanEditor = ({
                 </Button>
               </>
             ) : currentStatus !== 'rejected' &&
-              ['accepted', 'submitted'].includes(currentStatus) ? (
+              ['accepted', 'submitted', 'awaiting_user_approval'].includes(
+                currentStatus
+              ) ? (
               <IconButton
                 icon={<FeatherEdit2 />}
                 onClick={handleStartEdit}

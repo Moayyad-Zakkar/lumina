@@ -122,9 +122,9 @@ const AdminCasePageRefactored = () => {
         'Set aligners count and duration, then send to doctor for approval.',
     },
     awaiting_user_approval: {
-      title: 'Doctor approved the treatment plan',
+      title: 'Treatment plan is sent to doctor for approval',
       description:
-        'Proceed with manufacturing. Update the case status as production progresses.',
+        'Waiting for the doctor approval to proceed with the production process.',
     },
     approved: {
       title: 'Doctor approved the treatment plan',
@@ -152,6 +152,12 @@ const AdminCasePageRefactored = () => {
       title: 'Case has been declined',
       description:
         'This case was declined and is no longer active. You can undo this action if needed.',
+      variant: 'destructive',
+    },
+    user_rejected: {
+      title: 'Treatment plan was declined',
+      description:
+        "This case's Treatment plan was declined by the doctor and the case is no longer active.",
       variant: 'destructive',
     },
   };
@@ -303,14 +309,15 @@ const AdminCasePageRefactored = () => {
           actions={null}
         />
       )}
-
+      {/* Success and Error Messages */}
+      {/*
       {actionError && <Error error={actionError} />}
       {actionSuccess && (
         <div className="rounded-md border border-solid border-success-200 bg-success-50 p-4 text-success-700">
           {actionSuccess}
         </div>
       )}
-
+   */}
       <div className="flex w-full flex-col items-start gap-6">
         <CaseInformation caseData={caseData} isAdmin={true} />
 

@@ -44,7 +44,12 @@ export const useAdminCaseActions = (caseData) => {
 
   const isPlanEditAllowed = useMemo(
     () =>
-      !['ready_for_delivery', 'delivered', 'completed'].includes(currentStatus),
+      ![
+        'ready_for_delivery',
+        'delivered',
+        'completed',
+        'user_rejected',
+      ].includes(currentStatus),
     [currentStatus]
   );
 

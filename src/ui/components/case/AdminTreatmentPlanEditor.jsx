@@ -41,6 +41,7 @@ const AdminTreatmentPlanEditor = ({
   if (
     ![
       'accepted',
+      'user_rejected',
       'awaiting_user_approval',
       'approved',
       'in_production',
@@ -223,6 +224,8 @@ const AdminTreatmentPlanEditor = ({
               ? 'Ready for delivery to patient.'
               : currentStatus === 'delivered'
               ? 'Delivered to patient. Mark completed when treatment ends.'
+              : currentStatus === 'user_rejected'
+              ? 'Case treatment plan has been declined by the doctor and is inactive.'
               : ''}
           </span>
           <div className="flex items-center gap-2">

@@ -27,15 +27,16 @@ function UserDashboard() {
     casesError,
     submittedCases,
     completedCases,
+    profile,
   } = useLoaderData();
-  const { totalDue, totalPaid, pendingCases } = useDoctorBillingData();
+  const { totalDue, totalPaid } = useDoctorBillingData();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const isLoading = navigation.state === 'loading';
 
   return (
     <>
-      <Headline>Dashboard</Headline>
+      <Headline>Hello, Dr.{profile.full_name}</Headline>
       <div className="flex w-full flex-wrap items-start gap-4">
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">

@@ -11,6 +11,13 @@ export async function userDashboardLoader() {
     throw redirect('/unauthorized');
   }
 
+  //Fetch user data
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
   // Fetch total cases
   const { count, error: countError } = await supabase
     .from('cases')
@@ -45,5 +52,6 @@ export async function userDashboardLoader() {
     recentCases: recentCases || [],
     casesError: recentError?.message || null,
     submittedError: submittedError?.message || null,
+    profile: profile || '_',
   };
 }

@@ -45,6 +45,7 @@ import DoctorBillingPage from './ui/Pages/DoctorBillingPage';
 import AdminCasePageRefactored from './ui/Pages/admin/AdminCasePageRefactored';
 import AdminTransactionLogPage from './ui/Pages/admin/ِAdminTransactionLogPage';
 import DoctorTransactionLogPage from './ui/Pages/DoctorTransactionLogPage';
+import CaseViewer from './ui/Pages/CaseViewer';
 
 const router = createBrowserRouter([
   {
@@ -120,6 +121,7 @@ const router = createBrowserRouter([
         element: <DoctorTransactionLogPage />,
         path: '/app/billing/log',
       },
+
       {
         path: '/app/profile',
         element: <ProfilePage />,
@@ -181,6 +183,15 @@ const router = createBrowserRouter([
         element: <AdminTransactionLogPage />,
       },
     ],
+  },
+  {
+    // Case Viewer Route - accessible to both users and admins
+    element: (
+      <ProtectedRoute>
+        <CaseViewer />
+      </ProtectedRoute>
+    ),
+    path: '/case-viewer/:caseId',
   },
   {
     path: '/app',

@@ -333,7 +333,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
         <div className="flex items-start justify-between p-6 border-b border-neutral-border w-full">
           <div>
             <h2 className="text-heading-2 font-heading-2 text-default-font">
-              Treatment Plan Viewer
+              Treatment Plan Images
             </h2>
             <p className="text-body font-body text-subtext-color mt-1">
               Upload sequence images and before/after comparisons for this case
@@ -461,16 +461,18 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                       }
                       disabled={uploading}
                     />
-                    <label htmlFor={`sequence-${view.value}`}>
-                      <Button
-                        variant="neutral-secondary"
-                        icon={<FeatherUpload />}
-                        disabled={uploading}
-                        as="span"
-                      >
-                        Add Images
-                      </Button>
-                    </label>
+                    <Button
+                      variant="neutral-secondary"
+                      icon={<FeatherUpload />}
+                      disabled={uploading}
+                      onClick={() =>
+                        document
+                          .getElementById(`sequence-${view.value}`)
+                          .click()
+                      }
+                    >
+                      Add Images
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -556,17 +558,19 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                             }
                             disabled={uploading}
                           />
-                          <label htmlFor={`before-${view.value}`}>
-                            <Button
-                              variant="neutral-secondary"
-                              icon={<FeatherUpload />}
-                              disabled={uploading}
-                              as="span"
-                              className="w-full"
-                            >
-                              Upload Before
-                            </Button>
-                          </label>
+                          <Button
+                            variant="neutral-secondary"
+                            icon={<FeatherUpload />}
+                            disabled={uploading}
+                            className="w-full"
+                            onClick={() =>
+                              document
+                                .getElementById(`before-${view.value}`)
+                                .click()
+                            }
+                          >
+                            Upload Before
+                          </Button>
                         </>
                       )}
                     </div>
@@ -628,17 +632,19 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                             }
                             disabled={uploading}
                           />
-                          <label htmlFor={`after-${view.value}`}>
-                            <Button
-                              variant="neutral-secondary"
-                              icon={<FeatherUpload />}
-                              disabled={uploading}
-                              as="span"
-                              className="w-full"
-                            >
-                              Upload After
-                            </Button>
-                          </label>
+                          <Button
+                            variant="neutral-secondary"
+                            icon={<FeatherUpload />}
+                            disabled={uploading}
+                            className="w-full"
+                            onClick={() =>
+                              document
+                                .getElementById(`after-${view.value}`)
+                                .click()
+                            }
+                          >
+                            Upload After
+                          </Button>
                         </>
                       )}
                     </div>

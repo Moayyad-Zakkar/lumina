@@ -8,13 +8,31 @@ import {
   FeatherFileText,
   FeatherPlusCircle,
   FeatherCalculator,
+  FeatherEye,
 } from '@subframe/core';
 
 const TreatmentPlanDisplay = ({ caseData, showPlanSection }) => {
   if (!showPlanSection) return null;
 
+  const handleViewerClick = () => {
+    // Open the viewer in a new tab with the case ID
+    const viewerUrl = `/case-viewer/${caseData.id}`;
+    window.open(viewerUrl, '_blank');
+  };
+
   return (
     <div className="flex w-full flex-col items-start gap-6">
+      {/* View 3DA Viewer Button */}
+      <div className="flex w-full justify-end">
+        <button
+          onClick={handleViewerClick}
+          className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-md transition-colors duration-200 shadow-sm hover:shadow-md"
+        >
+          <FeatherEye className="w-4 h-4" />
+          <span className="text-body-bold font-body-bold">View 3DA Viewer</span>
+        </button>
+      </div>
+
       <div className="flex w-full flex-wrap items-start gap-6">
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
           <DataFieldHorizontal

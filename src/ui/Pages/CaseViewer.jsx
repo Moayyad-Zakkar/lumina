@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams } from 'react-router';
 import styled from 'styled-components';
 
 import {
@@ -25,15 +25,19 @@ import AlignerUpperIcon from '../../assets/imgs/views/aligner-upper.svg';
 import AlignerUpperActiveIcon from '../../assets/imgs/views/aligner-upper-active.svg';
 import AlignerLowerIcon from '../../assets/imgs/views/aligner-lower.svg';
 import AlignerLowerActiveIcon from '../../assets/imgs/views/aligner-lower-active.svg';
+import maxilla from '../../assets/imgs/views/aligner-info-upper.svg';
+import mandible from '../../assets/imgs/views/aligner-info-lower.svg';
+
 import ViewButton from '../components/viewer/ViewButton';
 import { Loader } from '../components/Loader';
+import JawView from '../components/viewer/JawView';
 
 function CaseViewer() {
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { caseId } = useParams();
-  const navigate = useNavigate();
+
   const [view, setView] = useState('Front');
   const [currentTab, setCurrentTab] = useState('videos');
 
@@ -131,14 +135,9 @@ function CaseViewer() {
         beforeAfterData: beforeAfterByView,
       };
 
-      console.log('Organized Case Data:', organizedData);
-      console.log('Front Sequence Images:', sequenceByView.front);
-      console.log('First Front Image URL:', sequenceByView.front[0]?.url);
-
       setCaseData(organizedData);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching case data:', err);
       setError(err.message);
       setLoading(false);
     }
@@ -241,10 +240,12 @@ function CaseViewer() {
     return (
       <Content>
         <ErrorMessage>Error: {error}</ErrorMessage>
+        {/*
         <BackButton onClick={() => navigate(-1)}>
           <FeatherArrowLeft />
           Go Back
         </BackButton>
+         */}
       </Content>
     );
   }
@@ -253,10 +254,12 @@ function CaseViewer() {
     return (
       <Content>
         <ErrorMessage>Case not found</ErrorMessage>
+        {/*
         <BackButton onClick={() => navigate(-1)}>
           <FeatherArrowLeft />
           Go Back
         </BackButton>
+         */}
       </Content>
     );
   }
@@ -332,10 +335,12 @@ function CaseViewer() {
     <Content>
       {/* Header with Logo and Back Button */}
       <Header>
+        {/*
         <BackButton onClick={() => navigate(-1)}>
           <FeatherArrowLeft />
-          Back
+          Go Back
         </BackButton>
+         */}
         <Logo>3DA Viewer</Logo>
       </Header>
 
@@ -369,6 +374,7 @@ function CaseViewer() {
         </TabsContainer>
 
         {/* Views Selection */}
+
         <ViewsContainer>
           {viewAvailability.front && (
             <ViewButton
@@ -526,7 +532,8 @@ function CaseViewer() {
           </DataContainer>
         )}
 
-        {/* Aligners Info */}
+        {/* Aligners Info OLD */}
+        {/* 
         <AlignersInfo>
           <AlignerBox>
             <AlignerLabel>Upper Jaw</AlignerLabel>
@@ -537,6 +544,23 @@ function CaseViewer() {
             <AlignerLabel>Lower Jaw</AlignerLabel>
             <AlignerCount>{caseData.lower_jaw_aligners || 0}</AlignerCount>
             <AlignerText>Aligners</AlignerText>
+          </AlignerBox>
+        </AlignersInfo>
+        */}
+        <AlignersInfo>
+          <AlignerBox>
+            <JawView
+              upperCount={caseData.upper_jaw_aligners || 0}
+              jawImg={maxilla}
+              name="Upper Aligners"
+            />
+          </AlignerBox>
+          <AlignerBox>
+            <JawView
+              upperCount={caseData.lower_jaw_aligners || 0}
+              jawImg={mandible}
+              name="Lower Aligners"
+            />
           </AlignerBox>
         </AlignersInfo>
       </Container>
@@ -595,7 +619,7 @@ const BackButton = styled.button`
 const Logo = styled.h1`
   font-size: 1.8rem;
   font-weight: 700;
-  color: #1a73e8;
+  color: #00adef;
   margin: 0;
 `;
 
@@ -659,7 +683,8 @@ const TabsContainer = styled.div`
 
 const Tab = styled.button`
   padding: 0.75rem 2rem;
-  background-color: ${(props) => (props.active ? '#1a73e8' : 'transparent')};
+  //background-color: ${(props) => (props.active ? '#1a73e8' : 'transparent')};
+  background-color: ${(props) => (props.active ? '#0284c7' : 'transparent')};
   color: ${(props) => (props.active ? '#fff' : '#495057')};
   border: none;
   border-radius: 6px;
@@ -669,7 +694,7 @@ const Tab = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${(props) => (props.active ? '#1557b0' : '#f8f9fa')};
+    background-color: ${(props) => (props.active ? '#00adef' : '#f8f9fa')};
   }
 `;
 
@@ -742,7 +767,7 @@ const LoadingBar = styled.div`
 
 const LoadingBarFill = styled.div`
   height: 100%;
-  background-color: #1a73e8;
+  background-color: #0284c7;
   transition: width 0.3s ease;
 `;
 
@@ -768,7 +793,7 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled.div`
   height: 100%;
-  background-color: #1a73e8;
+  background-color: #0284c7;
   transition: width 0.3s ease;
 `;
 
@@ -810,8 +835,8 @@ const ControlButton = styled.button`
 
   &:hover:not(:disabled) {
     background-color: #f8f9fa;
-    border-color: #1a73e8;
-    color: #1a73e8;
+    border-color: #0284c7;
+    color: #0284c7;
   }
 
   &:active:not(:disabled) {
@@ -826,7 +851,7 @@ const ControlButton = styled.button`
 
 const PlayButton = styled.button`
   padding: 1rem 1.5rem;
-  background-color: #1a73e8;
+  background-color: #0284c7;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -837,7 +862,9 @@ const PlayButton = styled.button`
   justify-content: center;
 
   &:hover:not(:disabled) {
-    background-color: #1557b0;
+    //background-color: #1557b0;
+    background-color: #00adef;
+
     transform: scale(1.05);
   }
 

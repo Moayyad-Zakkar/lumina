@@ -13,6 +13,8 @@ import RefinementSection from '../components/RefinementSection';
 import RefinementHistory from '../components/RefinementHistory';
 import DentalChart from '../components/DentalChart';
 
+import { FeatherEye } from '@subframe/core';
+
 // Import refactored components
 import CaseInformation from '../components/case/CaseInformation';
 import CaseNotes from '../components/case/CaseNotes';
@@ -32,12 +34,14 @@ import {
   FeatherX,
   FeatherAlertTriangle,
 } from '@subframe/core';
+import { checkCaseTreatmentImages } from '../../helper/caseHasView';
 
 const CasePageRefactored = () => {
   const { caseData, error } = useLoaderData();
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isAbortDialogOpen, setIsAbortDialogOpen] = useState(false);
+  const [caseHasViewer, setCaseHasViewer] = useState(false);
 
   // Custom hooks
   const { status, setStatus, alertContent, showPlanSection } = useCaseStatus(
@@ -55,6 +59,21 @@ const CasePageRefactored = () => {
     handleCancelEditNote,
     handleSaveNote,
   } = useCaseNotes(caseData);
+
+  useEffect(() => {
+    const checkImages = async () => {
+      try {
+        const { hasImages } = await checkCaseTreatmentImages(caseData.id);
+        setCaseHasViewer(hasImages);
+      } catch (error) {
+        setCaseHasViewer(false);
+      }
+    };
+
+    if (caseData.id) {
+      checkImages();
+    }
+  }, [caseData.id]);
 
   // Mark notifications for this case as read when the doctor opens the case
   useEffect(() => {
@@ -145,6 +164,12 @@ const CasePageRefactored = () => {
     }
   };
 
+  const handleViewerClick = () => {
+    // Open the viewer in a new tab with the case ID
+    const viewerUrl = `/case-viewer/${caseData.id}`;
+    window.open(viewerUrl, '_blank');
+  };
+
   return (
     <>
       <div className="flex w-full flex-col items-start gap-2">
@@ -189,7 +214,11 @@ const CasePageRefactored = () => {
                 ? 'Downloading...'
                 : 'Download All Files'}
             </Button>
-            <Button icon={<FeatherPlay />}>View Slideshow</Button>
+            {caseHasViewer && (
+              <Button onClick={handleViewerClick} icon={<FeatherEye />}>
+                Open 3DA Viewer
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -248,6 +277,7 @@ const CasePageRefactored = () => {
             {actionError && <Error error={actionError} />}
             <div className="flex w-full flex-col items-start gap-6">
               <TreatmentPlanDisplay
+                caseHasViewer={caseHasViewer}
                 caseData={caseData}
                 showPlanSection={true}
               />

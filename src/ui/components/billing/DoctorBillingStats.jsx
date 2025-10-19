@@ -13,21 +13,24 @@ const DoctorBillingStats = ({
   isDashboard = false,
   pendingCases,
   completedCases,
+  submittedCases,
   withButtons = false,
 }) => {
   return (
     <>
       <div className="flex w-full flex-wrap items-start gap-4">
-        {isDashboard === false ? (
-          <TotalCasesCard totalCases={totalCases} />
+        {isDashboard === true ? (
+          <SubmittedCasesCard submittedCases={submittedCases} />
         ) : null}
+        <TotalCasesCard totalCases={totalCases} />
+        <CompletedCasesCard completedCases={completedCases} />
         <DuePaymentCard totalDue={totalDue} />
-        <TotalPaidCard totalPaid={totalPaid} />
       </div>
 
       {/*<div className="flex w-full flex-wrap items-start gap-4">
+        <TotalPaidCard totalPaid={totalPaid} />
         <PendingCasesCard pendingCases={pendingCases} />
-        <CompletedCasesCard completedCases={completedCases} />
+        
       </div>*/}
     </>
   );
@@ -41,7 +44,7 @@ const TotalCasesCard = ({ totalCases }) => (
       </span>
       <div className="flex items-end gap-2">
         <span className="text-heading-1 font-heading-1 text-brand-700">
-          {totalCases?.toLocaleString('en-US')}
+          {totalCases === null ? <Loader size="small" /> : totalCases}
         </span>
         <span className="text-body font-body text-subtext-color pb-1">
           all time
@@ -65,6 +68,24 @@ const DuePaymentCard = ({ totalDue }) => (
         </span>
         <span className="text-body font-body text-subtext-color pb-1">
           outstanding
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+const SubmittedCasesCard = ({ submittedCases }) => (
+  <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
+    <div className="flex w-full flex-col items-start gap-2">
+      <span className="text-body font-body text-subtext-color">
+        Pending Review
+      </span>
+      <div className="flex items-end gap-2">
+        <span className="text-heading-1 font-heading-1 text-error-600">
+          {submittedCases}
+        </span>
+        <span className="text-body font-body text-subtext-color pb-1">
+          cases
         </span>
       </div>
     </div>
@@ -117,7 +138,11 @@ const CompletedCasesCard = ({ completedCases }) => (
       </span>
       <div className="flex items-end gap-2">
         <span className="text-heading-1 font-heading-1 text-success-600">
-          {completedCases.toLocaleString('en-US')}
+          {completedCases === null ? (
+            <Loader size="small" />
+          ) : (
+            completedCases?.toLocaleString('en-US')
+          )}
         </span>
         <span className="text-body font-body text-subtext-color pb-1">
           finished

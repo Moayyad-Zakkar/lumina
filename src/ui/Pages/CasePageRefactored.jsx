@@ -3,7 +3,6 @@ import { Link, useLoaderData } from 'react-router';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { Button } from '../components/Button';
 import { Alert } from '../components/Alert';
-import { Dialog } from '../components/Dialog';
 import { Badge } from '../components/Badge';
 import Error from '../components/Error';
 import CaseStatusBadge from '../components/CaseStatusBadge';
@@ -60,6 +59,7 @@ const CasePageRefactored = () => {
     handleSaveNote,
   } = useCaseNotes(caseData);
 
+  // Check if the case has treatment sequence viewer available or not
   useEffect(() => {
     const checkImages = async () => {
       try {
@@ -144,7 +144,7 @@ const CasePageRefactored = () => {
       setSaving(false);
     }
   };
-
+  /*
   const requestAbortion = async () => {
     try {
       setSaving(true);
@@ -163,6 +163,7 @@ const CasePageRefactored = () => {
       setSaving(false);
     }
   };
+*/
 
   const handleViewerClick = () => {
     // Open the viewer in a new tab with the case ID

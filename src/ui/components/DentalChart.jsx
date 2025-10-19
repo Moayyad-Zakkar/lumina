@@ -18,8 +18,7 @@ const TOOTH_STATUSES = {
   },
   note: {
     color: '#fa9600', // orange
-    description:
-      'Please write a note about this tooth(s) in the notes field below',
+    description: 'A note about this tooth in the notes field',
   },
 };
 

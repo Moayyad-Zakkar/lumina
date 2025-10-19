@@ -274,24 +274,44 @@ function CaseViewer() {
     setView(viewName);
   };
 
-  // Check which views have content
-  const viewAvailability = {
+  // Check which sequence views have content
+  const sequenceViewAvailability = {
     lower: !!(
-      caseData.sequenceImages?.lower?.length > 0 || caseData.beforeAfter.lower
+      caseData.sequenceImages?.lower?.length > 0 
     ),
     upper: !!(
-      caseData.sequenceImages?.upper?.length > 0 || caseData.beforeAfter.upper
+      caseData.sequenceImages?.upper?.length > 0 
     ),
     right: !!(
-      caseData.sequenceImages?.right?.length > 0 || caseData.beforeAfter.right
+      caseData.sequenceImages?.right?.length > 0 
     ),
     left: !!(
-      caseData.sequenceImages?.left?.length > 0 || caseData.beforeAfter.left
+      caseData.sequenceImages?.left?.length > 0
     ),
     front: !!(
-      caseData.sequenceImages?.front?.length > 0 || caseData.beforeAfter.front
+      caseData.sequenceImages?.front?.length > 0
     ),
   };
+
+    // Check which before after views have content
+    const beforeAfterViewAvailability = {
+      lower: !!(
+         caseData.beforeAfter.lower
+      ),
+      upper: !!(
+        caseData.beforeAfter.upper
+      ),
+      right: !!(
+        caseData.beforeAfter.right
+      ),
+      left: !!(
+        caseData.beforeAfter.left
+      ),
+      front: !!(
+         caseData.beforeAfter.front
+      ),
+    };
+  
 
   // Get current images for the selected view
   const viewKey = view.toLowerCase();
@@ -375,8 +395,9 @@ function CaseViewer() {
 
         {/* Views Selection */}
 
+        {currentTab === 'videos' ?
         <ViewsContainer>
-          {viewAvailability.front && (
+          {sequenceViewAvailability.front && (
             <ViewButton
               isActive={view === 'Front'}
               activeIcon={AlignerFrontActiveIcon}
@@ -385,7 +406,7 @@ function CaseViewer() {
               viewChanger={viewChanger}
             />
           )}
-          {viewAvailability.left && (
+          {sequenceViewAvailability.left && (
             <ViewButton
               isActive={view === 'Left'}
               activeIcon={AlignerLeftActiveIcon}
@@ -394,7 +415,7 @@ function CaseViewer() {
               viewChanger={viewChanger}
             />
           )}
-          {viewAvailability.right && (
+          {sequenceViewAvailability.right && (
             <ViewButton
               isActive={view === 'Right'}
               activeIcon={AlignerRightActiveIcon}
@@ -403,7 +424,7 @@ function CaseViewer() {
               viewChanger={viewChanger}
             />
           )}
-          {viewAvailability.upper && (
+          {sequenceViewAvailability.upper && (
             <ViewButton
               isActive={view === 'Upper'}
               activeIcon={AlignerUpperActiveIcon}
@@ -412,7 +433,7 @@ function CaseViewer() {
               viewChanger={viewChanger}
             />
           )}
-          {viewAvailability.lower && (
+          {sequenceViewAvailability.lower && (
             <ViewButton
               isActive={view === 'Lower'}
               activeIcon={AlignerLowerActiveIcon}
@@ -420,8 +441,54 @@ function CaseViewer() {
               name="Lower"
               viewChanger={viewChanger}
             />
+          )}  </ViewsContainer> : 
+          <ViewsContainer>
+          {beforeAfterViewAvailability.front && (
+            <ViewButton
+              isActive={view === 'Front'}
+              activeIcon={AlignerFrontActiveIcon}
+              disabledIcon={AlignerFrontIcon}
+              name="Front"
+              viewChanger={viewChanger}
+            />
           )}
-        </ViewsContainer>
+          {beforeAfterViewAvailability.left && (
+            <ViewButton
+              isActive={view === 'Left'}
+              activeIcon={AlignerLeftActiveIcon}
+              disabledIcon={AlignerLeftIcon}
+              name="Left"
+              viewChanger={viewChanger}
+            />
+          )}
+          {beforeAfterViewAvailability.right && (
+            <ViewButton
+              isActive={view === 'Right'}
+              activeIcon={AlignerRightActiveIcon}
+              disabledIcon={AlignerRightIcon}
+              name="Right"
+              viewChanger={viewChanger}
+            />
+          )}
+          {beforeAfterViewAvailability.upper && (
+            <ViewButton
+              isActive={view === 'Upper'}
+              activeIcon={AlignerUpperActiveIcon}
+              disabledIcon={AlignerUpperIcon}
+              name="Upper"
+              viewChanger={viewChanger}
+            />
+          )}
+          {beforeAfterViewAvailability.lower && (
+            <ViewButton
+              isActive={view === 'Lower'}
+              activeIcon={AlignerLowerActiveIcon}
+              disabledIcon={AlignerLowerIcon}
+              name="Lower"
+              viewChanger={viewChanger}
+            />
+          )}         </ViewsContainer>}
+
 
         {/* Media Display */}
         {currentTab === 'videos' ? (

@@ -500,7 +500,7 @@ function DoctorTransactionLogPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="text-body font-body text-brand-600">
-                        £{txn.amount.toFixed(2)}
+                        ${txn.amount.toFixed(2)}
                       </div>
                     </td>
                   </tr>

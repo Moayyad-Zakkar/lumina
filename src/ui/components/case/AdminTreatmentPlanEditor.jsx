@@ -14,6 +14,7 @@ import {
   FeatherX,
   FeatherCheck,
   FeatherImage,
+  FeatherEye,
 } from '@subframe/core';
 import TreatmentPlanImagesUpload from './TreatmentPlanImagesUpload';
 
@@ -38,6 +39,8 @@ const AdminTreatmentPlanEditor = ({
   handleCancelEdit,
   handleSendForApproval,
   handleDecline,
+  caseHasViewer,
+  handleViewerClick,
 }) => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
@@ -249,6 +252,19 @@ const AdminTreatmentPlanEditor = ({
                 </>
               )}
             </div>
+
+            {/* View 3DA Viewer Button */}
+            {caseHasViewer && (
+              <div className="flex w-full justify-end">
+                <Button
+                  onClick={handleViewerClick}
+                  icon={<FeatherEye />}
+                  className="w-auto"
+                >
+                  Open 3DA Viewer
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />

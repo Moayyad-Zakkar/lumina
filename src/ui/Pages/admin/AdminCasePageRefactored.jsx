@@ -31,13 +31,16 @@ import {
   FeatherRefreshCw,
   FeatherAlertTriangle,
   FeatherRotateCcw,
+  FeatherEye,
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
+import { checkCaseTreatmentImages } from '../../../helper/caseHasView';
 
 const AdminCasePageRefactored = () => {
   const { caseData, error } = useLoaderData();
   const navigate = useNavigate();
+  const [caseHasViewer, setCaseHasViewer] = useState(false);
 
   // Custom hooks
   const { downloadingFiles, downloadSingleFile, downloadAllFiles } =
@@ -109,6 +112,22 @@ const AdminCasePageRefactored = () => {
     };
     markNotificationsRead();
   }, [caseData?.id]);
+
+  // Check if the case has treatment sequence viewer available or not
+  useEffect(() => {
+    const checkImages = async () => {
+      try {
+        const { hasImages } = await checkCaseTreatmentImages(caseData.id);
+        setCaseHasViewer(hasImages);
+      } catch (error) {
+        setCaseHasViewer(false);
+      }
+    };
+
+    if (caseData.id) {
+      checkImages();
+    }
+  }, [caseData.id]);
 
   const alertContent = {
     submitted: {
@@ -185,6 +204,12 @@ const AdminCasePageRefactored = () => {
 
   const currentAlert = alertContent[currentStatus] || alertContent.submitted;
 
+  const handleViewerClick = () => {
+    // Open the viewer in a new tab with the case ID
+    const viewerUrl = `/case-viewer/${caseData.id}`;
+    window.open(viewerUrl, '_blank');
+  };
+
   return (
     <>
       <div className="flex w-full flex-col items-start gap-2">
@@ -227,6 +252,11 @@ const AdminCasePageRefactored = () => {
             >
               {downloadingFiles.size > 0 ? 'Downloading...' : 'Download Files'}
             </Button>
+            {caseHasViewer && (
+              <Button onClick={handleViewerClick} icon={<FeatherEye />}>
+                Open 3DA Viewer
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -388,6 +418,8 @@ const AdminCasePageRefactored = () => {
           handleCancelEdit={handleCancelEdit}
           handleSendForApproval={handleSendForApproval}
           handleDecline={handleDecline}
+          caseHasViewer={caseHasViewer}
+          handleViewerClick={handleViewerClick}
         />
 
         {/* Manufacturing Progress - Only for approved cases and beyond */}

@@ -38,6 +38,14 @@ function UserDashboard() {
     <>
       <Headline>Hello, Dr.{profile.full_name}</Headline>
       <div className="flex w-full flex-wrap items-start gap-4">
+        <DoctorBillingStats
+          totalDue={totalDue}
+          isDashboard={true}
+          submittedCases={submittedCases}
+          completedCases={completedCases}
+          totalCases={totalCases}
+        />
+        {/* 
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
             TOTAL CASES
@@ -45,7 +53,7 @@ function UserDashboard() {
           <span className="text-heading-2 font-heading-2 text-default-font">
             {totalCases === null ? <Loader size="small" /> : totalCases}
           </span>
-          {/*<Progress value={75} />*/}
+
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
@@ -54,7 +62,7 @@ function UserDashboard() {
           <span className="text-heading-2 font-heading-2 text-warning-700">
             {submittedCases}
           </span>
-          {/*<Progress value={75} />*/}
+
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
@@ -63,8 +71,8 @@ function UserDashboard() {
           <span className="text-heading-2 font-heading-2 text-success-700">
             {completedCases}
           </span>
-          {/*<Progress value={75} />*/}
         </div>
+        */}
       </div>
       <div className="flex w-full flex-col items-start gap-4">
         <div className="flex w-full items-center justify-between">
@@ -157,17 +165,21 @@ function UserDashboard() {
           )}
         </Table>
       </div>
-      <div className="flex w-full flex-col items-start gap-4">
+      {/* 
+              <div className="flex w-full flex-col items-start gap-4">
         <span className="text-heading-2 font-heading-2 text-default-font">
           Payment Overview
         </span>
 
         <DoctorBillingStats
           totalDue={totalDue}
-          totalPaid={totalPaid}
           isDashboard={true}
+          submittedCases={submittedCases}
+          completedCases={completedCases}
+          totalCases={totalCases}
         />
       </div>
+        */}
     </>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
+import { uploadFile } from '../../helper/storageUtils'; // ADD THIS IMPORT
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { Button } from '../components/Button';
 import Error from '../components/Error';
@@ -26,7 +27,7 @@ const CaseSubmitRefactored = () => {
     isUrgent: false,
     urgentDeliveryDate: '',
     alignerMaterial: '',
-    uploadMethod: 'individual', // Default to individual files
+    uploadMethod: 'individual',
     upperJawScan: null,
     lowerJawScan: null,
     biteScan: null,
@@ -34,7 +35,6 @@ const CaseSubmitRefactored = () => {
     toothStatus: {},
     additionalFiles: [],
     userNote: '',
-    // Basic Diagnosis fields
     upperMidline: '',
     upperMidlineShift: '',
     lowerMidline: '',
@@ -77,7 +77,6 @@ const CaseSubmitRefactored = () => {
     const { name, value, files, type, checked } = e.target;
 
     if (files) {
-      // Handle file inputs
       setFormData((prevData) => ({
         ...prevData,
         [name]:
@@ -86,21 +85,17 @@ const CaseSubmitRefactored = () => {
             : files[0],
       }));
     } else if (type === 'checkbox') {
-      // Handle checkbox inputs
       setFormData((prevData) => ({
         ...prevData,
         [name]: checked,
-        // Clear urgent delivery date if urgent is unchecked
         ...(name === 'isUrgent' && !checked ? { urgentDeliveryDate: '' } : {}),
       }));
     } else {
-      // Handle text inputs and radio buttons
       setFormData((prevData) => ({
         ...prevData,
         [name]: value,
       }));
 
-      // Clear shift value if midline is centered
       if (name === 'upperMidline' && value === 'centered') {
         setFormData((prevData) => ({
           ...prevData,
@@ -114,7 +109,6 @@ const CaseSubmitRefactored = () => {
         }));
       }
 
-      // Clear individual files when switching to compressed method
       if (name === 'uploadMethod' && value === 'compressed') {
         setFormData((prevData) => ({
           ...prevData,
@@ -124,7 +118,6 @@ const CaseSubmitRefactored = () => {
         }));
       }
 
-      // Clear compressed file when switching to individual method
       if (name === 'uploadMethod' && value === 'individual') {
         setFormData((prevData) => ({
           ...prevData,
@@ -141,14 +134,12 @@ const CaseSubmitRefactored = () => {
     setSuccessMessage(null);
 
     try {
-      // Initialize file path variables at the beginning of try block
       let upperJawScanPath = null;
       let lowerJawScanPath = null;
       let biteScanPath = null;
       let compressedScansPath = null;
       let additionalFilesPaths = [];
 
-      // Ensure user is authenticated
       const {
         data: { user },
         error: userError,
@@ -158,11 +149,21 @@ const CaseSubmitRefactored = () => {
         throw new Error('User must be authenticated to submit a case');
       }
 
+      // Fetch doctor's profile information
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, clinic')
+        .eq('id', user.id)
+        .single();
+
+      const doctorName =
+        profileData?.full_name || user.email || 'Unknown Doctor';
+      const clinicName = profileData?.clinic || null;
+
       // Comprehensive validation
       const validateSubmission = () => {
         const errors = [];
 
-        // Check required personal info
         if (!formData.firstName?.trim()) {
           errors.push('First name is required');
         }
@@ -170,12 +171,10 @@ const CaseSubmitRefactored = () => {
           errors.push('Last name is required');
         }
 
-        // Check urgent delivery date if urgent is checked
         if (formData.isUrgent && !formData.urgentDeliveryDate) {
           errors.push('Delivery date is required for urgent cases');
         }
 
-        // Check if urgent delivery date is in the future
         if (formData.isUrgent && formData.urgentDeliveryDate) {
           const deliveryDate = new Date(formData.urgentDeliveryDate);
           const today = new Date();
@@ -185,7 +184,6 @@ const CaseSubmitRefactored = () => {
           }
         }
 
-        // Check required scan files based on upload method
         if (formData.uploadMethod === 'individual') {
           const requiredScans = [
             { key: 'upperJawScan', name: 'Upper Jaw Scan' },
@@ -204,7 +202,6 @@ const CaseSubmitRefactored = () => {
           }
         }
 
-        // Optional: Additional validations
         if (formData.additionalFiles && formData.additionalFiles.length > 5) {
           errors.push('Maximum of 5 additional files allowed');
         }
@@ -217,13 +214,17 @@ const CaseSubmitRefactored = () => {
         throw new Error(validationErrors.join(', '));
       }
 
-      // File upload function
-      const uploadFileWithErrorHandling = async (file, path) => {
+      // UPDATED: File upload function that uses uploadFile from storageUtils
+      const uploadFileWithErrorHandling = async (
+        file,
+        folderPath,
+        metadata = {}
+      ) => {
         if (!file) return null;
 
         try {
           // Validate file type and size
-          const maxFileSize = 100 * 1024 * 1024; // 100MB for compressed files
+          const maxFileSize = 100 * 1024 * 1024; // 100MB
           const allowedFileTypes = [
             '.stl',
             '.obj',
@@ -238,73 +239,118 @@ const CaseSubmitRefactored = () => {
           ];
 
           if (file.size > maxFileSize) {
-            throw new Error(
-              `${path} file is too large. Maximum file size is 100MB.`
-            );
+            throw new Error(`File is too large. Maximum file size is 100MB.`);
           }
 
           const fileExt = file.name.split('.').pop().toLowerCase();
           if (!allowedFileTypes.includes(`.${fileExt}`)) {
             throw new Error(
-              `Invalid file type for ${path}. Allowed types are: ${allowedFileTypes.join(
+              `Invalid file type. Allowed types are: ${allowedFileTypes.join(
                 ', '
               )}`
             );
           }
 
-          // Generate unique filename
-          const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-          const filePath = `${path}/${fileName}`;
+          // Use uploadFile from storageUtils - uploads to BOTH Supabase AND Telegram
+          const result = await uploadFile(file, folderPath, {
+            caseId: metadata.caseId || `CASE-${Date.now()}`,
+            patientName: metadata.patientName || 'Unknown Patient',
+            fileType: metadata.fileType || folderPath,
+          });
 
-          // Upload to storage
-          const { error: uploadError } = await supabase.storage
-            .from('case-files')
-            .upload(filePath, file, {
-              cacheControl: '3600',
-              upsert: false,
-              contentType: file.type,
-            });
-
-          if (uploadError) {
-            console.error(`Upload error for ${path}:`, uploadError);
-            throw uploadError;
+          if (!result.success) {
+            throw new Error(result.error || 'Upload failed');
           }
 
-          return filePath;
+          return result.filePath;
         } catch (error) {
-          console.error(`Comprehensive upload error for ${path}:`, error);
+          console.error(`Upload error for ${folderPath}:`, error);
           throw error;
         }
       };
 
+      // Prepare metadata for all uploads
+      const patientName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+      const caseId = `CASE-${user.id.substring(0, 8)}-${Date.now()}`;
+
       // Handle different upload methods
       if (formData.uploadMethod === 'individual') {
-        // Parallel file uploads for individual files
+        console.log('📤 Starting individual file uploads...');
+
         const uploadResults = await Promise.all([
-          uploadFileWithErrorHandling(formData.upperJawScan, 'upper-jaw-scans'),
-          uploadFileWithErrorHandling(formData.lowerJawScan, 'lower-jaw-scans'),
-          uploadFileWithErrorHandling(formData.biteScan, 'bite-scans'),
+          uploadFileWithErrorHandling(
+            formData.upperJawScan,
+            'upper-jaw-scans',
+            {
+              caseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: 'Upper Jaw Scan',
+            }
+          ),
+          uploadFileWithErrorHandling(
+            formData.lowerJawScan,
+            'lower-jaw-scans',
+            {
+              caseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: 'Lower Jaw Scan',
+            }
+          ),
+          uploadFileWithErrorHandling(formData.biteScan, 'bite-scans', {
+            caseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: 'Bite Scan',
+          }),
         ]);
 
         [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
+        console.log('✅ Individual uploads complete');
       } else if (formData.uploadMethod === 'compressed') {
-        // Upload compressed file
+        console.log('📤 Starting compressed file upload...');
+
         compressedScansPath = await uploadFileWithErrorHandling(
           formData.compressedScans,
-          'compressed-scans'
+          'compressed-scans',
+          {
+            caseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: 'Compressed Scans Archive',
+          }
         );
+
+        console.log('✅ Compressed upload complete');
       }
 
-      // Upload additional files (always available)
+      // Upload additional files
       if (formData.additionalFiles && formData.additionalFiles.length > 0) {
+        console.log(
+          `📤 Uploading ${formData.additionalFiles.length} additional files...`
+        );
+
         additionalFilesPaths = await Promise.all(
-          formData.additionalFiles.map((file) =>
-            uploadFileWithErrorHandling(file, `additional-files`)
+          formData.additionalFiles.map((file, index) =>
+            uploadFileWithErrorHandling(file, 'additional-files', {
+              caseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: `Additional File ${index + 1}`,
+            })
           )
         );
+
+        console.log('✅ Additional files uploaded');
       }
 
-      // Store file paths and user note in database
+      // Store in database
       const insertPayload = {
         user_id: user.id,
         first_name: formData.firstName.trim(),
@@ -323,7 +369,6 @@ const CaseSubmitRefactored = () => {
         additional_files_urls: additionalFilesPaths || [],
         tooth_status: toothStatus,
         user_note: formData.userNote?.trim() || null,
-        // Basic Diagnosis fields
         upper_midline: formData.upperMidline?.trim() || null,
         upper_midline_shift: formData.upperMidlineShift?.trim() || null,
         lower_midline: formData.lowerMidline?.trim() || null,
@@ -341,21 +386,20 @@ const CaseSubmitRefactored = () => {
         .insert(insertPayload);
 
       if (insertError) {
-        console.error('Case direct insert error:', insertError);
+        console.error('Case insert error:', insertError);
         throw insertError;
       }
 
       setSuccessMessage('Case submitted successfully!');
       navigate('/app/cases');
     } catch (error) {
-      console.error('Comprehensive submit error:', error);
+      console.error('Submit error:', error);
       setError(error.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  // Get minimum date (tomorrow)
   const getMinDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);

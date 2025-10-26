@@ -14,13 +14,6 @@ import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
 import DoctorBillingStats from '../components/billing/DoctorBillingStats';
 
 function UserDashboard() {
-  /*
-  const [casesLoading, setCasesLoading] = useState(true);
-  const navigate = useNavigate();
-  const [totalCases, setTotalCases] = useState(null);
-  const [recentCases, setRecentCases] = useState([]);
-  const [casesError, setCasesError] = useState(null);
-  */
   const {
     totalCases,
     recentCases,

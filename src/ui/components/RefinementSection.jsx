@@ -254,7 +254,11 @@ const RefinementSection = ({ caseData }) => {
           If you need additional aligners or treatment adjustments, you can
           request a refinement of your treatment plan.
         </p>
-        <Button onClick={() => setIsDialogOpen(true)} icon={<FeatherPlus />}>
+        <Button
+          onClick={() => setIsDialogOpen(true)}
+          icon={<FeatherPlus />}
+          className="w-auto"
+        >
           Request Refinement
         </Button>
       </div>

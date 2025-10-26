@@ -4,7 +4,7 @@ const statusDisplayText = {
   submitted: 'Submitted',
   accepted: 'Accepted',
   under_review: 'Under Review',
-  rejected: 'Rejected',
+  rejected: 'Rejected by Admin',
   awaiting_patient_approval: 'Awaiting Approval',
   patient_rejected: 'Rejected by Patient',
   awaiting_user_approval: 'Awaiting Approval',

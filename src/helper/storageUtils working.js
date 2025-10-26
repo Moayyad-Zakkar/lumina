@@ -12,9 +12,6 @@ const TELEGRAM_API_URL =
   import.meta.env.VITE_TELEGRAM_API_URL ||
   'http://localhost:3001/api/telegram-backup';
 
-// Log the API URL for debugging (remove this later)
-console.log('Telegram API URL:', TELEGRAM_API_URL);
-
 /**
  * Parse storage URL to extract the file path
  */
@@ -61,50 +58,30 @@ export const parseStorageUrl = (urlOrPath) => {
 
 /**
  * Upload file to Telegram as backup
- * DEFINED FIRST so uploadFile can use it
  */
-
 const uploadToTelegram = async (file, metadata = {}) => {
   try {
-    console.log('🔄 Starting Telegram backup...', {
-      filename: file.name,
-      size: file.size,
-      type: file.type,
-      apiUrl: TELEGRAM_API_URL,
-    });
-
     const formData = new FormData();
     formData.append('file', file);
     formData.append('caseId', metadata.caseId || '');
     formData.append('patientName', metadata.patientName || '');
-    formData.append('doctorName', metadata.doctorName || '');
-    formData.append('clinicName', metadata.clinicName || '');
-    formData.append('fileType', metadata.fileType || '');
 
-    console.log('📤 Sending request to:', TELEGRAM_API_URL);
+    formData.append('fileType', metadata.fileType || '');
 
     const response = await fetch(TELEGRAM_API_URL, {
       method: 'POST',
       body: formData,
     });
 
-    console.log('📥 Response status:', response.status);
-
     const result = await response.json();
-    console.log('📥 Response data:', result);
 
     if (!result.success) {
       throw new Error(result.error || 'Telegram backup failed');
     }
 
-    console.log('✅ Telegram backup successful');
     return { success: true, data: result };
   } catch (error) {
-    console.error('❌ Telegram backup error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-    });
+    console.error('Telegram backup error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -166,8 +143,6 @@ export const uploadFile = async (
       const telegramResult = await uploadToTelegram(file, {
         caseId: metadata.caseId,
         patientName: metadata.patientName,
-        doctorName: metadata.doctorName,
-        clinicName: metadata.clinicName,
         fileType: metadata.fileType || folderPath.split('/').pop(),
       });
 

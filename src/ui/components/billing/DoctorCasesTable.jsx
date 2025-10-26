@@ -14,7 +14,8 @@ const DoctorCasesTable = ({ cases }) => {
           <Table.HeaderCell>Patient</Table.HeaderCell>
           <Table.HeaderCell>Treatment Type</Table.HeaderCell>
           <Table.HeaderCell>Date</Table.HeaderCell>
-          <Table.HeaderCell>Amount</Table.HeaderCell>
+          <Table.HeaderCell>Total Amount</Table.HeaderCell>
+          <Table.HeaderCell>Remaining Amount</Table.HeaderCell>
           <Table.HeaderCell>Payment Status</Table.HeaderCell>
           <Table.HeaderCell />
         </Table.HeaderRow>
@@ -22,7 +23,7 @@ const DoctorCasesTable = ({ cases }) => {
     >
       {cases.length === 0 ? (
         <Table.Row>
-          <Table.Cell colSpan={7}>
+          <Table.Cell colSpan={8}>
             <div className="text-center py-8 text-neutral-500">
               No cases found.
             </div>
@@ -41,34 +42,40 @@ const DoctorCasesTable = ({ cases }) => {
   );
 };
 
-const CaseRow = ({ case_item, navigate }) => (
-  <Table.Row>
-    <Table.Cell>
-      <CaseIdInfo case_item={case_item} />
-    </Table.Cell>
-    <Table.Cell>
-      <PatientInfo case_item={case_item} />
-    </Table.Cell>
-    <Table.Cell>
-      <TreatmentDetails case_item={case_item} />
-    </Table.Cell>
-    <Table.Cell>
-      <CaseDate date={case_item.case_date} />
-    </Table.Cell>
-    <Table.Cell>
-      <CaseAmount amount={case_item.amount} />
-    </Table.Cell>
-    <Table.Cell>
-      <PaymentStatusBadge
-        paymentStatus={case_item.paymentStatus}
-        paymentPercentage={case_item.paymentPercentage}
-      />
-    </Table.Cell>
-    <Table.Cell>
-      <ViewDetailsButton case_item={case_item} navigate={navigate} />
-    </Table.Cell>
-  </Table.Row>
-);
+const CaseRow = ({ case_item, navigate }) => {
+  console.log(case_item);
+  return (
+    <Table.Row>
+      <Table.Cell>
+        <CaseIdInfo case_item={case_item} />
+      </Table.Cell>
+      <Table.Cell>
+        <PatientInfo case_item={case_item} />
+      </Table.Cell>
+      <Table.Cell>
+        <TreatmentDetails case_item={case_item} />
+      </Table.Cell>
+      <Table.Cell>
+        <CaseDate date={case_item.case_date} />
+      </Table.Cell>
+      <Table.Cell>
+        <CaseAmount amount={case_item.amount} />
+      </Table.Cell>
+      <Table.Cell>
+        <CaseRemaining remainingAmount={case_item.remainingAmount} />
+      </Table.Cell>
+      <Table.Cell>
+        <PaymentStatusBadge
+          paymentStatus={case_item.paymentStatus}
+          paymentPercentage={case_item.paymentPercentage}
+        />
+      </Table.Cell>
+      <Table.Cell>
+        <ViewDetailsButton case_item={case_item} navigate={navigate} />
+      </Table.Cell>
+    </Table.Row>
+  );
+};
 
 const CaseIdInfo = ({ case_item }) => (
   <div className="flex flex-col">
@@ -138,6 +145,17 @@ const CaseAmount = ({ amount }) => (
     })}
   </span>
 );
+
+const CaseRemaining = ({ remainingAmount }) => (
+  <span className="text-body-bold font-body-bold text-default-font">
+    $
+    {remainingAmount?.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </span>
+);
+
 const PaymentStatusBadge = ({ paymentStatus, paymentPercentage = 0 }) => {
   const statusConfig = {
     unpaid: {

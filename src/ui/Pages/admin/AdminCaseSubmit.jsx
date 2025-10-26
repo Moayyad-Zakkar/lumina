@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import supabase from '../../../helper/supabaseClient';
+import { uploadFile } from '../../../helper/storageUtils';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { TextField } from '../../components/TextField';
 
@@ -253,8 +254,6 @@ const AdminCaseSubmit = () => {
           }
         }
 
-        // Note: File uploads are optional for admin, so no file validation needed
-
         // Optional: Additional validations
         if (formData.additionalFiles && formData.additionalFiles.length > 5) {
           errors.push('Maximum of 5 additional files allowed');
@@ -268,13 +267,57 @@ const AdminCaseSubmit = () => {
         throw new Error(validationErrors.join(', '));
       }
 
-      // File upload function (same as original but optional)
-      const uploadFileWithErrorHandling = async (file, path) => {
+      // Fetch doctor's profile information for the selected doctor
+      console.log('📋 Selected User ID:', formData.selectedUserId);
+
+      const { data: doctorProfileData, error: doctorProfileError } =
+        await supabase
+          .from('profiles')
+          .select('full_name, clinic')
+          .eq('id', formData.selectedUserId)
+          .single();
+
+      console.log('👨‍⚕️ Doctor Profile Data:', doctorProfileData);
+      if (doctorProfileError) {
+        console.error('❌ Doctor Profile Error:', doctorProfileError);
+      }
+
+      const doctorName =
+        doctorProfileData?.full_name ||
+        formData.selectedUserName ||
+        'Unknown Doctor';
+      const clinicName = doctorProfileData?.clinic || null;
+
+      console.log('✅ Doctor Name to use:', doctorName);
+      console.log('🏥 Clinic Name to use:', clinicName);
+
+      // Prepare metadata for all uploads
+      const patientName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+      const caseId = `ADMIN-${formData.selectedUserId.substring(
+        0,
+        8
+      )}-${Date.now()}`;
+
+      console.log('📦 Metadata prepared:', {
+        caseId,
+        patientName,
+        doctorName,
+        clinicName,
+      });
+
+      // File upload function
+      const uploadFileWithErrorHandling = async (
+        file,
+        folderPath,
+        metadata = {}
+      ) => {
         if (!file) return null;
+
+        console.log('🔍 Upload function called with metadata:', metadata);
 
         try {
           // Validate file type and size
-          const maxFileSize = 100 * 1024 * 1024; // 100MB for compressed files
+          const maxFileSize = 100 * 1024 * 1024; // 100MB
           const allowedFileTypes = [
             '.stl',
             '.obj',
@@ -289,75 +332,122 @@ const AdminCaseSubmit = () => {
           ];
 
           if (file.size > maxFileSize) {
-            throw new Error(
-              `${path} file is too large. Maximum file size is 100MB.`
-            );
+            throw new Error(`File is too large. Maximum file size is 100MB.`);
           }
 
           const fileExt = file.name.split('.').pop().toLowerCase();
           if (!allowedFileTypes.includes(`.${fileExt}`)) {
             throw new Error(
-              `Invalid file type for ${path}. Allowed types are: ${allowedFileTypes.join(
+              `Invalid file type. Allowed types are: ${allowedFileTypes.join(
                 ', '
               )}`
             );
           }
 
-          // Generate unique filename
-          const fileName = `admin_${currentUser.id}_${Date.now()}.${fileExt}`;
-          const filePath = `${path}/${fileName}`;
+          // Use uploadFile from storageUtils - uploads to BOTH Supabase AND Telegram
+          const uploadMetadata = {
+            caseId: metadata.caseId || `ADMIN-${Date.now()}`,
+            patientName: metadata.patientName || 'Unknown Patient',
+            doctorName: metadata.doctorName || 'Unknown Doctor',
+            clinicName: metadata.clinicName || null,
+            fileType: metadata.fileType || folderPath,
+          };
 
-          // Upload to storage
-          const { error: uploadError } = await supabase.storage
-            .from('case-files')
-            .upload(filePath, file, {
-              cacheControl: '3600',
-              upsert: false,
-              contentType: file.type,
-            });
+          console.log('📤 Calling uploadFile with:', uploadMetadata);
 
-          if (uploadError) {
-            console.error(`Upload error for ${path}:`, uploadError);
-            throw uploadError;
+          const result = await uploadFile(file, folderPath, uploadMetadata);
+
+          if (!result.success) {
+            throw new Error(result.error || 'Upload failed');
           }
 
-          return filePath;
+          return result.filePath;
         } catch (error) {
-          console.error(`Comprehensive upload error for ${path}:`, error);
+          console.error(`Upload error for ${folderPath}:`, error);
           throw error;
         }
       };
 
       // Handle different upload methods (optional files)
       if (formData.uploadMethod === 'individual') {
-        // Parallel file uploads for individual files
+        console.log('📤 Starting individual file uploads...');
+
         const uploadResults = await Promise.all([
-          uploadFileWithErrorHandling(formData.upperJawScan, 'upper-jaw-scans'),
-          uploadFileWithErrorHandling(formData.lowerJawScan, 'lower-jaw-scans'),
-          uploadFileWithErrorHandling(formData.biteScan, 'bite-scans'),
+          uploadFileWithErrorHandling(
+            formData.upperJawScan,
+            'upper-jaw-scans',
+            {
+              caseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: 'Upper Jaw Scan',
+            }
+          ),
+          uploadFileWithErrorHandling(
+            formData.lowerJawScan,
+            'lower-jaw-scans',
+            {
+              caseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: 'Lower Jaw Scan',
+            }
+          ),
+          uploadFileWithErrorHandling(formData.biteScan, 'bite-scans', {
+            caseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: 'Bite Scan',
+          }),
         ]);
 
         [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
+        console.log('✅ Individual uploads complete');
       } else if (formData.uploadMethod === 'compressed') {
-        // Upload compressed file
+        console.log('📤 Starting compressed file upload...');
+
         compressedScansPath = await uploadFileWithErrorHandling(
           formData.compressedScans,
-          'compressed-scans'
+          'compressed-scans',
+          {
+            caseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: 'Compressed Scans Archive',
+          }
         );
+
+        console.log('✅ Compressed upload complete');
       }
 
       // Upload additional files (always available)
       if (formData.additionalFiles && formData.additionalFiles.length > 0) {
+        console.log(
+          `📤 Uploading ${formData.additionalFiles.length} additional files...`
+        );
+
         additionalFilesPaths = await Promise.all(
-          formData.additionalFiles.map((file) =>
-            uploadFileWithErrorHandling(file, `additional-files`)
+          formData.additionalFiles.map((file, index) =>
+            uploadFileWithErrorHandling(file, 'additional-files', {
+              caseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: `Additional File ${index + 1}`,
+            })
           )
         );
+
+        console.log('✅ Additional files uploaded');
       }
 
       // Store file paths and user note in database
       const insertPayload = {
-        user_id: formData.selectedUserId, // Use selected user ID instead of current admin
+        user_id: formData.selectedUserId,
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         is_urgent: formData.isUrgent,
@@ -374,7 +464,6 @@ const AdminCaseSubmit = () => {
         additional_files_urls: additionalFilesPaths || [],
         tooth_status: toothStatus,
         user_note: formData.userNote?.trim() || null,
-        // Basic Diagnosis fields
         upper_midline: formData.upperMidline?.trim() || null,
         upper_midline_shift: formData.upperMidlineShift?.trim() || null,
         lower_midline: formData.lowerMidline?.trim() || null,
@@ -385,8 +474,8 @@ const AdminCaseSubmit = () => {
         molar_left_class: formData.molarLeftClass?.trim() || null,
         treatment_arch: formData.treatmentArch?.trim() || null,
         status: 'submitted',
-        created_by_admin: true, // Flag to indicate admin created this case
-        admin_id: currentUser.id, // Store admin ID who created the case
+        created_by_admin: true,
+        admin_id: currentUser.id,
       };
 
       const { error: insertError } = await supabase

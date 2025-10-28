@@ -256,6 +256,7 @@ const CaseSubmitRefactored = () => {
             caseId: metadata.caseId || `CASE-${Date.now()}`,
             patientName: metadata.patientName || 'Unknown Patient',
             fileType: metadata.fileType || folderPath,
+            doctorName: metadata.doctorName || 'N/A',
           });
 
           if (!result.success) {

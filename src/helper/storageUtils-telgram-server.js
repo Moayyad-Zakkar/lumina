@@ -1,4 +1,4 @@
-// storageUtils.js - Updated with Telegram backup integration via Edge Function
+// storageUtils.js - Updated with Telegram backup integration
 import supabase from './supabaseClient';
 import toast from 'react-hot-toast';
 
@@ -7,13 +7,13 @@ import toast from 'react-hot-toast';
  */
 export const STORAGE_BUCKET = 'case-files';
 
-// Edge Function URL for Telegram backup
-const TELEGRAM_API_URL = `${
-  import.meta.env.VITE_SUPABASE_URL
-}/functions/v1/telegram-backup`;
+// Telegram API configuration
+const TELEGRAM_API_URL =
+  import.meta.env.VITE_TELEGRAM_API_URL ||
+  'http://localhost:3001/api/telegram-backup';
 
 // Log the API URL for debugging (remove this later)
-console.log('Telegram Edge Function URL:', TELEGRAM_API_URL);
+console.log('Telegram API URL:', TELEGRAM_API_URL);
 
 /**
  * Parse storage URL to extract the file path
@@ -60,61 +60,42 @@ export const parseStorageUrl = (urlOrPath) => {
 };
 
 /**
- * Upload file to Telegram via Edge Function as backup
+ * Upload file to Telegram as backup
  * DEFINED FIRST so uploadFile can use it
  */
+
 const uploadToTelegram = async (file, metadata = {}) => {
   try {
-    console.log('🔄 Starting Telegram backup via Edge Function...', {
+    /*
+    console.log('🔄 Starting Telegram backup...', {
       filename: file.name,
       size: file.size,
       type: file.type,
-      edgeFunction: TELEGRAM_API_URL,
+      apiUrl: TELEGRAM_API_URL,
     });
-
-    // Get current session for authentication
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session) {
-      console.error('❌ No active session:', sessionError);
-      throw new Error('User must be authenticated');
-    }
-
-    const userId = session.user.id;
+    */
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('folderPath', metadata.folderPath || '');
     formData.append('caseId', metadata.caseId || '');
     formData.append('patientName', metadata.patientName || '');
     formData.append('doctorName', metadata.doctorName || '');
     formData.append('clinicName', metadata.clinicName || '');
     formData.append('fileType', metadata.fileType || '');
-    formData.append('userId', userId);
 
-    console.log('📤 Calling Edge Function with auth token');
+    console.log('📤 Sending request to:', TELEGRAM_API_URL);
 
     const response = await fetch(TELEGRAM_API_URL, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${session.access_token}`, // Use session token, not anon key
-      },
       body: formData,
     });
 
-    console.log('📥 Response status:', response.status);
-
     const result = await response.json();
-    console.log('📥 Response data:', result);
 
     if (!result.success) {
       throw new Error(result.error || 'Telegram backup failed');
     }
 
-    console.log('✅ Telegram backup successful');
     return { success: true, data: result };
   } catch (error) {
     console.error('❌ Telegram backup error:', error);
@@ -127,10 +108,10 @@ const uploadToTelegram = async (file, metadata = {}) => {
 };
 
 /**
- * Upload file to storage WITH automatic Telegram backup via Edge Function
+ * Upload file to storage WITH automatic Telegram backup
  * @param {File} file - The file to upload
  * @param {string} folderPath - The folder path in Supabase storage
- * @param {object} metadata - Optional metadata (caseId, patientName, fileType, doctorName, clinicName)
+ * @param {object} metadata - Optional metadata (caseId, patientName, fileType)
  * @param {boolean} skipTelegramBackup - Skip Telegram backup if true (default: false)
  */
 export const uploadFile = async (
@@ -150,51 +131,17 @@ export const uploadFile = async (
       throw new Error('File too large (max 50MB)');
     }
 
-    // Show upload toast
-    const uploadToast = toast.loading('Uploading & backing up...');
-
-    // NEW: Use Edge Function which handles BOTH Supabase upload AND Telegram backup
-    if (!skipTelegramBackup) {
-      const telegramResult = await uploadToTelegram(file, {
-        folderPath,
-        caseId: metadata.caseId,
-        patientName: metadata.patientName,
-        doctorName: metadata.doctorName,
-        clinicName: metadata.clinicName,
-        fileType: metadata.fileType || folderPath.split('/').pop(),
-      });
-
-      if (telegramResult.success) {
-        toast.success('File uploaded & backed up to Telegram', {
-          id: uploadToast,
-        });
-
-        // Return the file path from Edge Function
-        return {
-          success: true,
-          filePath: telegramResult.data.filePath,
-          fileName: telegramResult.data.fileName,
-          originalName: telegramResult.data.originalName,
-        };
-      } else {
-        // Fallback: Upload only to Supabase if Telegram fails
-        console.warn(
-          'Telegram backup failed, uploading to Supabase only:',
-          telegramResult.error
-        );
-        toast.loading('Telegram backup failed, uploading to Supabase...', {
-          id: uploadToast,
-        });
-      }
-    }
-
-    // Fallback: Direct Supabase upload (if Telegram skipped or failed)
+    // Generate unique filename
     const fileExt = file.name.split('.').pop().toLowerCase();
     const fileName = `${Date.now()}_${Math.random()
       .toString(36)
       .substring(2)}.${fileExt}`;
     const filePath = `${folderPath}/${fileName}`;
 
+    // Show upload toast
+    const uploadToast = toast.loading('Uploading file...');
+
+    // 1. Upload to Supabase
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(filePath, file, {
@@ -209,6 +156,31 @@ export const uploadFile = async (
     }
 
     toast.success('File uploaded to Supabase', { id: uploadToast });
+
+    // 2. Backup to Telegram (optional but recommended)
+    if (!skipTelegramBackup) {
+      toast.loading('Backing up', { id: uploadToast });
+
+      const telegramResult = await uploadToTelegram(file, {
+        caseId: metadata.caseId,
+        patientName: metadata.patientName,
+        doctorName: metadata.doctorName,
+        clinicName: metadata.clinicName,
+        fileType: metadata.fileType || folderPath.split('/').pop(),
+      });
+
+      if (telegramResult.success) {
+        toast.success('File backed up', { id: uploadToast });
+      } else {
+        // Don't fail the entire upload if Telegram backup fails
+        console.warn('Backup failed:', telegramResult.error);
+        toast.error('Backup failed (file saved to Supabase)', {
+          id: uploadToast,
+        });
+      }
+    } else {
+      toast.dismiss(uploadToast);
+    }
 
     return {
       success: true,

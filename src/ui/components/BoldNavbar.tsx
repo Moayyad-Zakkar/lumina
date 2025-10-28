@@ -1,4 +1,3 @@
-'use client';
 /*
  * Documentation:
  * Bold navbar — https://app.subframe.com/3c939b2b64b7/library?component=Bold+navbar_672f6b33-51f9-41a4-9929-d0570d10efe6

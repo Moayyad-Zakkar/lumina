@@ -204,6 +204,7 @@ function AdminTransactionLogPage() {
       'Amount',
       'Processed By',
     ];
+
     const csvData = filteredTransactions.map((txn) => [
       txn.id,
       txn.date,
@@ -216,19 +217,43 @@ function AdminTransactionLogPage() {
       txn.processedBy,
     ]);
 
+    // Properly escape CSV cells
+    const escapeCSVCell = (cell) => {
+      const cellStr = String(cell);
+      if (
+        cellStr.includes(',') ||
+        cellStr.includes('"') ||
+        cellStr.includes('\n')
+      ) {
+        return `"${cellStr.replace(/"/g, '""')}"`;
+      }
+      return cellStr;
+    };
+
     const csv = [
-      headers.join(','),
-      ...csvData.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+      headers.map(escapeCSVCell).join(','),
+      ...csvData.map((row) => row.map(escapeCSVCell).join(',')),
     ].join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    // Build filename with filter context
+    let filename = 'transaction-log';
+    if (typeFilter !== 'all') {
+      filename += `-${typeFilter}`;
+    }
+    if (dateFilter !== 'all') {
+      filename += `-${dateFilter}`;
+    }
+    filename += `-${new Date().toISOString().split('T')[0]}.csv`;
+
+    // Add UTF-8 BOM to support Arabic and other Unicode characters
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `transaction-log-${
-      new Date().toISOString().split('T')[0]
-    }.csv`;
+    a.download = filename;
     a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const clearFilters = () => {

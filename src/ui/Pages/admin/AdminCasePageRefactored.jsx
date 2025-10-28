@@ -210,6 +210,8 @@ const AdminCasePageRefactored = () => {
     window.open(viewerUrl, '_blank');
   };
 
+  const viewerLink = `${window.location.origin}/viewer/${caseData.id}`;
+
   return (
     <>
       <div className="flex w-full flex-col items-start gap-2">
@@ -420,6 +422,7 @@ const AdminCasePageRefactored = () => {
           handleDecline={handleDecline}
           caseHasViewer={caseHasViewer}
           handleViewerClick={handleViewerClick}
+          viewerLink={viewerLink}
         />
 
         {/* Manufacturing Progress - Only for approved cases and beyond */}

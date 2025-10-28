@@ -20,6 +20,7 @@ function ProfilePage() {
     email: '',
     phone: '',
     clinic: '',
+    address: '',
     avatar_url: '',
   });
 
@@ -35,15 +36,13 @@ function ProfilePage() {
         .eq('id', user.id)
         .single();
 
-      const { data: s } = await supabase.auth.getSession();
-      console.log('session?', s);
-
       if (!error && data) {
         setProfile({
           full_name: data.full_name || '',
           email: data.email || user.email || '',
           phone: data.phone || '',
           clinic: data.clinic || '',
+          address: data.address || '',
           avatar_url: data.avatar_url || '',
         });
       }
@@ -68,6 +67,7 @@ function ProfilePage() {
         full_name: profile.full_name,
         phone: profile.phone,
         clinic: profile.clinic,
+        address: profile.address,
         avatar_url: profile.avatar_url,
       })
       .eq('id', user.id);
@@ -210,6 +210,11 @@ function ProfilePage() {
                   label: 'Clinic Name',
                   name: 'clinic',
                   placeholder: 'Enter your clinic name',
+                },
+                {
+                  label: 'Clinic Address',
+                  name: 'address',
+                  placeholder: 'Enter your clinic address',
                 },
               ].map((field) => (
                 <TextField

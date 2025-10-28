@@ -268,7 +268,6 @@ const AdminCaseSubmit = () => {
       }
 
       // Fetch doctor's profile information for the selected doctor
-      console.log('📋 Selected User ID:', formData.selectedUserId);
 
       const { data: doctorProfileData, error: doctorProfileError } =
         await supabase
@@ -277,7 +276,6 @@ const AdminCaseSubmit = () => {
           .eq('id', formData.selectedUserId)
           .single();
 
-      console.log('👨‍⚕️ Doctor Profile Data:', doctorProfileData);
       if (doctorProfileError) {
         console.error('❌ Doctor Profile Error:', doctorProfileError);
       }
@@ -288,22 +286,12 @@ const AdminCaseSubmit = () => {
         'Unknown Doctor';
       const clinicName = doctorProfileData?.clinic || null;
 
-      console.log('✅ Doctor Name to use:', doctorName);
-      console.log('🏥 Clinic Name to use:', clinicName);
-
       // Prepare metadata for all uploads
       const patientName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
       const caseId = `ADMIN-${formData.selectedUserId.substring(
         0,
         8
       )}-${Date.now()}`;
-
-      console.log('📦 Metadata prepared:', {
-        caseId,
-        patientName,
-        doctorName,
-        clinicName,
-      });
 
       // File upload function
       const uploadFileWithErrorHandling = async (
@@ -312,8 +300,6 @@ const AdminCaseSubmit = () => {
         metadata = {}
       ) => {
         if (!file) return null;
-
-        console.log('🔍 Upload function called with metadata:', metadata);
 
         try {
           // Validate file type and size
@@ -353,8 +339,6 @@ const AdminCaseSubmit = () => {
             fileType: metadata.fileType || folderPath,
           };
 
-          console.log('📤 Calling uploadFile with:', uploadMetadata);
-
           const result = await uploadFile(file, folderPath, uploadMetadata);
 
           if (!result.success) {
@@ -370,8 +354,6 @@ const AdminCaseSubmit = () => {
 
       // Handle different upload methods (optional files)
       if (formData.uploadMethod === 'individual') {
-        console.log('📤 Starting individual file uploads...');
-
         const uploadResults = await Promise.all([
           uploadFileWithErrorHandling(
             formData.upperJawScan,
@@ -405,10 +387,7 @@ const AdminCaseSubmit = () => {
         ]);
 
         [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
-        console.log('✅ Individual uploads complete');
       } else if (formData.uploadMethod === 'compressed') {
-        console.log('📤 Starting compressed file upload...');
-
         compressedScansPath = await uploadFileWithErrorHandling(
           formData.compressedScans,
           'compressed-scans',
@@ -420,16 +399,10 @@ const AdminCaseSubmit = () => {
             fileType: 'Compressed Scans Archive',
           }
         );
-
-        console.log('✅ Compressed upload complete');
       }
 
       // Upload additional files (always available)
       if (formData.additionalFiles && formData.additionalFiles.length > 0) {
-        console.log(
-          `📤 Uploading ${formData.additionalFiles.length} additional files...`
-        );
-
         additionalFilesPaths = await Promise.all(
           formData.additionalFiles.map((file, index) =>
             uploadFileWithErrorHandling(file, 'additional-files', {
@@ -441,8 +414,6 @@ const AdminCaseSubmit = () => {
             })
           )
         );
-
-        console.log('✅ Additional files uploaded');
       }
 
       // Store file paths and user note in database

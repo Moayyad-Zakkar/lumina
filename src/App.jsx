@@ -7,14 +7,11 @@ import Register /*, { action as registerUserAction } */ from './ui/Pages/Registe
 import Login from './ui/Pages/Login';
 import Layout from './ui/Pages/Layout';
 import Features from './ui/Pages/Features';
-import Welcome from './ui/Pages/Welcome';
 import UserDashboard from './ui/Pages/UserDashboard';
 
 import UpdatePassword from './ui/Pages/UpdatePassword';
 import ResetPassword from './ui/Pages/ResetPassword';
 import CasesPage from './ui/Pages/CasesPage-v2';
-import CaseSubmit from './ui/Pages/CaseSubmit';
-import CasePage from './ui/Pages/CasePage';
 import { userCaseLoader } from './ui/loaders/userCaseLoader';
 import { RequireRole } from './ui/layouts/RequireRole';
 import AdminDashboard from './ui/Pages/admin/AdminDashboard';
@@ -30,7 +27,6 @@ import SettingsPage from './ui/Pages/SettingsPage';
 import ProfilePage from './ui/Pages/ProfilePage';
 import { adminDashboardLoader } from './ui/loaders/adminDashboardLoader';
 import AdminCasesPage from './ui/Pages/admin/AdminCasesPage';
-import AdminCasePage from './ui/Pages/admin/AdminCasePage';
 import { adminCaseLoader } from './ui/loaders/adminCaseLoader';
 import AdminDoctorsPage from './ui/Pages/admin/AdminDoctorsPage';
 import AdminDoctorDetailsPage from './ui/Pages/admin/AdminDoctorDetailsPage';
@@ -46,6 +42,7 @@ import AdminCasePageRefactored from './ui/Pages/admin/AdminCasePageRefactored';
 import AdminTransactionLogPage from './ui/Pages/admin/ِAdminTransactionLogPage';
 import DoctorTransactionLogPage from './ui/Pages/DoctorTransactionLogPage';
 import CaseViewer from './ui/Pages/CaseViewer';
+import AdminSignUpRequests from './ui/Pages/admin/AdminSignUpRequests';
 
 const router = createBrowserRouter([
   {
@@ -80,10 +77,6 @@ const router = createBrowserRouter([
   {
     element: <Register />,
     path: '/register',
-  },
-  {
-    element: <Welcome />,
-    path: '/register/welcome',
   },
   {
     element: (
@@ -150,6 +143,10 @@ const router = createBrowserRouter([
       {
         element: <AdminCasesPage />,
         path: '/admin/cases',
+      },
+      {
+        element: <AdminSignUpRequests />,
+        path: '/admin/signup-requests',
       },
       {
         element: <AdminCaseSubmit />,

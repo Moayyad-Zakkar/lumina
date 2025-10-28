@@ -1,18 +1,16 @@
 import React from 'react';
-import { TextField } from '../../ui/components/TextField';
-import { Button } from '../../ui/components/Button';
-import { LinkButton } from '../../ui/components/LinkButton';
+import { TextField } from '../components/TextField';
+import { Button } from '../components/Button';
+import { LinkButton } from '../components/LinkButton';
 import { Link, useNavigate } from 'react-router';
 import { useState } from 'react';
 import supabase from '../../helper/supabaseClient';
-import SignUpRequestDialog from '../components/SignUpRequestDialog';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showSignUpDialog, setShowSignUpDialog] = useState(false);
   const navigate = useNavigate();
 
   const handleSignIn = async (e) => {
@@ -85,25 +83,6 @@ function Login() {
     }
   };
   */
-
-  const handleSignUpRequest = async (formData) => {
-    try {
-      const { error } = await supabase.from('signup_requests').insert([
-        {
-          full_name: formData.full_name,
-          email: formData.email,
-          clinic: formData.clinic,
-          phone: formData.phone,
-          address: formData.address,
-          status: 'pending',
-        },
-      ]);
-
-      if (error) throw error;
-    } catch (error) {
-      throw new Error(error.message || 'Failed to submit request');
-    }
-  };
 
   return (
     <div className="flex w-full h-screen items-stretch">
@@ -197,14 +176,11 @@ function Login() {
             <span className="text-body font-body text-default-font">
               Don&#39;t have an account?
             </span>
-
-            <LinkButton
-              variant="brand"
-              className="text-sky-800"
-              onClick={() => setShowSignUpDialog(true)}
-            >
-              Request Access
-            </LinkButton>
+            <Link to="/register">
+              <LinkButton variant="brand" className="text-sky-800">
+                Create account
+              </LinkButton>
+            </Link>
           </div>
           <div className="flex flex-wrap items-start gap-1">
             <span className="text-body font-body text-default-font">
@@ -217,12 +193,6 @@ function Login() {
             </Link>
           </div>
         </div>
-
-        <SignUpRequestDialog
-          isOpen={showSignUpDialog}
-          onClose={() => setShowSignUpDialog(false)}
-          onSubmit={handleSignUpRequest}
-        />
       </div>
     </div>
   );

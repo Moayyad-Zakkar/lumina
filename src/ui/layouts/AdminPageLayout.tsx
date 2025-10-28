@@ -246,6 +246,24 @@ const DefaultPageLayoutRoot = React.forwardRef<
             Cases
           </SidebarWithLargeItems.NavItem>
         </Link>
+        <Link to="/admin/signup-requests">
+          <SidebarWithLargeItems.NavItem
+            icon={<FeatherUser />}
+            selected={pathname.startsWith('/admin/signup-requests')}
+            /*rightSlot={
+              BadgeCount > 0 ? (
+                <Badge
+                  variant="error"
+                  className="ml-2 px-2 py-0 text-xs rounded-full"
+                >
+                  {BadgeCount}
+                </Badge>
+              ) : null
+            }*/
+          >
+            Requests
+          </SidebarWithLargeItems.NavItem>
+        </Link>
         <Link to="/admin/billing">
           <SidebarWithLargeItems.NavItem
             selected={pathname.startsWith('/admin/billing')}

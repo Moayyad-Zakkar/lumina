@@ -208,12 +208,10 @@ function DoctorTransactionLogPage() {
       0
     );
     const totalPayments = filteredTransactions.length;
-    //const averagePayment = totalPayments > 0 ? totalPaid / totalPayments : 0;
 
     return {
       total: totalPayments,
       totalPaid: totalPaid,
-      //averagePayment: averagePayment,
     };
   }, [filteredTransactions]);
 
@@ -227,6 +225,7 @@ function DoctorTransactionLogPage() {
       'Received By',
       'Notes',
     ];
+
     const csvData = filteredTransactions.map((txn) => [
       txn.id,
       txn.date,
@@ -237,17 +236,40 @@ function DoctorTransactionLogPage() {
       txn.notes,
     ]);
 
+    // Properly escape CSV cells
+    const escapeCSVCell = (cell) => {
+      const cellStr = String(cell);
+      if (
+        cellStr.includes(',') ||
+        cellStr.includes('"') ||
+        cellStr.includes('\n')
+      ) {
+        return `"${cellStr.replace(/"/g, '""')}"`;
+      }
+      return cellStr;
+    };
+
     const csv = [
-      headers.join(','),
-      ...csvData.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+      headers.map(escapeCSVCell).join(','),
+      ...csvData.map((row) => row.map(escapeCSVCell).join(',')),
     ].join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    // Build filename with filter context
+    let filename = 'my-payments';
+    if (dateFilter !== 'all') {
+      filename += `-${dateFilter}`;
+    }
+    filename += `-${new Date().toISOString().split('T')[0]}.csv`;
+
+    // Add UTF-8 BOM to support Arabic and other Unicode characters
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `my-payments-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = filename;
     a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const clearFilters = () => {
@@ -340,99 +362,6 @@ function DoctorTransactionLogPage() {
           </div>
         )}
       </div>
-
-      {/*  COMMENTED OUT THE DESCRIPTION NOTE  */}
-      {/*
-  <div className="w-full overflow-hidden rounded-lg border border-neutral-border bg-default-background">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="border-b border-neutral-border bg-subtle-background">
-              <tr>
-                <th className="px-6 py-3 text-left text-label-bold font-label-bold text-subtext-color">
-                  Transaction ID
-                </th>
-                <th className="px-6 py-3 text-left text-label-bold font-label-bold text-subtext-color">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-label-bold font-label-bold text-subtext-color">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-label-bold font-label-bold text-subtext-color">
-                  Cases
-                </th>
-                <th className="px-6 py-3 text-right text-label-bold font-label-bold text-subtext-color">
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-border">
-              {filteredTransactions.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="4"
-                    className="px-6 py-12 text-center text-body font-body text-subtext-color"
-                  >
-                    No payment transactions found
-                  </td>
-                </tr>
-              ) : (
-                filteredTransactions.map((txn) => (
-                  <tr
-                    key={txn.fullId}
-                    className="hover:bg-subtle-background transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-body-bold font-body-bold text-default-font">
-                        {txn.id}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-body font-body text-default-font">
-                        {txn.date}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-body font-body text-default-font">
-                        {txn.description}
-                      </div>
-                      <div className="text-caption font-caption text-subtext-color">
-                        Received by {txn.receivedBy}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {txn.casesCount > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          <div className="text-body-bold font-body-bold text-default-font">
-                            {txn.casesCount}{' '}
-                            {txn.casesCount === 1 ? 'case' : 'cases'}
-                          </div>
-                          {txn.caseNames.length > 0 && (
-                            <div className="text-caption font-caption text-subtext-color">
-                              {txn.caseNames.join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-body font-body text-subtext-color">
-                          General payment
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-body-bold font-body-bold text-brand-600">
-                        ${txn.amount.toFixed(2)}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-
-*/}
 
       <div className="w-full overflow-hidden rounded-lg border border-neutral-border bg-default-background">
         <div className="overflow-x-auto">

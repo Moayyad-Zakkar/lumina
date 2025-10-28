@@ -15,6 +15,7 @@ import {
   FeatherCheck,
   FeatherImage,
   FeatherEye,
+  FeatherCopy,
 } from '@subframe/core';
 import TreatmentPlanImagesUpload from './TreatmentPlanImagesUpload';
 
@@ -41,8 +42,20 @@ const AdminTreatmentPlanEditor = ({
   handleDecline,
   caseHasViewer,
   handleViewerClick,
+  viewerLink,
 }) => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(viewerLink);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   // Only show for accepted cases and beyond
   if (
@@ -255,14 +268,29 @@ const AdminTreatmentPlanEditor = ({
 
             {/* View 3DA Viewer Button */}
             {caseHasViewer && (
-              <div className="flex w-full justify-end">
+              <div className="flex w-full items-center gap-2">
                 <Button
                   onClick={handleViewerClick}
                   icon={<FeatherEye />}
-                  className="w-auto"
+                  className="flex-shrink-0 w-auto"
                 >
                   Open 3DA Viewer
                 </Button>
+
+                <TextField className="flex flex-grow">
+                  <TextField.Input
+                    type="text"
+                    value={viewerLink || ''}
+                    readOnly
+                  />
+                </TextField>
+                <IconButton
+                  icon={<FeatherCopy />}
+                  onClick={handleCopyLink}
+                  aria-label={copySuccess ? 'Copied!' : 'Copy link'}
+                  variant={copySuccess ? 'brand-primary' : 'neutral-secondary'}
+                  className="flex-shrink-0 "
+                />
               </div>
             )}
           </div>

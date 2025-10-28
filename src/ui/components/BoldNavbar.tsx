@@ -82,9 +82,11 @@ const BoldNavbarRoot = React.forwardRef<HTMLElement, BoldNavbarRootProps>(
           <Link to="/login">
             <Button variant="brand-tertiary">Log in</Button>
           </Link>
+          {/*
           <Link to="/register">
             <Button>Sign up</Button>
           </Link>
+            */}
         </div>
       </div>
     );

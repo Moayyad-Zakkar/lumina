@@ -7,12 +7,14 @@ import {
   FeatherXCircle,
 } from '@subframe/core';
 import AdminHeadline from '../../components/AdminHeadline';
+import AdminCreateUserDialog from '../../components/AdminCreateUserDialog';
 
 const AdminSignUpRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [password, setPassword] = useState('');
   const [processingId, setProcessingId] = useState(null);
   const [error, setError] = useState(null);
@@ -78,8 +80,6 @@ const AdminSignUpRequests = () => {
       if (updateError) throw updateError;
 
       // Note: Profile is automatically created via database trigger
-      // The trigger creates the profile with role='user' by default
-      // If you need to verify the profile was created, you can check:
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, role')
@@ -88,7 +88,6 @@ const AdminSignUpRequests = () => {
 
       if (profileError) {
         console.warn('Profile check warning:', profileError);
-        // Profile might be created by trigger slightly delayed
       }
 
       alert(
@@ -127,6 +126,52 @@ const AdminSignUpRequests = () => {
       setError(err.message);
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleCreateUser = async (formData) => {
+    try {
+      // Create the user in Supabase Auth
+      const { data: authData, error: authError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: formData.email,
+          password: formData.password,
+          email_confirm: true,
+          user_metadata: {
+            full_name: formData.full_name,
+            clinic: formData.clinic,
+            phone: formData.phone,
+            address: formData.address,
+          },
+        });
+
+      if (authError) throw authError;
+
+      // Profile is automatically created by the on_auth_user_created trigger
+      // Wait a moment for the trigger to complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Verify profile was created
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('id, role, full_name')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) {
+        console.warn('Profile verification warning:', profileError);
+        // Profile might take a moment to be created by trigger
+      } else {
+        console.log('Profile created successfully:', profile);
+      }
+
+      console.log('User created successfully:', authData.user);
+      alert(
+        `User account created successfully!\nEmail: ${formData.email}\nPassword: ${formData.password}`
+      );
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new Error(error.message || 'Failed to create user account');
     }
   };
 
@@ -174,7 +219,13 @@ const AdminSignUpRequests = () => {
     <>
       <div className="max-w-7xl">
         <div className="w-auto mb-6">
-          <AdminHeadline submit={false}>Sign-Up Requests</AdminHeadline>
+          <AdminHeadline
+            submit={false}
+            createUser={true}
+            onCreateUser={() => setShowCreateDialog(true)}
+          >
+            Sign Up Requests
+          </AdminHeadline>
           <p className="mt-2 text-gray-600">
             Review and approve new user registrations
           </p>
@@ -237,7 +288,7 @@ const AdminSignUpRequests = () => {
                       <div className="text-sm text-gray-900">
                         {request.clinic}
                       </div>
-                      {request.phone_number && (
+                      {request.phone && (
                         <div className="text-sm text-gray-500">
                           {request.phone}
                         </div>
@@ -399,6 +450,13 @@ const AdminSignUpRequests = () => {
           </div>
         </div>
       )}
+
+      {/* Create User Dialog */}
+      <AdminCreateUserDialog
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSubmit={handleCreateUser}
+      />
     </>
   );
 };

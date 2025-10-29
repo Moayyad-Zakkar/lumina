@@ -136,7 +136,15 @@ const CasesPage = () => {
   const getDateRange = (range) => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
+    const weekStart = new Date(today);
+    const weekEnd = new Date(weekStart);
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const quarter = Math.floor(today.getMonth() / 3);
+    const quarterStart = new Date(today.getFullYear(), quarter * 3, 1);
+    const quarterEnd = new Date(today.getFullYear(), quarter * 3 + 3, 1);
+    const yearStart = new Date(today.getFullYear(), 0, 1);
+    const yearEnd = new Date(today.getFullYear() + 1, 0, 1);
     switch (range) {
       case 'today':
         return {
@@ -144,23 +152,15 @@ const CasesPage = () => {
           end: new Date(today.getTime() + 24 * 60 * 60 * 1000),
         };
       case 'week':
-        const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - today.getDay());
-        const weekEnd = new Date(weekStart);
+
         weekEnd.setDate(weekStart.getDate() + 7);
         return { start: weekStart, end: weekEnd };
       case 'month':
-        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1);
         return { start: monthStart, end: monthEnd };
       case 'quarter':
-        const quarter = Math.floor(today.getMonth() / 3);
-        const quarterStart = new Date(today.getFullYear(), quarter * 3, 1);
-        const quarterEnd = new Date(today.getFullYear(), quarter * 3 + 3, 1);
         return { start: quarterStart, end: quarterEnd };
       case 'year':
-        const yearStart = new Date(today.getFullYear(), 0, 1);
-        const yearEnd = new Date(today.getFullYear() + 1, 0, 1);
         return { start: yearStart, end: yearEnd };
       default:
         return null;
@@ -322,7 +322,7 @@ const CasesPage = () => {
   return (
     <>
       {error && <Error error={error} />}
-      <Headline>Cases</Headline>
+      <Headline>My Cases</Headline>
 
       <div className="flex w-full justify-between items-center gap-4">
         {/* Left Side: Search + Filters */}

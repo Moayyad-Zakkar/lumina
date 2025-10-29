@@ -11,7 +11,7 @@ import UserDashboard from './ui/Pages/UserDashboard';
 
 import UpdatePassword from './ui/Pages/UpdatePassword';
 import ResetPassword from './ui/Pages/ResetPassword';
-import CasesPage from './ui/Pages/CasesPage-v2';
+import CasesPage from './ui/Pages/CasesPage';
 import { userCaseLoader } from './ui/loaders/userCaseLoader';
 import { RequireRole } from './ui/layouts/RequireRole';
 import AdminDashboard from './ui/Pages/admin/AdminDashboard';

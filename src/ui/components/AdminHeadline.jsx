@@ -2,7 +2,12 @@ import { Link } from 'react-router';
 import { Button } from './Button';
 import { FeatherPlus } from '@subframe/core';
 
-export default function AdminHeadline({ children, submit }) {
+export default function AdminHeadline({
+  children,
+  submit,
+  createUser,
+  onCreateUser,
+}) {
   return (
     <div className="flex w-full items-center justify-between">
       <span className="text-heading-1 font-heading-1 text-default-font">
@@ -14,6 +19,12 @@ export default function AdminHeadline({ children, submit }) {
             Submit New Case
           </Button>
         </Link>
+      )}
+
+      {createUser && (
+        <Button size="large" icon={<FeatherPlus />} onClick={onCreateUser}>
+          Create User
+        </Button>
       )}
     </div>
   );

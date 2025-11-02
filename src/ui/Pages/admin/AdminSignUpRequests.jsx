@@ -8,6 +8,7 @@ import {
 } from '@subframe/core';
 import AdminHeadline from '../../components/AdminHeadline';
 import AdminCreateUserDialog from '../../components/AdminCreateUserDialog';
+import { Loader } from '../../components/Loader';
 
 const AdminSignUpRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -209,8 +210,8 @@ const AdminSignUpRequests = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600">Loading requests...</div>
+      <div className="flex w-full h-full min-h-[100px] justify-center items-center">
+        <Loader size="medium" />
       </div>
     );
   }

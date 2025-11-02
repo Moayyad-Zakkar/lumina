@@ -336,13 +336,16 @@ const AdminTreatmentPlanEditor = ({
                 'user_rejected',
               ].includes(currentStatus) ? (
                 <>
-                  <Button
+                  {/*
+      <Button
                     variant="neutral-tertiary"
                     onClick={handleCancelEdit}
                     icon={<FeatherX />}
                   >
                     Cancel editing
                   </Button>
+*/}
+
                   <Button
                     variant="destructive-secondary"
                     disabled={isDisabled}

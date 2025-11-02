@@ -34,7 +34,6 @@ import {
   FeatherAlertTriangle,
 } from '@subframe/core';
 import { checkCaseTreatmentImages } from '../../helper/caseHasView';
-import ApprovalDialog from '../components/case/ApprovalDialog';
 
 const CasePageRefactored = () => {
   const { caseData, error } = useLoaderData();
@@ -42,7 +41,6 @@ const CasePageRefactored = () => {
   const [saving, setSaving] = useState(false);
   const [isAbortDialogOpen, setIsAbortDialogOpen] = useState(false);
   const [caseHasViewer, setCaseHasViewer] = useState(false);
-  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
 
   // Custom hooks
   const { status, setStatus, alertContent, showPlanSection } = useCaseStatus(
@@ -107,7 +105,6 @@ const CasePageRefactored = () => {
     return <p className="text-neutral-500">Case not found.</p>;
   }
 
-  /*
   const approvePlan = async () => {
     try {
       setSaving(true);
@@ -118,27 +115,6 @@ const CasePageRefactored = () => {
         .eq('id', caseData.id);
       if (updateError) throw updateError;
       setStatus('approved');
-      toast.success('Plan approved successfully');
-    } catch (e) {
-      setActionError(e.message || 'Failed to approve plan');
-      toast.error(e.message || 'Failed to approve plan');
-    } finally {
-      setSaving(false);
-    }
-  };
-  */
-
-  const approvePlan = async () => {
-    try {
-      setSaving(true);
-      setActionError(null);
-      const { error: updateError } = await supabase
-        .from('cases')
-        .update({ status: 'approved' })
-        .eq('id', caseData.id);
-      if (updateError) throw updateError;
-      setStatus('approved');
-      setIsApprovalDialogOpen(false);
       toast.success('Plan approved successfully');
     } catch (e) {
       setActionError(e.message || 'Failed to approve plan');
@@ -193,59 +169,6 @@ const CasePageRefactored = () => {
     // Open the viewer in a new tab with the case ID
     const viewerUrl = `/case-viewer/${caseData.id}`;
     window.open(viewerUrl, '_blank');
-  };
-
-  const handleApproveClick = () => {
-    setIsApprovalDialogOpen(true);
-  };
-
-  const contactSupport = () => {
-    setIsApprovalDialogOpen(false);
-    // You can implement your contact support logic here
-    // For example, open a support modal, redirect to contact page, or open email client
-    window.location.href =
-      'mailto:support@3da.com?subject=Question about Treatment Plan';
-    // Or use: window.open('/contact-support', '_blank');
-  };
-
-  const changeMaterial = async (newMaterial, materialChanged) => {
-    try {
-      setSaving(true);
-      setActionError(null);
-
-      const updateData = {
-        aligner_material: newMaterial,
-      };
-
-      // If material changed, set status back to 'accepted' for re-evaluation
-      if (materialChanged) {
-        updateData.status = 'accepted';
-      }
-
-      const { error: updateError } = await supabase
-        .from('cases')
-        .update(updateData)
-        .eq('id', caseData.id);
-
-      if (updateError) throw updateError;
-
-      // Update local state
-      if (materialChanged) {
-        setStatus('accepted');
-        toast.success(
-          'Material updated. Case status set to accepted for re-evaluation by 3DA.'
-        );
-      } else {
-        toast.success('Material updated successfully.');
-      }
-
-      setIsApprovalDialogOpen(false);
-    } catch (e) {
-      setActionError(e.message || 'Failed to update material');
-      toast.error(e.message || 'Failed to update material');
-    } finally {
-      setSaving(false);
-    }
   };
 
   return (
@@ -392,7 +315,7 @@ const CasePageRefactored = () => {
                       <Button
                         icon={<FeatherCheck />}
                         disabled={saving}
-                        onClick={handleApproveClick}
+                        onClick={approvePlan}
                       >
                         Approve Plan
                       </Button>
@@ -469,15 +392,6 @@ const CasePageRefactored = () => {
         </Dialog>
       )
       */}
-      <ApprovalDialog
-        isOpen={isApprovalDialogOpen}
-        onClose={() => setIsApprovalDialogOpen(false)}
-        onConfirmApprove={approvePlan}
-        onChangeMaterial={changeMaterial}
-        onContactSupport={contactSupport}
-        saving={saving}
-        caseData={caseData}
-      />
     </>
   );
 };

@@ -23,7 +23,8 @@ const CASES_PER_PAGE = 10;
 // Available filter options
 const STATUS_OPTIONS = [
   { value: 'submitted', label: 'Submitted' },
-  { value: 'rejected', label: 'Rejected' },
+  { value: 'accepted', label: 'Accepted by Admin' },
+  { value: 'rejected', label: 'Rejected by Admin' },
   { value: 'awaiting_user_approval', label: 'Awaiting Approval' },
   { value: 'user_rejected', label: 'Rejected by Doctor' },
   { value: 'approved', label: 'Approved' },

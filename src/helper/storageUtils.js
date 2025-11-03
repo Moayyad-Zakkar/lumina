@@ -111,13 +111,13 @@ const uploadToTelegram = async (file, metadata = {}) => {
     console.log('📥 Response data:', result);
 
     if (!result.success) {
-      throw new Error(result.error || 'Telegram backup failed');
+      throw new Error(result.error || 'Backup failed');
     }
 
-    console.log('✅ Telegram backup successful');
+    console.log('✅ Backup successful');
     return { success: true, data: result };
   } catch (error) {
-    console.error('❌ Telegram backup error:', error);
+    console.error('❌ Backup error:', error);
     console.error('Error details:', {
       message: error.message,
       stack: error.stack,
@@ -165,7 +165,7 @@ export const uploadFile = async (
       });
 
       if (telegramResult.success) {
-        toast.success('File uploaded & backed up to Telegram', {
+        toast.success('File uploaded', {
           id: uploadToast,
         });
 
@@ -179,10 +179,10 @@ export const uploadFile = async (
       } else {
         // Fallback: Upload only to Supabase if Telegram fails
         console.warn(
-          'Telegram backup failed, uploading to Supabase only:',
+          'Backup failed, uploading to Supabase only:',
           telegramResult.error
         );
-        toast.loading('Telegram backup failed, uploading to Supabase...', {
+        toast.loading('Backup failed, uploading to Supabase...', {
           id: uploadToast,
         });
       }

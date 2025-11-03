@@ -201,11 +201,11 @@ const CasePageRefactored = () => {
 
   const contactSupport = () => {
     setIsApprovalDialogOpen(false);
-    // You can implement your contact support logic here
-    // For example, open a support modal, redirect to contact page, or open email client
+    // contact support logic here
+
     window.location.href =
       'mailto:support@3da.com?subject=Question about Treatment Plan';
-    // Or use: window.open('/contact-support', '_blank');
+    // or use: window.open('/contact-support', '_blank');
   };
 
   const changeMaterial = async (newMaterial, materialChanged) => {
@@ -233,7 +233,7 @@ const CasePageRefactored = () => {
       if (materialChanged) {
         setStatus('accepted');
         toast.success(
-          'Material updated. Case status set to accepted for re-evaluation by 3DA.'
+          'Material updated. Case is sent for re-evaluation by admin.'
         );
       } else {
         toast.success('Material updated successfully.');

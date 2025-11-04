@@ -108,7 +108,10 @@ const IPRChartViewer = ({
   };
   // Get IPR value for a space, formatted
   const getIPRValue = (tooth1, tooth2) => {
-    const space = `${tooth1}-${tooth2}`;
+    // Normalize to ascending order to match how spaces are stored
+    const min = Math.min(tooth1, tooth2);
+    const max = Math.max(tooth1, tooth2);
+    const space = `${min}-${max}`;
     const value = iprData[space];
     if (value && value !== 0) {
       return `${value}`;
@@ -185,10 +188,12 @@ const IPRChartViewer = ({
               const paths = toothPaths[`tooth${num}`] || [];
               const status = toothStatus[num] || 'movable';
 
-              // For lower jaw, we reverse the logic
-              const iprBefore =
-                i > 0 ? getIPRValue(32 - i + 1, 32 - i + 2) : null;
-              const iprAfter = i < 15 ? getIPRValue(32 - i, 32 - i + 1) : null;
+              // Lower jaw teeth: 32, 31, 30, ..., 17
+              // Spaces stored as: "31-32", "30-31", "29-30", ..., "17-18"
+              // iprBefore: space to the left (between previous tooth and current)
+              // iprAfter: space to the right (between current and next tooth)
+              const iprBefore = i > 0 ? getIPRValue(num, num + 1) : null;
+              const iprAfter = i < 15 ? getIPRValue(num - 1, num) : null;
 
               return (
                 <ToothWithIPR

@@ -10,8 +10,11 @@ import {
   FeatherEye,
 } from '@subframe/core';
 import { Button } from '../Button';
+import IPRChartViewer from '../IPRChartViewer';
+import { useState } from 'react';
 
 const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
+  const [isIPROpen, setIsIPROpen] = useState(false);
   if (!showPlanSection) return null;
 
   const handleViewerClick = () => {
@@ -97,6 +100,26 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
           >
             Open 3DA Viewer
           </Button>
+        </div>
+      )}
+
+      {/* View IPR Button */}
+
+      {caseData.ipr_data && Object.keys(caseData.ipr_data).length > 0 && (
+        <div className="mt-8">
+          <Button
+            onClick={() => setIsIPROpen(true)}
+            icon={<FeatherEye />}
+            className="w-auto"
+          >
+            View IPR Chart
+          </Button>
+          <IPRChartViewer
+            toothStatus={caseData.tooth_status || {}}
+            iprData={caseData.ipr_data}
+            onClose={() => setIsIPROpen(false)}
+            isOpen={isIPROpen}
+          />
         </div>
       )}
 

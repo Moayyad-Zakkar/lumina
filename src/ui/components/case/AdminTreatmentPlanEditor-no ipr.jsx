@@ -16,10 +16,8 @@ import {
   FeatherImage,
   FeatherEye,
   FeatherCopy,
-  FeatherSlice,
 } from '@subframe/core';
 import TreatmentPlanImagesUpload from './TreatmentPlanImagesUpload';
-import IPRChartDialog from './IPRChartDialog';
 
 const AdminTreatmentPlanEditor = ({
   caseData,
@@ -45,12 +43,8 @@ const AdminTreatmentPlanEditor = ({
   caseHasViewer,
   handleViewerClick,
   viewerLink,
-  // New IPR props
-  iprData = {},
-  onIPRSave,
 }) => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [isIPRDialogOpen, setIsIPRDialogOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
   const handleCopyLink = async () => {
@@ -60,12 +54,6 @@ const AdminTreatmentPlanEditor = ({
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
-    }
-  };
-
-  const handleIPRSave = async (data) => {
-    if (onIPRSave) {
-      await onIPRSave(data);
     }
   };
 
@@ -90,8 +78,6 @@ const AdminTreatmentPlanEditor = ({
     parseFloat(alignersPrice || 0) +
     parseFloat(deliveryCharges || 0);
 
-  const hasIPRData = Object.keys(iprData).length > 0;
-
   return (
     <>
       <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
@@ -99,6 +85,16 @@ const AdminTreatmentPlanEditor = ({
           <span className="text-heading-3 font-heading-3 text-default-font">
             Treatment Plan Review
           </span>
+          {/* Upload Images Button 
+          <Button
+            variant="neutral-secondary"
+            icon={<FeatherImage />}
+            onClick={() => setIsUploadDialogOpen(true)}
+            size="small"
+          >
+            Treatment Images
+          </Button>
+          */}
         </div>
 
         <div className="flex w-full flex-col items-start gap-6">
@@ -147,31 +143,15 @@ const AdminTreatmentPlanEditor = ({
                       }
                     />
                   </TextField>
-
-                  {/* Action Buttons */}
-                  <div className="flex w-auto flex-col gap-2 text-caption-bold font-caption-bold text-default-font">
-                    Action Buttons:
-                    <Button
-                      variant="neutral-secondary"
-                      icon={<FeatherImage />}
-                      onClick={() => setIsUploadDialogOpen(true)}
-                      size="small"
-                      className="flex-2"
-                    >
-                      Add Treatment Plan Viewer
-                    </Button>
-                    <Button
-                      variant={
-                        hasIPRData ? 'brand-secondary' : 'neutral-secondary'
-                      }
-                      icon={<FeatherSlice />}
-                      onClick={() => setIsIPRDialogOpen(true)}
-                      size="small"
-                      className="flex-2"
-                    >
-                      {hasIPRData ? 'Edit IPR Chart' : 'Add IPR Chart'}
-                    </Button>
-                  </div>
+                  {/* Upload Images Button */}
+                  <Button
+                    variant="neutral-secondary"
+                    icon={<FeatherImage />}
+                    onClick={() => setIsUploadDialogOpen(true)}
+                    size="small"
+                  >
+                    Add Treatment Plan Viewer
+                  </Button>
                 </>
               ) : (
                 <>
@@ -195,14 +175,6 @@ const AdminTreatmentPlanEditor = ({
                       {estimatedDurationMonths || '—'} Months
                     </span>
                   </DataFieldHorizontal>
-                  {hasIPRData && (
-                    <DataFieldHorizontal
-                      icon={<FeatherGrid />}
-                      label="IPR Chart"
-                    >
-                      <Badge variant="brand">Available</Badge>
-                    </DataFieldHorizontal>
-                  )}
                 </>
               )}
             </div>
@@ -317,7 +289,7 @@ const AdminTreatmentPlanEditor = ({
                   onClick={handleCopyLink}
                   aria-label={copySuccess ? 'Copied!' : 'Copy link'}
                   variant={copySuccess ? 'brand-primary' : 'neutral-secondary'}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 "
                 />
               </div>
             )}
@@ -364,6 +336,16 @@ const AdminTreatmentPlanEditor = ({
                 'user_rejected',
               ].includes(currentStatus) ? (
                 <>
+                  {/*
+      <Button
+                    variant="neutral-tertiary"
+                    onClick={handleCancelEdit}
+                    icon={<FeatherX />}
+                  >
+                    Cancel editing
+                  </Button>
+*/}
+
                   <Button
                     variant="destructive-secondary"
                     disabled={isDisabled}
@@ -398,15 +380,6 @@ const AdminTreatmentPlanEditor = ({
       <TreatmentPlanImagesUpload
         isOpen={isUploadDialogOpen}
         onClose={() => setIsUploadDialogOpen(false)}
-        caseId={caseData.id}
-      />
-
-      {/* IPR Chart Dialog */}
-      <IPRChartDialog
-        isOpen={isIPRDialogOpen}
-        onClose={() => setIsIPRDialogOpen(false)}
-        onSave={handleIPRSave}
-        initialData={iprData}
         caseId={caseData.id}
       />
     </>

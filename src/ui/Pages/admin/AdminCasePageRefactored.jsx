@@ -59,6 +59,7 @@ const AdminCasePageRefactored = () => {
   const {
     currentStatus,
     saving,
+    ipr_data,
     actionError,
     actionSuccess,
     caseStudyFee,
@@ -91,6 +92,7 @@ const AdminCasePageRefactored = () => {
   } = useAdminCaseActions(caseData);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [iprData, setIprData] = useState(ipr_data || {});
 
   // Mark admin notifications for this case as read when page opens
   useEffect(() => {
@@ -211,6 +213,23 @@ const AdminCasePageRefactored = () => {
   };
 
   const viewerLink = `${window.location.origin}/viewer/${caseData.id}`;
+
+  const handleIPRSave = async (data) => {
+    try {
+      const { error } = await supabase
+        .from('cases')
+        .update({ ipr_data: data })
+        .eq('id', caseData.id);
+
+      if (error) throw error;
+
+      setIprData(data);
+      // Show success message
+    } catch (error) {
+      console.error('Error saving IPR data:', error);
+      // Show error message
+    }
+  };
 
   return (
     <>
@@ -423,6 +442,8 @@ const AdminCasePageRefactored = () => {
           caseHasViewer={caseHasViewer}
           handleViewerClick={handleViewerClick}
           viewerLink={viewerLink}
+          iprData={iprData}
+          onIPRSave={handleIPRSave}
         />
 
         {/* Manufacturing Progress - Only for approved cases and beyond */}

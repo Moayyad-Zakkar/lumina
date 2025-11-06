@@ -32,6 +32,7 @@ import {
   FeatherAlertTriangle,
   FeatherRotateCcw,
   FeatherEye,
+  FeatherCheck,
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
@@ -89,6 +90,7 @@ const AdminCasePageRefactored = () => {
     handleStatusTransition,
     handleStartEdit,
     handleCancelEdit,
+    updateCase,
   } = useAdminCaseActions(caseData);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -228,6 +230,15 @@ const AdminCasePageRefactored = () => {
     } catch (error) {
       console.error('Error saving IPR data:', error);
       // Show error message
+    }
+  };
+
+  const approvePlan = async () => {
+    try {
+      await updateCase({ status: 'approved' });
+      toast.success('Plan approved successfully');
+    } catch (e) {
+      toast.error(e.message || 'Failed to approve plan');
     }
   };
 
@@ -462,7 +473,18 @@ const AdminCasePageRefactored = () => {
           handleFileDownload={downloadSingleFile}
         />
 
-        <div className="flex w-full items-center justify-end">
+        <div className="flex w-full items-center justify-end gap-2">
+          {currentStatus === 'awaiting_user_approval' && (
+            <Button
+              variant="brand"
+              icon={<FeatherCheck />}
+              onClick={approvePlan}
+              disabled={saving}
+              className="w-auto"
+            >
+              Approve Plan
+            </Button>
+          )}
           <Button
             variant="destructive-primary"
             icon={<FeatherAlertTriangle />}

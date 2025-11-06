@@ -101,38 +101,28 @@ function CaseViewer() {
           }
         });
 
-      // Organize before/after images
-      const beforeAfterByView = {
-        front: { before: null, after: null },
-        left: { before: null, after: null },
-        right: { before: null, after: null },
-        upper: { before: null, after: null },
-        lower: { before: null, after: null },
+      // Organize before/after images (single combined image per view)
+      const beforeAfter = {
+        front: null,
+        left: null,
+        right: null,
+        upper: null,
+        lower: null,
       };
 
       imagesWithUrls
         .filter((img) => img.image_category === 'beforeAfter')
         .forEach((img) => {
-          if (beforeAfterByView[img.view_type] && img.image_stage) {
-            beforeAfterByView[img.view_type][img.image_stage] = img.url;
+          if (beforeAfter[img.view_type] !== undefined) {
+            beforeAfter[img.view_type] = img.url;
           }
         });
-
-      // Create combined before/after URLs
-      const beforeAfter = {
-        front: beforeAfterByView.front.before || beforeAfterByView.front.after,
-        left: beforeAfterByView.left.before || beforeAfterByView.left.after,
-        right: beforeAfterByView.right.before || beforeAfterByView.right.after,
-        upper: beforeAfterByView.upper.before || beforeAfterByView.upper.after,
-        lower: beforeAfterByView.lower.before || beforeAfterByView.lower.after,
-      };
 
       // Store full sequence data
       const organizedData = {
         ...caseInfo,
         sequenceImages: sequenceByView,
         beforeAfter,
-        beforeAfterData: beforeAfterByView,
       };
 
       setCaseData(organizedData);
@@ -276,42 +266,21 @@ function CaseViewer() {
 
   // Check which sequence views have content
   const sequenceViewAvailability = {
-    lower: !!(
-      caseData.sequenceImages?.lower?.length > 0 
-    ),
-    upper: !!(
-      caseData.sequenceImages?.upper?.length > 0 
-    ),
-    right: !!(
-      caseData.sequenceImages?.right?.length > 0 
-    ),
-    left: !!(
-      caseData.sequenceImages?.left?.length > 0
-    ),
-    front: !!(
-      caseData.sequenceImages?.front?.length > 0
-    ),
+    lower: !!(caseData.sequenceImages?.lower?.length > 0),
+    upper: !!(caseData.sequenceImages?.upper?.length > 0),
+    right: !!(caseData.sequenceImages?.right?.length > 0),
+    left: !!(caseData.sequenceImages?.left?.length > 0),
+    front: !!(caseData.sequenceImages?.front?.length > 0),
   };
 
-    // Check which before after views have content
-    const beforeAfterViewAvailability = {
-      lower: !!(
-         caseData.beforeAfter.lower
-      ),
-      upper: !!(
-        caseData.beforeAfter.upper
-      ),
-      right: !!(
-        caseData.beforeAfter.right
-      ),
-      left: !!(
-        caseData.beforeAfter.left
-      ),
-      front: !!(
-         caseData.beforeAfter.front
-      ),
-    };
-  
+  // Check which before after views have content
+  const beforeAfterViewAvailability = {
+    lower: !!caseData.beforeAfter.lower,
+    upper: !!caseData.beforeAfter.upper,
+    right: !!caseData.beforeAfter.right,
+    left: !!caseData.beforeAfter.left,
+    front: !!caseData.beforeAfter.front,
+  };
 
   // Get current images for the selected view
   const viewKey = view.toLowerCase();
@@ -395,100 +364,103 @@ function CaseViewer() {
 
         {/* Views Selection */}
 
-        {currentTab === 'videos' ?
-        <ViewsContainer>
-          {sequenceViewAvailability.front && (
-            <ViewButton
-              isActive={view === 'Front'}
-              activeIcon={AlignerFrontActiveIcon}
-              disabledIcon={AlignerFrontIcon}
-              name="Front"
-              viewChanger={viewChanger}
-            />
-          )}
-          {sequenceViewAvailability.left && (
-            <ViewButton
-              isActive={view === 'Left'}
-              activeIcon={AlignerLeftActiveIcon}
-              disabledIcon={AlignerLeftIcon}
-              name="Left"
-              viewChanger={viewChanger}
-            />
-          )}
-          {sequenceViewAvailability.right && (
-            <ViewButton
-              isActive={view === 'Right'}
-              activeIcon={AlignerRightActiveIcon}
-              disabledIcon={AlignerRightIcon}
-              name="Right"
-              viewChanger={viewChanger}
-            />
-          )}
-          {sequenceViewAvailability.upper && (
-            <ViewButton
-              isActive={view === 'Upper'}
-              activeIcon={AlignerUpperActiveIcon}
-              disabledIcon={AlignerUpperIcon}
-              name="Upper"
-              viewChanger={viewChanger}
-            />
-          )}
-          {sequenceViewAvailability.lower && (
-            <ViewButton
-              isActive={view === 'Lower'}
-              activeIcon={AlignerLowerActiveIcon}
-              disabledIcon={AlignerLowerIcon}
-              name="Lower"
-              viewChanger={viewChanger}
-            />
-          )}  </ViewsContainer> : 
+        {currentTab === 'videos' ? (
           <ViewsContainer>
-          {beforeAfterViewAvailability.front && (
-            <ViewButton
-              isActive={view === 'Front'}
-              activeIcon={AlignerFrontActiveIcon}
-              disabledIcon={AlignerFrontIcon}
-              name="Front"
-              viewChanger={viewChanger}
-            />
-          )}
-          {beforeAfterViewAvailability.left && (
-            <ViewButton
-              isActive={view === 'Left'}
-              activeIcon={AlignerLeftActiveIcon}
-              disabledIcon={AlignerLeftIcon}
-              name="Left"
-              viewChanger={viewChanger}
-            />
-          )}
-          {beforeAfterViewAvailability.right && (
-            <ViewButton
-              isActive={view === 'Right'}
-              activeIcon={AlignerRightActiveIcon}
-              disabledIcon={AlignerRightIcon}
-              name="Right"
-              viewChanger={viewChanger}
-            />
-          )}
-          {beforeAfterViewAvailability.upper && (
-            <ViewButton
-              isActive={view === 'Upper'}
-              activeIcon={AlignerUpperActiveIcon}
-              disabledIcon={AlignerUpperIcon}
-              name="Upper"
-              viewChanger={viewChanger}
-            />
-          )}
-          {beforeAfterViewAvailability.lower && (
-            <ViewButton
-              isActive={view === 'Lower'}
-              activeIcon={AlignerLowerActiveIcon}
-              disabledIcon={AlignerLowerIcon}
-              name="Lower"
-              viewChanger={viewChanger}
-            />
-          )}         </ViewsContainer>}
-
+            {sequenceViewAvailability.front && (
+              <ViewButton
+                isActive={view === 'Front'}
+                activeIcon={AlignerFrontActiveIcon}
+                disabledIcon={AlignerFrontIcon}
+                name="Front"
+                viewChanger={viewChanger}
+              />
+            )}
+            {sequenceViewAvailability.left && (
+              <ViewButton
+                isActive={view === 'Left'}
+                activeIcon={AlignerLeftActiveIcon}
+                disabledIcon={AlignerLeftIcon}
+                name="Left"
+                viewChanger={viewChanger}
+              />
+            )}
+            {sequenceViewAvailability.right && (
+              <ViewButton
+                isActive={view === 'Right'}
+                activeIcon={AlignerRightActiveIcon}
+                disabledIcon={AlignerRightIcon}
+                name="Right"
+                viewChanger={viewChanger}
+              />
+            )}
+            {sequenceViewAvailability.upper && (
+              <ViewButton
+                isActive={view === 'Upper'}
+                activeIcon={AlignerUpperActiveIcon}
+                disabledIcon={AlignerUpperIcon}
+                name="Upper"
+                viewChanger={viewChanger}
+              />
+            )}
+            {sequenceViewAvailability.lower && (
+              <ViewButton
+                isActive={view === 'Lower'}
+                activeIcon={AlignerLowerActiveIcon}
+                disabledIcon={AlignerLowerIcon}
+                name="Lower"
+                viewChanger={viewChanger}
+              />
+            )}{' '}
+          </ViewsContainer>
+        ) : (
+          <ViewsContainer>
+            {beforeAfterViewAvailability.front && (
+              <ViewButton
+                isActive={view === 'Front'}
+                activeIcon={AlignerFrontActiveIcon}
+                disabledIcon={AlignerFrontIcon}
+                name="Front"
+                viewChanger={viewChanger}
+              />
+            )}
+            {beforeAfterViewAvailability.left && (
+              <ViewButton
+                isActive={view === 'Left'}
+                activeIcon={AlignerLeftActiveIcon}
+                disabledIcon={AlignerLeftIcon}
+                name="Left"
+                viewChanger={viewChanger}
+              />
+            )}
+            {beforeAfterViewAvailability.right && (
+              <ViewButton
+                isActive={view === 'Right'}
+                activeIcon={AlignerRightActiveIcon}
+                disabledIcon={AlignerRightIcon}
+                name="Right"
+                viewChanger={viewChanger}
+              />
+            )}
+            {beforeAfterViewAvailability.upper && (
+              <ViewButton
+                isActive={view === 'Upper'}
+                activeIcon={AlignerUpperActiveIcon}
+                disabledIcon={AlignerUpperIcon}
+                name="Upper"
+                viewChanger={viewChanger}
+              />
+            )}
+            {beforeAfterViewAvailability.lower && (
+              <ViewButton
+                isActive={view === 'Lower'}
+                activeIcon={AlignerLowerActiveIcon}
+                disabledIcon={AlignerLowerIcon}
+                name="Lower"
+                viewChanger={viewChanger}
+              />
+            )}{' '}
+          </ViewsContainer>
+        )}
 
         {/* Media Display */}
         {currentTab === 'videos' ? (

@@ -44,6 +44,8 @@ const DefaultPageLayoutRoot = React.forwardRef<
 
   const [BadgeCount, setBadgeCount] = useState(initialBadgeCount ?? 0);
   const [badgeLoading, setBadgeLoading] = useState(true);
+  const [signupRequestCount, setSignupRequestCount] = useState(0);
+  const [signupRequestLoading, setSignupRequestLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -75,6 +77,31 @@ const DefaultPageLayoutRoot = React.forwardRef<
         localStorage.setItem(cacheKey, String(count || 0));
       }
       if (isMounted) setBadgeLoading(false);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fetch signup request count
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const cacheKey = 'signup_request_count';
+      const cached = localStorage.getItem(cacheKey);
+      if (isMounted && cached != null) setSignupRequestCount(Number(cached));
+
+      const { count, error } = await supabase
+        .from('signup_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      if (!error && isMounted) {
+        setSignupRequestCount(count || 0);
+        localStorage.setItem(cacheKey, String(count || 0));
+      }
+      if (isMounted) setSignupRequestLoading(false);
     })();
 
     return () => {
@@ -145,6 +172,47 @@ const DefaultPageLayoutRoot = React.forwardRef<
     })();
     return () => {
       active = false;
+    };
+  }, []);
+
+  // Realtime subscription for signup requests
+  useEffect(() => {
+    let active = true;
+    const cacheKey = 'signup_request_count';
+
+    const channel = supabase
+      .channel('signup_requests_changes_admin')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'signup_requests',
+        },
+        async (payload) => {
+          if (!active) return;
+
+          const evt = payload.eventType;
+          const newRow = payload.new as any;
+          const oldRow = payload.old as any;
+
+          // For realtime updates, refetch the count to ensure accuracy
+          const { count, error } = await supabase
+            .from('signup_requests')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'pending');
+
+          if (!error && active) {
+            setSignupRequestCount(count || 0);
+            localStorage.setItem(cacheKey, String(count || 0));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -250,16 +318,16 @@ const DefaultPageLayoutRoot = React.forwardRef<
           <SidebarWithLargeItems.NavItem
             icon={<FeatherUser />}
             selected={pathname.startsWith('/admin/signup-requests')}
-            /*rightSlot={
-              BadgeCount > 0 ? (
+            rightSlot={
+              signupRequestCount > 0 ? (
                 <Badge
                   variant="error"
                   className="ml-2 px-2 py-0 text-xs rounded-full"
                 >
-                  {BadgeCount}
+                  {signupRequestCount}
                 </Badge>
               ) : null
-            }*/
+            }
           >
             Requests
           </SidebarWithLargeItems.NavItem>

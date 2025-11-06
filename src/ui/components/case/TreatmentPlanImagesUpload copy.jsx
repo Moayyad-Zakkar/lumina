@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from '../Dialog';
 import { Button } from '../Button';
 import { Alert } from '../Alert';
@@ -24,7 +24,7 @@ const VIEW_TYPES = [
 const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
   const [activeTab, setActiveTab] = useState('sequence'); // 'sequence' or 'beforeAfter'
   const [uploading, setUploading] = useState(false);
-  const [_uploadProgress, setUploadProgress] = useState({});
+  const [uploadProgress, setUploadProgress] = useState({});
   const [existingImages, setExistingImages] = useState({
     sequence: {},
     beforeAfter: {},
@@ -39,16 +39,23 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     lower: [],
   });
 
-  // Before/After files state: { front: File | null, left: File | null, ... }
+  // Before/After files state: { front: { before: File, after: File }, ... }
   const [beforeAfterFiles, setBeforeAfterFiles] = useState({
-    front: null,
-    left: null,
-    right: null,
-    upper: null,
-    lower: null,
+    front: { before: null, after: null },
+    left: { before: null, after: null },
+    right: { before: null, after: null },
+    upper: { before: null, after: null },
+    lower: { before: null, after: null },
   });
 
-  const loadExistingImages = useCallback(async () => {
+  // Load existing images
+  useEffect(() => {
+    if (isOpen && caseId) {
+      loadExistingImages();
+    }
+  }, [isOpen, caseId]);
+
+  const loadExistingImages = async () => {
     try {
       const { data, error } = await supabase
         .from('treatment_plan_images')
@@ -70,8 +77,10 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
           }
           organized.sequence[img.view_type].push(img);
         } else if (img.image_category === 'beforeAfter') {
-          // Store single combined image per view
-          organized.beforeAfter[img.view_type] = img;
+          if (!organized.beforeAfter[img.view_type]) {
+            organized.beforeAfter[img.view_type] = {};
+          }
+          organized.beforeAfter[img.view_type][img.image_stage] = img;
         }
       });
 
@@ -79,14 +88,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     } catch (error) {
       console.error('Error loading images:', error);
     }
-  }, [caseId]);
-
-  // Load existing images
-  useEffect(() => {
-    if (isOpen && caseId) {
-      loadExistingImages();
-    }
-  }, [isOpen, caseId, loadExistingImages]);
+  };
 
   const handleSequenceFilesChange = (viewType, files) => {
     setSequenceFiles((prev) => ({
@@ -95,10 +97,13 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     }));
   };
 
-  const handleBeforeAfterFileChange = (viewType, file) => {
+  const handleBeforeAfterFileChange = (viewType, stage, file) => {
     setBeforeAfterFiles((prev) => ({
       ...prev,
-      [viewType]: file,
+      [viewType]: {
+        ...prev[viewType],
+        [stage]: file,
+      },
     }));
   };
 
@@ -109,14 +114,17 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     }));
   };
 
-  const removeBeforeAfterFile = (viewType) => {
+  const removeBeforeAfterFile = (viewType, stage) => {
     setBeforeAfterFiles((prev) => ({
       ...prev,
-      [viewType]: null,
+      [viewType]: {
+        ...prev[viewType],
+        [stage]: null,
+      },
     }));
   };
 
-  const deleteExistingImage = async (imageId) => {
+  const deleteExistingImage = async (imageId, viewType, category) => {
     try {
       // Get image details first to delete from storage
       const { data: img } = await supabase
@@ -208,72 +216,77 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
         }
       }
 
-      // Upload before/after images (single combined image per view)
+      // Upload before/after images
       for (const viewType of Object.keys(beforeAfterFiles)) {
-        const file = beforeAfterFiles[viewType];
-        if (!file) continue;
+        const stages = beforeAfterFiles[viewType];
 
-        const fileExt = file.name.split('.').pop();
-        const fileName = `before-after.${fileExt}`;
-        const storagePath = `${caseId}/before-after/${viewType}/${fileName}`;
+        for (const stage of ['before', 'after']) {
+          const file = stages[stage];
+          if (!file) continue;
 
-        setUploadProgress((prev) => ({
-          ...prev,
-          [`beforeAfter-${viewType}`]: 'uploading',
-        }));
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${stage}.${fileExt}`;
+          const storagePath = `${caseId}/before-after/${viewType}/${fileName}`;
 
-        // Upload to storage
-        const { error: uploadError } = await supabase.storage
-          .from('treatment-plans')
-          .upload(storagePath, file, { upsert: true });
+          setUploadProgress((prev) => ({
+            ...prev,
+            [`beforeAfter-${viewType}-${stage}`]: 'uploading',
+          }));
 
-        if (uploadError) throw uploadError;
+          // Upload to storage
+          const { error: uploadError } = await supabase.storage
+            .from('treatment-plans')
+            .upload(storagePath, file, { upsert: true });
 
-        // Check if record exists and update or insert
-        const { data: existing } = await supabase
-          .from('treatment_plan_images')
-          .select('id')
-          .eq('case_id', caseId)
-          .eq('image_category', 'beforeAfter')
-          .eq('view_type', viewType)
-          .single();
+          if (uploadError) throw uploadError;
 
-        if (existing) {
-          const { error: updateError } = await supabase
+          // Check if record exists and update or insert
+          const { data: existing } = await supabase
             .from('treatment_plan_images')
-            .update({
-              storage_path: storagePath,
-              file_name: fileName,
-              file_size: file.size,
-              mime_type: file.type,
-              uploaded_by: user?.id,
-              uploaded_at: new Date().toISOString(),
-            })
-            .eq('id', existing.id);
+            .select('id')
+            .eq('case_id', caseId)
+            .eq('image_category', 'beforeAfter')
+            .eq('view_type', viewType)
+            .eq('image_stage', stage)
+            .single();
 
-          if (updateError) throw updateError;
-        } else {
-          const { error: insertError } = await supabase
-            .from('treatment_plan_images')
-            .insert({
-              case_id: caseId,
-              image_category: 'beforeAfter',
-              view_type: viewType,
-              image_stage: 'combined', // Store as 'combined' to indicate single image
-              storage_path: storagePath,
-              file_name: fileName,
-              file_size: file.size,
-              mime_type: file.type,
-              uploaded_by: user?.id,
-            });
+          if (existing) {
+            const { error: updateError } = await supabase
+              .from('treatment_plan_images')
+              .update({
+                storage_path: storagePath,
+                file_name: fileName,
+                file_size: file.size,
+                mime_type: file.type,
+                uploaded_by: user?.id,
+                uploaded_at: new Date().toISOString(),
+              })
+              .eq('id', existing.id);
 
-          if (insertError) throw insertError;
+            if (updateError) throw updateError;
+          } else {
+            const { error: insertError } = await supabase
+              .from('treatment_plan_images')
+              .insert({
+                case_id: caseId,
+                image_category: 'beforeAfter',
+                view_type: viewType,
+                image_stage: stage,
+                storage_path: storagePath,
+                file_name: fileName,
+                file_size: file.size,
+                mime_type: file.type,
+                uploaded_by: user?.id,
+              });
+
+            if (insertError) throw insertError;
+          }
+
+          setUploadProgress((prev) => ({
+            ...prev,
+            [`beforeAfter-${viewType}-${stage}`]: 'complete',
+          }));
         }
-
-        setUploadProgress((prev) => ({
-          ...prev,
-          [`beforeAfter-${viewType}`]: 'complete',
-        }));
       }
 
       toast.success('Images uploaded successfully');
@@ -287,11 +300,11 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
         lower: [],
       });
       setBeforeAfterFiles({
-        front: null,
-        left: null,
-        right: null,
-        upper: null,
-        lower: null,
+        front: { before: null, after: null },
+        left: { before: null, after: null },
+        right: { before: null, after: null },
+        upper: { before: null, after: null },
+        lower: { before: null, after: null },
       });
 
       loadExistingImages();
@@ -309,7 +322,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
       (files) => files.length > 0
     );
     const hasBeforeAfter = Object.values(beforeAfterFiles).some(
-      (file) => file !== null
+      (stages) => stages.before || stages.after
     );
     return hasSequence || hasBeforeAfter;
   };
@@ -397,7 +410,13 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                             Step {img.sequence_order}
                           </div>
                           <button
-                            onClick={() => deleteExistingImage(img.id)}
+                            onClick={() =>
+                              deleteExistingImage(
+                                img.id,
+                                view.value,
+                                'sequence'
+                              )
+                            }
                             className="absolute top-1 right-1 bg-error-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <FeatherTrash2 className="w-3 h-3" />
@@ -467,7 +486,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                 variant="neutral"
                 icon={<FeatherImage />}
                 title="Upload before & after images"
-                description="Upload a single combined image showing both before and after for each view."
+                description="Upload one before and one after image for each view to show treatment results."
                 className="w-full"
               />
 
@@ -476,81 +495,159 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                   key={view.value}
                   className="border border-neutral-border rounded-lg p-4"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-heading-3 font-heading-3 text-default-font">
-                      {view.label}
-                    </h3>
-                    {existingImages.beforeAfter[view.value] && (
-                      <span className="text-sm text-subtext-color">
-                        Image exists
-                      </span>
-                    )}
-                  </div>
+                  <h3 className="text-heading-3 font-heading-3 text-default-font mb-4">
+                    {view.label}
+                  </h3>
 
-                  {/* Existing image */}
-                  {existingImages.beforeAfter[view.value] && (
-                    <div className="mb-3 relative group border border-neutral-border rounded p-2 bg-neutral-50">
-                      <div className="text-xs text-subtext-color mb-1">
-                        Current before/after image
-                      </div>
-                      <button
-                        onClick={() =>
-                          deleteExistingImage(
-                            existingImages.beforeAfter[view.value].id
-                          )
-                        }
-                        className="absolute top-1 right-1 bg-error-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <FeatherTrash2 className="w-3 h-3" />
-                      </button>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Before */}
+                    <div>
+                      <label className="block text-sm font-medium text-default-font mb-2">
+                        Before
+                      </label>
+
+                      {/* Existing before image */}
+                      {existingImages.beforeAfter[view.value]?.before && (
+                        <div className="mb-2 relative group border border-neutral-border rounded p-2 bg-neutral-50">
+                          <div className="text-xs text-subtext-color">
+                            Current image
+                          </div>
+                          <button
+                            onClick={() =>
+                              deleteExistingImage(
+                                existingImages.beforeAfter[view.value].before
+                                  .id,
+                                view.value,
+                                'beforeAfter'
+                              )
+                            }
+                            className="absolute top-1 right-1 bg-error-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <FeatherTrash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+
+                      {beforeAfterFiles[view.value].before ? (
+                        <div className="flex items-center justify-between bg-neutral-50 p-2 rounded">
+                          <span className="text-sm text-default-font truncate">
+                            {beforeAfterFiles[view.value].before.name}
+                          </span>
+                          <Button
+                            variant="neutral-tertiary"
+                            size="small"
+                            icon={<FeatherX />}
+                            onClick={() =>
+                              removeBeforeAfterFile(view.value, 'before')
+                            }
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="file"
+                            id={`before-${view.value}`}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              handleBeforeAfterFileChange(
+                                view.value,
+                                'before',
+                                e.target.files[0]
+                              )
+                            }
+                            disabled={uploading}
+                          />
+                          <Button
+                            variant="neutral-secondary"
+                            icon={<FeatherUpload />}
+                            disabled={uploading}
+                            className="w-full"
+                            onClick={() =>
+                              document
+                                .getElementById(`before-${view.value}`)
+                                .click()
+                            }
+                          >
+                            Upload Before
+                          </Button>
+                        </>
+                      )}
                     </div>
-                  )}
 
-                  {/* New file */}
-                  {beforeAfterFiles[view.value] ? (
-                    <div className="mb-3 flex items-center justify-between bg-neutral-50 p-2 rounded">
-                      <span className="text-sm text-default-font truncate flex-1">
-                        {beforeAfterFiles[view.value].name}
-                      </span>
-                      <Button
-                        variant="neutral-tertiary"
-                        size="small"
-                        icon={<FeatherX />}
-                        onClick={() => removeBeforeAfterFile(view.value)}
-                      />
+                    {/* After */}
+                    <div>
+                      <label className="block text-sm font-medium text-default-font mb-2">
+                        After
+                      </label>
+
+                      {/* Existing after image */}
+                      {existingImages.beforeAfter[view.value]?.after && (
+                        <div className="mb-2 relative group border border-neutral-border rounded p-2 bg-neutral-50">
+                          <div className="text-xs text-subtext-color">
+                            Current image
+                          </div>
+                          <button
+                            onClick={() =>
+                              deleteExistingImage(
+                                existingImages.beforeAfter[view.value].after.id,
+                                view.value,
+                                'beforeAfter'
+                              )
+                            }
+                            className="absolute top-1 right-1 bg-error-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <FeatherTrash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+
+                      {beforeAfterFiles[view.value].after ? (
+                        <div className="flex items-center justify-between bg-neutral-50 p-2 rounded">
+                          <span className="text-sm text-default-font truncate">
+                            {beforeAfterFiles[view.value].after.name}
+                          </span>
+                          <Button
+                            variant="neutral-tertiary"
+                            size="small"
+                            icon={<FeatherX />}
+                            onClick={() =>
+                              removeBeforeAfterFile(view.value, 'after')
+                            }
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="file"
+                            id={`after-${view.value}`}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              handleBeforeAfterFileChange(
+                                view.value,
+                                'after',
+                                e.target.files[0]
+                              )
+                            }
+                            disabled={uploading}
+                          />
+                          <Button
+                            variant="neutral-secondary"
+                            icon={<FeatherUpload />}
+                            disabled={uploading}
+                            className="w-full"
+                            onClick={() =>
+                              document
+                                .getElementById(`after-${view.value}`)
+                                .click()
+                            }
+                          >
+                            Upload After
+                          </Button>
+                        </>
+                      )}
                     </div>
-                  ) : null}
-
-                  {/* Upload button */}
-                  <div>
-                    <input
-                      type="file"
-                      id={`beforeAfter-${view.value}`}
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleBeforeAfterFileChange(
-                          view.value,
-                          e.target.files[0]
-                        )
-                      }
-                      disabled={uploading}
-                    />
-                    <Button
-                      variant="neutral-secondary"
-                      icon={<FeatherUpload />}
-                      disabled={uploading}
-                      className="w-full"
-                      onClick={() =>
-                        document
-                          .getElementById(`beforeAfter-${view.value}`)
-                          .click()
-                      }
-                    >
-                      {existingImages.beforeAfter[view.value]
-                        ? 'Replace Image'
-                        : 'Upload Before/After Image'}
-                    </Button>
                   </div>
                 </div>
               ))}

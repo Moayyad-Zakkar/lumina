@@ -75,10 +75,6 @@ const router = createBrowserRouter([
     path: '/update-password',
   },
   {
-    element: <Register />,
-    path: '/register',
-  },
-  {
     element: (
       <ProtectedRoute>
         <RequireRole role="user">

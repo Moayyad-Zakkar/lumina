@@ -13,7 +13,6 @@ import { Loader } from '../../components/Loader';
 import { Table } from '../../components/Table';
 import { Button } from '../../components/Button';
 import { IconButton } from '../../components/IconButton';
-import { Badge } from '../../components/Badge';
 import Error from '../../components/Error';
 
 const AdminSignUpRequests = () => {

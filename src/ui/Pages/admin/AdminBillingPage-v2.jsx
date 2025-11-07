@@ -59,68 +59,35 @@ function AdminBillingPage() {
     setShowExpensesDialog(false);
   };
 
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <Error error={error} />;
+  }
+
   return (
     <>
-      {error && <Error error={error} />}
-
-      <AdminHeadline submit={false}>Billing Management</AdminHeadline>
-
-      <div className="flex w-full items-center justify-between gap-4">
-        <p className="text-body font-body text-subtext-color">
-          Manage payments and track billing information
-        </p>
-
-        <Link to="/admin/billing/log">
-          <Button
-            variant="neutral-secondary"
-            icon={<FeatherLogs />}
-            className="w-auto"
-          >
-            Transaction Log
-          </Button>
-        </Link>
+      <div className="flex w-full flex-col items-start gap-6">
+        <PageHeader />
+        <BillingStats
+          totalEarnings={totalEarnings}
+          totalDue={totalDue}
+          totalExpenses={totalExpenses}
+          onReceivePayment={handleReceivePayment}
+          onMakePayment={handleMakePayment}
+        />
       </div>
 
-      {loading ? (
-        <div className="flex w-full h-full min-h-[200px] justify-center items-center">
-          <Loader size="medium" />
-        </div>
-      ) : (
-        <>
-          <BillingStats
-            totalEarnings={totalEarnings}
-            totalDue={totalDue}
-            totalExpenses={totalExpenses}
-            onReceivePayment={handleReceivePayment}
-            onMakePayment={handleMakePayment}
-          />
-
-          <div className="flex w-full items-center gap-2">
-            <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">
-              Doctors Billing
-            </span>
-            <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
-              <TextField
-                variant="filled"
-                label=""
-                helpText=""
-                icon={<FeatherSearch />}
-              >
-                <TextField.Input
-                  placeholder="Search doctors..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </TextField>
-            </div>
-          </div>
-
-          <DoctorsBillingTable
-            doctors={filteredDoctors}
-            onCollectPayment={handleCollectPayment}
-          />
-        </>
-      )}
+      <div className="flex w-full flex-col items-start gap-6">
+        <DoctorsSection
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filteredDoctors={filteredDoctors}
+          onCollectPayment={handleCollectPayment}
+        />
+      </div>
 
       <PaymentCollectionDialog
         isOpen={showPaymentDialog}
@@ -138,5 +105,58 @@ function AdminBillingPage() {
     </>
   );
 }
+
+const PageHeader = () => {
+  return (
+    <div className="flex w-full flex-wrap items-center justify-between gap-2">
+      <div className="w-auto">
+        <AdminHeadline submit={false}>Billing Management</AdminHeadline>
+      </div>
+
+      <Link to="/admin/billing/log">
+        <Button
+          variant="neutral-secondary"
+          icon={<FeatherLogs />}
+          className="w-auto"
+        >
+          Transaction Log
+        </Button>
+      </Link>
+    </div>
+  );
+};
+
+const DoctorsSection = ({
+  searchTerm,
+  onSearchChange,
+  filteredDoctors,
+  onCollectPayment,
+}) => (
+  <>
+    <DoctorsSectionHeader
+      searchTerm={searchTerm}
+      onSearchChange={onSearchChange}
+    />
+    <DoctorsBillingTable
+      doctors={filteredDoctors}
+      onCollectPayment={onCollectPayment}
+    />
+  </>
+);
+
+const DoctorsSectionHeader = ({ searchTerm, onSearchChange }) => (
+  <div className="flex w-full items-center gap-2">
+    <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">
+      Doctors Billing
+    </span>
+    <TextField variant="filled" label="" helpText="" icon={<FeatherSearch />}>
+      <TextField.Input
+        placeholder="Search doctors..."
+        value={searchTerm}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
+    </TextField>
+  </div>
+);
 
 export default AdminBillingPage;

@@ -7,14 +7,12 @@ import { FeatherLogs, FeatherSearch } from '@subframe/core';
 
 import DoctorCasesTable from '../components/billing/DoctorCasesTable';
 import DoctorBillingStats from '../components/billing/DoctorBillingStats';
-//import TransactionLogDialog from '../../components/billing/TransactionLogDialog';
 import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
 import Headline from '../components/Headline';
 import { Link } from 'react-router';
 
 function DoctorBillingPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  // const [showTransactionLog, setShowTransactionLog] = useState(false);
 
   const {
     cases,
@@ -35,94 +33,68 @@ function DoctorBillingPage() {
       case_item.case_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_item.treatment_type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  /*
-  const handleShowTransactionLog = () => {
-    setShowTransactionLog(true);
-  };
-
-  const handleCloseTransactionLog = () => {
-    setShowTransactionLog(false);
-  };
-  */
-
-  if (loading) {
-    return <Loader />;
-  }
-
-  if (error) {
-    return <Error error={error} />;
-  }
 
   return (
     <>
-      <div className="flex w-full flex-col items-start gap-6">
-        <PageHeader />
-        <DoctorBillingStats
-          totalCases={totalCases}
-          totalDue={totalDue}
-          totalPaid={totalPaid}
-          pendingCases={pendingCases}
-          completedCases={completedCases}
-        />
+      {error && <Error error={error} />}
+
+      <Headline submit={false}>My Billing</Headline>
+
+      <div className="flex w-full items-center justify-between gap-4">
+        <p className="text-body font-body text-subtext-color">
+          View your cases and track billing information
+        </p>
+
+        <Link to="/app/billing/log">
+          <Button
+            variant="neutral-secondary"
+            icon={<FeatherLogs />}
+            className="w-auto"
+          >
+            Payments History
+          </Button>
+        </Link>
       </div>
 
-      <div className="flex w-full flex-col items-start gap-6">
-        <CasesSection
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          filteredCases={filteredCases}
-        />
-      </div>
+      {loading ? (
+        <div className="flex w-full h-full min-h-[200px] justify-center items-center">
+          <Loader size="medium" />
+        </div>
+      ) : (
+        <>
+          <DoctorBillingStats
+            totalCases={totalCases}
+            totalDue={totalDue}
+            totalPaid={totalPaid}
+            pendingCases={pendingCases}
+            completedCases={completedCases}
+          />
 
-      {/*<TransactionLogDialog
-        isOpen={showTransactionLog}
-        onClose={handleCloseTransactionLog}
-        refetchBillingData={refetchBillingData}
-      />*/}
+          <div className="flex w-full items-center gap-2">
+            <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">
+              My Cases & Billing
+            </span>
+            <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
+              <TextField
+                variant="filled"
+                label=""
+                helpText=""
+                icon={<FeatherSearch />}
+              >
+                <TextField.Input
+                  placeholder="Search cases..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </TextField>
+            </div>
+          </div>
+
+          <DoctorCasesTable cases={filteredCases} />
+        </>
+      )}
     </>
   );
 }
-
-const PageHeader = () => (
-  <div className="flex w-full flex-wrap items-center justify-between gap-2">
-    <div className="w-auto">
-      <Headline submit={false}>My Billing</Headline>
-    </div>
-    <Link to="/app/billing/log">
-      <Button
-        variant="neutral-secondary"
-        icon={<FeatherLogs />}
-        className="w-auto"
-      >
-        Payments History
-      </Button>
-    </Link>
-  </div>
-);
-
-const CasesSection = ({ searchTerm, onSearchChange, filteredCases }) => (
-  <>
-    <CasesSectionHeader
-      searchTerm={searchTerm}
-      onSearchChange={onSearchChange}
-    />
-    <DoctorCasesTable cases={filteredCases} />
-  </>
-);
-
-const CasesSectionHeader = ({ searchTerm, onSearchChange }) => (
-  <div className="flex w-full items-center gap-2">
-    <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">
-      My Cases & Billing
-    </span>
-    <TextField variant="filled" label="" helpText="" icon={<FeatherSearch />}>
-      <TextField.Input
-        placeholder="Search cases..."
-        value={searchTerm}
-        onChange={(e) => onSearchChange(e.target.value)}
-      />
-    </TextField>
-  </div>
-);
 
 export default DoctorBillingPage;

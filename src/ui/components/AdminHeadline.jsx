@@ -15,14 +15,19 @@ export default function AdminHeadline({
       </span>
       {submit && (
         <Link to="/admin/cases/new">
-          <Button size="large" icon={<FeatherPlus />}>
+          <Button size="large" icon={<FeatherPlus />} className="h-9">
             Submit New Case
           </Button>
         </Link>
       )}
 
       {createUser && (
-        <Button size="large" icon={<FeatherPlus />} onClick={onCreateUser}>
+        <Button
+          size="large"
+          icon={<FeatherPlus />}
+          onClick={onCreateUser}
+          className="h-9"
+        >
           Create User
         </Button>
       )}

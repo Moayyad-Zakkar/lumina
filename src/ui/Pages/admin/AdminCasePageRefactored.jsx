@@ -214,7 +214,7 @@ const AdminCasePageRefactored = () => {
     window.open(viewerUrl, '_blank');
   };
 
-  const viewerLink = `${window.location.origin}/viewer/${caseData.id}`;
+  const viewerLink = `${window.location.origin}/case-viewer/${caseData.id}`;
 
   const handleIPRSave = async (data) => {
     try {

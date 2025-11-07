@@ -31,7 +31,7 @@ export const useAdminCaseActions = (caseData) => {
     caseData?.estimated_duration_months ?? ''
   );
   const [isEditingPlan, setIsEditingPlan] = useState(
-    caseData?.status === 'submitted' || 'accepted'
+    ['submitted', 'accepted'].includes(caseData?.status)
   );
   const [editBackup, setEditBackup] = useState(null);
 

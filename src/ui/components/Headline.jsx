@@ -10,7 +10,7 @@ export default function Headline({ children, submit = true }) {
       </span>
       {submit && (
         <Link to="/app/cases/new">
-          <Button size="large" icon={<FeatherPlus />}>
+          <Button size="large" icon={<FeatherPlus />} className="h-9">
             Submit New Case
           </Button>
         </Link>

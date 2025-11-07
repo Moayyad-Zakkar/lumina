@@ -5,21 +5,14 @@ import {
   FeatherClock,
   FeatherEye,
   FeatherXCircle,
-  FeatherRefreshCw,
 } from '@subframe/core';
 import AdminHeadline from '../../components/AdminHeadline';
 import AdminCreateUserDialog from '../../components/AdminCreateUserDialog';
 import { Loader } from '../../components/Loader';
-import { Table } from '../../components/Table';
-import { Button } from '../../components/Button';
-import { IconButton } from '../../components/IconButton';
-import { Badge } from '../../components/Badge';
-import Error from '../../components/Error';
 
 const AdminSignUpRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -31,14 +24,9 @@ const AdminSignUpRequests = () => {
     fetchRequests();
   }, []);
 
-  const fetchRequests = async (isRefresh = false) => {
+  const fetchRequests = async () => {
     try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
+      setLoading(true);
       const { data, error } = await supabase
         .from('signup_requests')
         .select('*')
@@ -46,18 +34,12 @@ const AdminSignUpRequests = () => {
 
       if (error) throw error;
       setRequests(data || []);
-      setError(null);
     } catch (err) {
       console.error('Error fetching requests:', err);
       setError(err.message);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  };
-
-  const handleRefresh = () => {
-    fetchRequests(true);
   };
 
   const handleApprove = async () => {
@@ -70,6 +52,7 @@ const AdminSignUpRequests = () => {
     setError(null);
 
     try {
+      // Create the user in Supabase Auth
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email: selectedRequest.email,
@@ -85,6 +68,7 @@ const AdminSignUpRequests = () => {
 
       if (authError) throw authError;
 
+      // Update the request status to approved
       const { error: updateError } = await supabase
         .from('signup_requests')
         .update({
@@ -96,6 +80,7 @@ const AdminSignUpRequests = () => {
 
       if (updateError) throw updateError;
 
+      // Note: Profile is automatically created via database trigger
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, role')
@@ -147,6 +132,7 @@ const AdminSignUpRequests = () => {
 
   const handleCreateUser = async (formData) => {
     try {
+      // Create the user in Supabase Auth
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email: formData.email,
@@ -162,8 +148,11 @@ const AdminSignUpRequests = () => {
 
       if (authError) throw authError;
 
+      // Profile is automatically created by the on_auth_user_created trigger
+      // Wait a moment for the trigger to complete
       await new Promise((resolve) => setTimeout(resolve, 500));
 
+      // Verify profile was created
       const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('id, role, full_name')
@@ -172,6 +161,7 @@ const AdminSignUpRequests = () => {
 
       if (profileError) {
         console.warn('Profile verification warning:', profileError);
+        // Profile might take a moment to be created by trigger
       } else {
         console.log('Profile created successfully:', profile);
       }
@@ -218,133 +208,141 @@ const AdminSignUpRequests = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex w-full h-full min-h-[100px] justify-center items-center">
+        <Loader size="medium" />
+      </div>
+    );
+  }
+
   return (
     <>
-      {error && <Error error={error} />}
+      <div className="max-w-7xl">
+        <div className="w-auto mb-6">
+          <AdminHeadline
+            submit={false}
+            createUser={true}
+            onCreateUser={() => setShowCreateDialog(true)}
+          >
+            Sign Up Requests
+          </AdminHeadline>
+          <p className="mt-2 text-gray-600">
+            Review and approve new user registrations
+          </p>
+        </div>
 
-      <AdminHeadline
-        submit={false}
-        createUser={true}
-        onCreateUser={() => setShowCreateDialog(true)}
-      >
-        Sign Up Requests
-      </AdminHeadline>
+        {error && (
+          <div className="mb-4 rounded-md bg-red-50 p-4">
+            <div className="text-sm text-red-800">{error}</div>
+          </div>
+        )}
 
-      <div className="flex w-full justify-between items-center gap-4">
-        <p className="text-body font-body text-subtext-color">
-          Review and approve new user registrations
-        </p>
-
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <IconButton
-            icon={
-              <FeatherRefreshCw className={refreshing ? 'animate-spin' : ''} />
-            }
-            onClick={handleRefresh}
-            disabled={refreshing}
-          />
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Clinic
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {requests.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    No sign-up requests found
+                  </td>
+                </tr>
+              ) : (
+                requests.map((request) => (
+                  <tr key={request.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {request.full_name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {request.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {request.clinic}
+                      </div>
+                      {request.phone && (
+                        <div className="text-sm text-gray-500">
+                          {request.phone}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(request.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(request.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedRequest(request);
+                            setShowApprovalModal(true);
+                          }}
+                          className="text-sky-600 hover:text-sky-900"
+                          title="View Details"
+                        >
+                          <FeatherEye className="w-5 h-5" />
+                        </button>
+                        {request.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setSelectedRequest(request);
+                                setShowApprovalModal(true);
+                              }}
+                              disabled={processingId === request.id}
+                              className="text-success-600 hover:text-success-900 disabled:opacity-50"
+                            >
+                              <FeatherCheckCircle className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleReject(request.id)}
+                              disabled={processingId === request.id}
+                              className="text-error-600 hover:text-error-900 disabled:opacity-50"
+                            >
+                              <FeatherXCircle className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <Table
-        header={
-          <Table.HeaderRow>
-            <Table.HeaderCell>Name</Table.HeaderCell>
-            <Table.HeaderCell>Email</Table.HeaderCell>
-            <Table.HeaderCell>Clinic</Table.HeaderCell>
-            <Table.HeaderCell>Phone</Table.HeaderCell>
-            <Table.HeaderCell>Status</Table.HeaderCell>
-            <Table.HeaderCell>Date</Table.HeaderCell>
-            <Table.HeaderCell>Actions</Table.HeaderCell>
-          </Table.HeaderRow>
-        }
-      >
-        {loading ? (
-          <Table.Row>
-            <Table.Cell colSpan={7}>
-              <div className="flex w-full h-full min-h-[100px] justify-center items-center">
-                <Loader size="medium" />
-              </div>
-            </Table.Cell>
-          </Table.Row>
-        ) : requests.length === 0 ? (
-          <Table.Row>
-            <Table.Cell colSpan={7}>
-              <div className="text-center py-8">
-                <span className="text-neutral-500">
-                  No sign-up requests found
-                </span>
-              </div>
-            </Table.Cell>
-          </Table.Row>
-        ) : (
-          requests.map((request) => (
-            <Table.Row key={request.id}>
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body-bold font-body-bold text-neutral-700">
-                  {request.full_name}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-700">
-                  {request.email}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
-                  {request.clinic}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
-                  {request.phone || '-'}
-                </span>
-              </Table.Cell>
-              <Table.Cell>{getStatusBadge(request.status)}</Table.Cell>
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
-                  {new Date(request.created_at).toLocaleDateString()}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedRequest(request);
-                      setShowApprovalModal(true);
-                    }}
-                    className="text-sky-600 hover:text-sky-900"
-                    title="View Details"
-                  >
-                    <FeatherEye className="w-5 h-5" />
-                  </button>
-                  {request.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setShowApprovalModal(true);
-                        }}
-                        disabled={processingId === request.id}
-                        className="text-success-600 hover:text-success-900 disabled:opacity-50"
-                      >
-                        <FeatherCheckCircle className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleReject(request.id)}
-                        disabled={processingId === request.id}
-                        className="text-error-600 hover:text-error-900 disabled:opacity-50"
-                      >
-                        <FeatherXCircle className="w-5 h-5" />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </Table.Cell>
-            </Table.Row>
-          ))
-        )}
-      </Table>
 
       {/* Approval Modal */}
       {showApprovalModal && selectedRequest && (
@@ -427,27 +425,27 @@ const AdminSignUpRequests = () => {
             </div>
 
             <div className="px-6 py-4 bg-gray-50 flex gap-3">
-              <Button
-                variant="neutral-secondary"
+              <button
                 onClick={() => {
                   setShowApprovalModal(false);
                   setPassword('');
                   setSelectedRequest(null);
                   setError(null);
                 }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 font-medium"
               >
                 Cancel
-              </Button>
+              </button>
               {selectedRequest.status === 'pending' && (
-                <Button
-                  variant="brand-primary"
+                <button
                   onClick={handleApprove}
                   disabled={processingId === selectedRequest.id}
+                  className="flex-1 px-4 py-2 bg-success-600 text-white rounded-md hover:bg-success-700 font-medium disabled:bg-success-400"
                 >
                   {processingId === selectedRequest.id
                     ? 'Creating Account...'
                     : 'Approve & Create Account'}
-                </Button>
+                </button>
               )}
             </div>
           </div>

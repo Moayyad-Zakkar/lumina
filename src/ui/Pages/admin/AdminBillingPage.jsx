@@ -96,8 +96,8 @@ function AdminBillingPage() {
       ) : (
         <>
           <BillingStats
-            totalEarnings={totalEarnings}
-            totalDue={totalDue}
+            totalEarnings={isSuperAdminUser ? totalEarnings : null}
+            totalDue={isSuperAdminUser ? totalDue : null}
             totalExpenses={isSuperAdminUser ? totalExpenses : null}
             onReceivePayment={handleReceivePayment}
             onMakePayment={isSuperAdminUser ? handleMakePayment : null}

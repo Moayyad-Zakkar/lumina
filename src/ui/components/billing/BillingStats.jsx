@@ -17,8 +17,12 @@ const BillingStats = ({
   return (
     <>
       <div className="flex w-full flex-wrap items-start gap-4">
-        <EarningsCard totalEarnings={totalEarnings} />
-        <DuePaymentsCard totalDue={totalDue} />
+        {totalEarnings !== null && totalEarnings !== undefined && (
+          <EarningsCard totalEarnings={totalEarnings} />
+        )}
+        {totalDue !== null && totalDue !== undefined && (
+          <DuePaymentsCard totalDue={totalDue} />
+        )}
 
         {totalExpenses !== null && totalExpenses !== undefined && (
           <ExpensesCard totalExpenses={totalExpenses} />

@@ -51,7 +51,7 @@ const Cell = React.forwardRef<HTMLElement, CellProps>(function Cell(
     <td {...otherProps}>
       <div
         className={SubframeUtils.twClassNames(
-          'flex h-12 w-full items-center gap-1 px-3',
+          'flex min-h-12 w-full items-center gap-1 px-3 py-2',
           className
         )}
         ref={ref as any}
@@ -96,7 +96,7 @@ const HeaderCell = React.forwardRef<HTMLElement, HeaderCellProps>(
       <th {...otherProps}>
         <div
           className={SubframeUtils.twClassNames(
-            'flex h-8 w-full items-center gap-1 px-3',
+            'flex min-h-8 w-full items-center gap-1 px-3 py-2',
             className
           )}
           ref={ref as any}

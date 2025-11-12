@@ -1,3 +1,4 @@
+import { isAdminRole } from '../../helper/auth';
 import supabase from '../../helper/supabaseClient';
 import { redirect } from 'react-router';
 
@@ -14,7 +15,7 @@ export async function adminLayoutLoader() {
     .eq('id', user.id)
     .single();
 
-  if (profileError || profile?.role !== 'admin') {
+  if (profileError || !isAdminRole(profile?.role)) {
     throw redirect('/unauthorized');
   }
 
@@ -27,5 +28,6 @@ export async function adminLayoutLoader() {
   return {
     initialBadgeCount: error ? 0 : count || 0,
     userId: user.id,
+    userRole: profile?.role, // Pass role for conditional rendering in layout
   };
 }

@@ -12,12 +12,17 @@ import BillingStats from '../../components/billing/BillingStats';
 import { useBillingData } from '../../../hooks/useBillingData';
 import AdminHeadline from '../../components/AdminHeadline';
 import { Link } from 'react-router';
+import { isSuperAdmin } from '../../../helper/auth';
+import { useUserRole } from '../../../helper/useUserRole';
 
 function AdminBillingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showExpensesDialog, setShowExpensesDialog] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+
+  const { role } = useUserRole();
+  const isSuperAdminUser = isSuperAdmin(role);
 
   const {
     doctors,
@@ -70,15 +75,18 @@ function AdminBillingPage() {
           Manage payments and track billing information
         </p>
 
-        <Link to="/admin/billing/log">
-          <Button
-            variant="neutral-secondary"
-            icon={<FeatherLogs />}
-            className="w-auto"
-          >
-            Transaction Log
-          </Button>
-        </Link>
+        {/* Only super admin can see transaction log */}
+        {isSuperAdminUser && (
+          <Link to="/admin/billing/log">
+            <Button
+              variant="neutral-secondary"
+              icon={<FeatherLogs />}
+              className="w-auto"
+            >
+              Transaction Log
+            </Button>
+          </Link>
+        )}
       </div>
 
       {loading ? (
@@ -90,9 +98,9 @@ function AdminBillingPage() {
           <BillingStats
             totalEarnings={totalEarnings}
             totalDue={totalDue}
-            totalExpenses={totalExpenses}
+            totalExpenses={isSuperAdminUser ? totalExpenses : null}
             onReceivePayment={handleReceivePayment}
-            onMakePayment={handleMakePayment}
+            onMakePayment={isSuperAdminUser ? handleMakePayment : null}
           />
 
           <div className="flex w-full items-center gap-2">
@@ -130,11 +138,14 @@ function AdminBillingPage() {
         refetchBillingData={refetchBillingData}
       />
 
-      <ExpensesDialog
-        isOpen={showExpensesDialog}
-        onClose={handleCloseExpensesDialog}
-        refetchBillingData={refetchBillingData}
-      />
+      {/* Only render expenses dialog for super admin */}
+      {isSuperAdminUser && (
+        <ExpensesDialog
+          isOpen={showExpensesDialog}
+          onClose={handleCloseExpensesDialog}
+          refetchBillingData={refetchBillingData}
+        />
+      )}
     </>
   );
 }

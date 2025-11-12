@@ -19,12 +19,15 @@ const BillingStats = ({
       <div className="flex w-full flex-wrap items-start gap-4">
         <EarningsCard totalEarnings={totalEarnings} />
         <DuePaymentsCard totalDue={totalDue} />
-        <ExpensesCard totalExpenses={totalExpenses} />
+
+        {totalExpenses !== null && totalExpenses !== undefined && (
+          <ExpensesCard totalExpenses={totalExpenses} />
+        )}
       </div>
       {withButtons && (
         <div className="flex w-full flex-wrap items-start gap-4">
           <PaymentButton onReceivePayment={onReceivePayment} />
-          <ExpenseButton onMakePayment={onMakePayment} />
+          {onMakePayment && <ExpenseButton onMakePayment={onMakePayment} />}
         </div>
       )}
     </>

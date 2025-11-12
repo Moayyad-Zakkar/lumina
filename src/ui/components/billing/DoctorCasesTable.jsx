@@ -7,43 +7,42 @@ import { useNavigate } from 'react-router';
 const DoctorCasesTable = ({ cases }) => {
   const navigate = useNavigate();
   return (
-    <Table
-      header={
-        <Table.HeaderRow>
-          <Table.HeaderCell>Case ID</Table.HeaderCell>
-          <Table.HeaderCell>Patient</Table.HeaderCell>
-          <Table.HeaderCell>Treatment Type</Table.HeaderCell>
-          <Table.HeaderCell>Date</Table.HeaderCell>
-          <Table.HeaderCell>Total Amount</Table.HeaderCell>
-          <Table.HeaderCell>Remaining Amount</Table.HeaderCell>
-          <Table.HeaderCell>Payment Status</Table.HeaderCell>
-          <Table.HeaderCell />
-        </Table.HeaderRow>
-      }
-    >
-      {cases.length === 0 ? (
-        <Table.Row>
-          <Table.Cell colSpan={8}>
-            <div className="text-center py-8 text-neutral-500">
-              No cases found.
-            </div>
-          </Table.Cell>
-        </Table.Row>
-      ) : (
-        cases.map((case_item) => (
-          <CaseRow
-            key={case_item.id}
-            case_item={case_item}
-            navigate={navigate}
-          />
-        ))
-      )}
-    </Table>
+    <div className="w-full overflow-x-auto">
+      <Table
+        header={
+          <Table.HeaderRow>
+            <Table.HeaderCell>Case</Table.HeaderCell>
+            <Table.HeaderCell>Patient</Table.HeaderCell>
+            <Table.HeaderCell>Treatment Details</Table.HeaderCell>
+            <Table.HeaderCell>Date</Table.HeaderCell>
+            <Table.HeaderCell>Payment</Table.HeaderCell>
+            <Table.HeaderCell />
+          </Table.HeaderRow>
+        }
+      >
+        {cases.length === 0 ? (
+          <Table.Row>
+            <Table.Cell colSpan={6}>
+              <div className="text-center py-8 text-neutral-500">
+                No cases found.
+              </div>
+            </Table.Cell>
+          </Table.Row>
+        ) : (
+          cases.map((case_item) => (
+            <CaseRow
+              key={case_item.id}
+              case_item={case_item}
+              navigate={navigate}
+            />
+          ))
+        )}
+      </Table>
+    </div>
   );
 };
 
 const CaseRow = ({ case_item, navigate }) => {
-  console.log(case_item);
   return (
     <Table.Row>
       <Table.Cell>
@@ -59,16 +58,7 @@ const CaseRow = ({ case_item, navigate }) => {
         <CaseDate date={case_item.case_date} />
       </Table.Cell>
       <Table.Cell>
-        <CaseAmount amount={case_item.amount} />
-      </Table.Cell>
-      <Table.Cell>
-        <CaseRemaining remainingAmount={case_item.remainingAmount} />
-      </Table.Cell>
-      <Table.Cell>
-        <PaymentStatusBadge
-          paymentStatus={case_item.paymentStatus}
-          paymentPercentage={case_item.paymentPercentage}
-        />
+        <PaymentInfo case_item={case_item} />
       </Table.Cell>
       <Table.Cell>
         <ViewDetailsButton case_item={case_item} navigate={navigate} />
@@ -78,128 +68,101 @@ const CaseRow = ({ case_item, navigate }) => {
 };
 
 const CaseIdInfo = ({ case_item }) => (
-  <div className="flex flex-col">
-    <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
-      {case_item.case_id || `CASE-${case_item.id}`}
-    </span>
-    {case_item.case_number && (
-      <span className="text-caption font-caption text-subtext-color">
-        #{case_item.case_number}
-      </span>
-    )}
-  </div>
+  <span className="whitespace-nowrap text-body-bold font-body-bold text-neutral-700">
+    {case_item.case_id || `CASE-${case_item.id}`}
+  </span>
 );
 
 const PatientInfo = ({ case_item }) => (
-  <div className="flex flex-col">
-    <span className="whitespace-nowrap text-body font-body text-default-font">
-      {case_item.patient_name || 'Unknown Patient'}
-    </span>
-    {case_item.patient_id && (
-      <span className="text-caption font-caption text-subtext-color">
-        ID: {case_item.patient_id}
-      </span>
-    )}
-  </div>
+  <span className="whitespace-nowrap text-body font-body text-neutral-700">
+    {case_item.patient_name || 'Unknown Patient'}
+  </span>
 );
 
-const TreatmentDetails = ({ case_item }) => (
-  <div className="flex flex-col">
-    <span className="text-body font-body text-default-font">
-      {case_item.treatment_type || 'Standard Treatment'}
-    </span>
-    <div className="flex gap-2 text-caption font-caption text-subtext-color">
-      {case_item.aligners_count && <span>{case_item.aligners_count}</span>}
-      {case_item.duration && <span>• {case_item.duration}</span>}
-      {case_item.urgency === 'Urgent' && (
-        <span className="text-error-600">• URGENT</span>
-      )}
+const TreatmentDetails = ({ case_item }) => {
+  const isUrgent = case_item.urgency === 'Urgent';
+  const hasRefinement = case_item.refinement_info;
+  
+  // Build compact info line
+  const infoParts = [];
+  if (case_item.aligners_count) infoParts.push(`${case_item.aligners_count} aligners`);
+  if (case_item.duration) infoParts.push(case_item.duration);
+  const infoText = infoParts.join(' • ');
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-body font-body text-neutral-700">
+          {case_item.treatment_type || 'Standard Treatment'}
+        </span>
+        {infoText && (
+          <span className="text-caption font-caption text-neutral-500">
+            {infoText}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-1 flex-wrap">
+        {isUrgent && (
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-error-100 text-error-700">
+            URGENT
+          </span>
+        )}
+        {hasRefinement && (
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning-100 text-warning-700">
+            {case_item.refinement_info}
+          </span>
+        )}
+      </div>
     </div>
-    {case_item.refinement_info && (
-      <span className="text-caption font-caption text-warning-600">
-        {case_item.refinement_info}
-      </span>
-    )}
-  </div>
-);
+  );
+};
 
 const CaseDate = ({ date }) => (
-  <div className="flex flex-col">
-    <span className="text-body font-body text-default-font">
-      {date ? new Date(date).toLocaleDateString() : 'Not set'}
-    </span>
-    <span className="text-caption font-caption text-subtext-color">
-      {date
-        ? new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
-        : ''}
-    </span>
-  </div>
-);
-
-const CaseAmount = ({ amount }) => (
-  <span className="text-body-bold font-body-bold text-default-font">
-    $
-    {amount?.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}
+  <span className="whitespace-nowrap text-body font-body text-neutral-500">
+    {date ? new Date(date).toLocaleDateString() : 'Not set'}
   </span>
 );
 
-const CaseRemaining = ({ remainingAmount }) => (
-  <span className="text-body-bold font-body-bold text-default-font">
-    $
-    {remainingAmount?.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}
-  </span>
-);
-
-const PaymentStatusBadge = ({ paymentStatus, paymentPercentage = 0 }) => {
+const PaymentInfo = ({ case_item }) => {
+  const { amount, remainingAmount, paymentStatus, paymentPercentage = 0 } = case_item;
+  
   const statusConfig = {
-    unpaid: {
-      color: 'error',
-      text: 'Unpaid',
-    },
-    partially_paid: {
-      color: 'warning',
-      text: `${paymentPercentage.toFixed(0)}% Paid`,
-    },
-    paid: {
-      color: 'success',
-      text: 'Paid',
-    },
-    not_applicable: {
-      color: 'neutral',
-      text: 'No Cost',
-    },
-    // Legacy statuses for backwards compatibility
-    due: {
-      color: 'error',
-      text: 'Due',
-    },
-    overdue: {
-      color: 'error',
-      text: 'Overdue',
-    },
-    pending: {
-      color: 'warning',
-      text: 'Pending',
-    },
-    processing: {
-      color: 'brand',
-      text: 'Processing',
-    },
+    unpaid: { variant: 'error', text: 'Unpaid' },
+    partially_paid: { variant: 'warning', text: `${paymentPercentage.toFixed(0)}%` },
+    paid: { variant: 'success', text: 'Paid' },
+    not_applicable: { variant: 'neutral', text: 'N/A' },
+    due: { variant: 'error', text: 'Due' },
+    overdue: { variant: 'error', text: 'Overdue' },
+    pending: { variant: 'warning', text: 'Pending' },
+    processing: { variant: 'brand', text: 'Processing' },
   };
 
   const normalizedStatus = paymentStatus?.toLowerCase() || 'unpaid';
-  const config = statusConfig[normalizedStatus] || {
-    color: 'neutral',
-    text: 'Unknown',
-  };
+  const config = statusConfig[normalizedStatus] || { variant: 'neutral', text: 'Unknown' };
 
-  return <Badge variant={config.color}>{config.text}</Badge>;
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline gap-2">
+        <span className="text-body-bold font-body-bold text-neutral-700">
+          ${amount?.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }) || '0.00'}
+        </span>
+        <Badge variant={config.variant} className="text-xs">
+          {config.text}
+        </Badge>
+      </div>
+      {remainingAmount > 0 && (
+        <span className="text-caption font-caption text-neutral-500">
+          ${remainingAmount?.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })} remaining
+        </span>
+      )}
+    </div>
+  );
 };
 
 const ViewDetailsButton = ({ case_item, navigate }) => (
@@ -207,6 +170,7 @@ const ViewDetailsButton = ({ case_item, navigate }) => (
     size="small"
     variant="neutral-secondary"
     onClick={() => navigate(`/app/cases/${case_item.id}`)}
+    className="whitespace-nowrap"
   >
     View Details
   </Button>

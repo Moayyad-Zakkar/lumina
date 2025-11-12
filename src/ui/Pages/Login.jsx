@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router';
 import { useState } from 'react';
 import supabase from '../../helper/supabaseClient';
 import SignUpRequestDialog from '../components/SignUpRequestDialog';
+import { isAdminRole } from '../../helper/auth';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -38,7 +39,8 @@ function Login() {
       const userRole = data.user?.app_metadata?.role || 'user';
 
       // Redirect based on user role
-      if (userRole === 'admin') {
+
+      if (isAdminRole(userRole)) {
         navigate('/admin/dashboard');
       } else {
         navigate('/app/dashboard');

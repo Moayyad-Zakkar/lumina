@@ -1,6 +1,7 @@
 import supabase from '../../helper/supabaseClient';
 import { capitalizeFirst } from '../../helper/formatText';
 import { redirect } from 'react-router';
+import { isAdminRole } from '../../helper/auth';
 
 export async function adminDashboardLoader() {
   const {
@@ -11,14 +12,14 @@ export async function adminDashboardLoader() {
     throw redirect('/login');
   }
 
-  // Optional: Check role
+  // Check if user has admin or super_admin role
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single();
 
-  if (profileError || profile?.role !== 'admin') {
+  if (profileError || !isAdminRole(profile?.role)) {
     throw redirect('/unauthorized');
   }
 
@@ -67,5 +68,6 @@ export async function adminDashboardLoader() {
     casesError: recentError?.message || null,
     submittedError: submittedError?.message || null,
     completedError: completedError?.message || null,
+    userRole: profile?.role, // Pass role to component for conditional rendering
   };
 }

@@ -188,6 +188,6 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [import('tailwindcss-rtl')],
   presets: [import('./src/ui/tailwind.config')],
 };

@@ -1,3 +1,4 @@
+import { isAdminRole } from '../../helper/auth';
 import supabase from '../../helper/supabaseClient';
 import { redirect } from 'react-router';
 
@@ -12,8 +13,9 @@ export async function adminDoctorsLoader() {
     .select('role')
     .eq('id', user.id)
     .single();
-  if (profileError || profile?.role !== 'admin')
+  if (profileError || !isAdminRole(profile?.role)) {
     throw redirect('/unauthorized');
+  }
 
   // No server-side pagination here (client page handles it). Just return 200.
   return null;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
 import { Loader } from '../components/Loader';
@@ -12,6 +13,7 @@ import Headline from '../components/Headline';
 import { Link } from 'react-router';
 
 function DoctorBillingPage() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
 
   const {
@@ -23,7 +25,7 @@ function DoctorBillingPage() {
     totalPaid,
     pendingCases,
     completedCases,
-    refetchBillingData,
+    //refetchBillingData,
   } = useDoctorBillingData();
 
   // Filter cases based on search term
@@ -38,11 +40,11 @@ function DoctorBillingPage() {
     <>
       {error && <Error error={error} />}
 
-      <Headline submit={false}>My Billing</Headline>
+      <Headline submit={false}>{t('billing.myBilling')}</Headline>
 
       <div className="flex w-full items-center justify-between gap-4">
         <p className="text-body font-body text-subtext-color">
-          View your cases and track billing information
+          {t('billing.userSubtitle')}
         </p>
 
         <Link to="/app/billing/log">
@@ -51,7 +53,7 @@ function DoctorBillingPage() {
             icon={<FeatherLogs />}
             className="w-auto"
           >
-            Payments History
+            {t('navigation.paymentsHistory')}
           </Button>
         </Link>
       </div>
@@ -72,7 +74,7 @@ function DoctorBillingPage() {
 
           <div className="flex w-full items-center gap-2">
             <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">
-              My Cases & Billing
+              {t('billing.myCasesAndBilling')}
             </span>
             <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
               <TextField
@@ -82,7 +84,7 @@ function DoctorBillingPage() {
                 icon={<FeatherSearch />}
               >
                 <TextField.Input
-                  placeholder="Search cases..."
+                  placeholder={t('cases.searchPatientOrDoctor')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />

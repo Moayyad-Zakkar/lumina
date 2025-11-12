@@ -219,7 +219,7 @@ const PaymentNotesInput = ({ paymentNotes, setPaymentNotes }) => (
 );
 
 const CasesSection = ({
-  selectedDoctor,
+  //selectedDoctor,
   doctorCases,
   loadingCases,
   selectedCases,

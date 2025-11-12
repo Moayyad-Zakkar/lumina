@@ -6,11 +6,14 @@ import { FeatherDollarSign, FeatherCheck, FeatherX } from '@subframe/core';
 import supabase from '../../../helper/supabaseClient';
 import toast from 'react-hot-toast';
 import { IconButton } from '../IconButton';
+import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
 
 const ExpensesDialog = ({ isOpen, onClose, refetchBillingData }) => {
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseNotes, setExpenseNotes] = useState('');
   const [processingExpense, setProcessingExpense] = useState(false);
+  const { t } = useTranslation();
 
   const handleClose = () => {
     setExpenseAmount('');
@@ -20,7 +23,7 @@ const ExpensesDialog = ({ isOpen, onClose, refetchBillingData }) => {
 
   const handleSubmit = async () => {
     if (!expenseAmount || parseFloat(expenseAmount) <= 0) {
-      toast.error('Please enter a valid expense amount');
+      toast.error(t('expenseDialog.errors.validExpense'));
       return;
     }
 
@@ -43,7 +46,7 @@ const ExpensesDialog = ({ isOpen, onClose, refetchBillingData }) => {
 
       if (expenseError) throw expenseError;
 
-      toast.success('Expense recorded successfully!');
+      toast.success(t('expenseDialog.success.expenseRecorded'));
       handleClose();
 
       // Refresh billing data
@@ -52,7 +55,7 @@ const ExpensesDialog = ({ isOpen, onClose, refetchBillingData }) => {
       }, 1000);
     } catch (err) {
       console.error('Expense recording failed:', err);
-      toast.error(err.message || 'Failed to record expense');
+      toast.error(err.message || t('expense.errors.recordFailed'));
     } finally {
       setProcessingExpense(false);
     }
@@ -91,10 +94,10 @@ const DialogHeader = ({ onClose }) => (
     <FeatherDollarSign className="h-6 w-6 text-error-600 mt-1" />
     <div>
       <h2 className="text-heading-3 font-heading-3 text-default-font">
-        Record Expense
+        {t('expenseDialog.title')}
       </h2>
       <p className="text-body font-body text-subtext-color mt-1">
-        Enter expense details for business costs and payments made.
+        {t('expenseDialog.subtitle')}
       </p>
     </div>
     <IconButton icon={<FeatherX />} onClick={onClose} />
@@ -104,7 +107,7 @@ const DialogHeader = ({ onClose }) => (
 const ExpenseAmountInput = ({ expenseAmount, setExpenseAmount }) => (
   <div className="flex flex-col gap-2">
     <label className="text-body-bold font-body-bold text-default-font">
-      Expense Amount *
+      {t('expenseDialog.expenseAmount')}
     </label>
     <TextField>
       <TextField.Input
@@ -122,12 +125,12 @@ const ExpenseAmountInput = ({ expenseAmount, setExpenseAmount }) => (
 const ExpenseNotesInput = ({ expenseNotes, setExpenseNotes }) => (
   <div className="flex flex-col gap-2">
     <label className="text-body-bold font-body-bold text-default-font">
-      Description/Notes *
+      {t('expenseDialog.description')}
     </label>
     <textarea
       value={expenseNotes}
       onChange={(e) => setExpenseNotes(e.target.value)}
-      placeholder="Describe the expense (e.g., Munqeth Wahood Lab Fees, office supplies, equipment)..."
+      placeholder={t('expenseDialog.descriptionPlaceholder')}
       rows={4}
       className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
       required
@@ -147,7 +150,7 @@ const DialogActions = ({
       onClick={onClose}
       disabled={processingExpense}
     >
-      Cancel
+      {t('common.cancel')}
     </Button>
     <Button
       onClick={onSubmit}
@@ -157,7 +160,9 @@ const DialogActions = ({
       icon={<FeatherCheck />}
       variant="destructive-primary"
     >
-      {processingExpense ? 'Recording...' : 'Record Expense'}
+      {processingExpense
+        ? t('expenseDialog.recording')
+        : t('expenseDialog.recordExpense')}
     </Button>
   </div>
 );

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
 import {
@@ -33,6 +34,7 @@ import { Loader } from '../components/Loader';
 import JawView from '../components/viewer/JawView';
 
 function CaseViewer() {
+  const { t, i18n } = useTranslation();
   const [caseData, setCaseData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,6 +49,9 @@ function CaseViewer() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const slideShowInterval = useRef(null);
+
+  // Check if current language is Arabic
+  const isRTL = i18n.language === 'ar';
 
   const fetchCaseData = useCallback(async () => {
     try {
@@ -101,7 +106,7 @@ function CaseViewer() {
           }
         });
 
-      // Organize before/after images (single combined image per view)
+      // Organize before/after images
       const beforeAfter = {
         front: null,
         left: null,
@@ -152,7 +157,7 @@ function CaseViewer() {
             }
             return prevIndex + 1;
           });
-        }, 500); // Change image every 500ms (adjust for speed)
+        }, 500);
       }
     } else {
       if (slideShowInterval.current) {
@@ -202,7 +207,7 @@ function CaseViewer() {
             console.error(`Failed to preload image ${index + 1}:`, img.url);
             loadedCount++;
             setLoadingProgress(Math.round((loadedCount / images.length) * 100));
-            resolve(); // Still resolve to not block other images
+            resolve();
           };
           image.src = img.url;
         });
@@ -220,7 +225,7 @@ function CaseViewer() {
       <Content>
         <LoadingSpinner className="flex flex-col items-center">
           <Loader size="large" />
-          Loading case viewer...
+          {t('viewer.loadingViewer')}
         </LoadingSpinner>
       </Content>
     );
@@ -229,13 +234,9 @@ function CaseViewer() {
   if (error) {
     return (
       <Content>
-        <ErrorMessage>Error: {error}</ErrorMessage>
-        {/*
-        <BackButton onClick={() => navigate(-1)}>
-          <FeatherArrowLeft />
-          Go Back
-        </BackButton>
-         */}
+        <ErrorMessage>
+          {t('common.error')}: {error}
+        </ErrorMessage>
       </Content>
     );
   }
@@ -243,13 +244,7 @@ function CaseViewer() {
   if (!caseData) {
     return (
       <Content>
-        <ErrorMessage>Case not found</ErrorMessage>
-        {/*
-        <BackButton onClick={() => navigate(-1)}>
-          <FeatherArrowLeft />
-          Go Back
-        </BackButton>
-         */}
+        <ErrorMessage>{t('viewer.caseNotFound')}</ErrorMessage>
       </Content>
     );
   }
@@ -322,26 +317,23 @@ function CaseViewer() {
 
   return (
     <Content>
-      {/* Header with Logo and Back Button */}
+      {/* Header with Logo */}
       <Header>
-        {/*
-        <BackButton onClick={() => navigate(-1)}>
-          <FeatherArrowLeft />
-          Go Back
-        </BackButton>
-         */}
-        <Logo>3DA Viewer</Logo>
+        <LogoContainer>
+          <LogoImage src="/logo.png" alt="3DA Logo" />
+          <LogoText>{t('viewer.title')}</LogoText>
+        </LogoContainer>
       </Header>
 
       <Container>
         {/* Patient Information */}
         <PatientInfo>
           <InfoItem>
-            <Label>Patient Name:</Label>
+            <Label>{t('viewer.patientName')}:</Label>
             <Value>{patientName || '—'}</Value>
           </InfoItem>
           <InfoItem>
-            <Label>Case Number:</Label>
+            <Label>{t('viewer.caseNumber')}:</Label>
             <Value>#{caseData.id || '—'}</Value>
           </InfoItem>
         </PatientInfo>
@@ -352,18 +344,17 @@ function CaseViewer() {
             active={currentTab === 'videos'}
             onClick={() => tabChanger('videos')}
           >
-            Sequence Animation
+            {t('viewer.sequenceAnimation')}
           </Tab>
           <Tab
             active={currentTab === 'before-after'}
             onClick={() => tabChanger('before-after')}
           >
-            Before & After
+            {t('viewer.beforeAfter')}
           </Tab>
         </TabsContainer>
 
         {/* Views Selection */}
-
         {currentTab === 'videos' ? (
           <ViewsContainer>
             {sequenceViewAvailability.front && (
@@ -410,7 +401,7 @@ function CaseViewer() {
                 name="Lower"
                 viewChanger={viewChanger}
               />
-            )}{' '}
+            )}
           </ViewsContainer>
         ) : (
           <ViewsContainer>
@@ -458,7 +449,7 @@ function CaseViewer() {
                 name="Lower"
                 viewChanger={viewChanger}
               />
-            )}{' '}
+            )}
           </ViewsContainer>
         )}
 
@@ -471,7 +462,7 @@ function CaseViewer() {
                   {!imagesLoaded && (
                     <LoadingOverlay>
                       <LoadingSpinnerSmall>
-                        Preloading images... {loadingProgress}%
+                        {t('viewer.preloadingImages')} {loadingProgress}%
                       </LoadingSpinnerSmall>
                       <LoadingBar>
                         <LoadingBarFill
@@ -509,14 +500,13 @@ function CaseViewer() {
                       />
                     </ProgressBar>
                     <ProgressText>
-                      Step {currentImageIndex + 1} of {sequenceImages.length}
+                      {t('viewer.step')} {currentImageIndex + 1}{' '}
+                      {t('viewer.of')} {sequenceImages.length}
                     </ProgressText>
                   </ProgressOverlay>
                 </>
               ) : (
-                <NoMediaMessage>
-                  No sequence images available for this view
-                </NoMediaMessage>
+                <NoMediaMessage>{t('viewer.noSequenceImages')}</NoMediaMessage>
               )}
             </DataContainer>
 
@@ -524,14 +514,14 @@ function CaseViewer() {
               <PlayerButtonsContainer>
                 <ControlButton
                   onClick={seekToStart}
-                  title="Jump to Start"
+                  title={t('viewer.jumpToStart')}
                   disabled={!imagesLoaded}
                 >
                   <FeatherChevronsLeft />
                 </ControlButton>
                 <ControlButton
                   onClick={seekOneStepBackward}
-                  title="Previous Step"
+                  title={t('viewer.previousStep')}
                   disabled={!imagesLoaded}
                 >
                   <FeatherSkipBack />
@@ -541,14 +531,14 @@ function CaseViewer() {
                 </PlayButton>
                 <ControlButton
                   onClick={seekOneStepForward}
-                  title="Next Step"
+                  title={t('viewer.nextStep')}
                   disabled={!imagesLoaded}
                 >
                   <FeatherSkipForward />
                 </ControlButton>
                 <ControlButton
                   onClick={seekToEnd}
-                  title="Jump to End"
+                  title={t('viewer.jumpToEnd')}
                   disabled={!imagesLoaded}
                 >
                   <FeatherChevronsRight />
@@ -564,50 +554,42 @@ function CaseViewer() {
                 alt={`${view} view before/after comparison`}
               />
             ) : (
-              <NoMediaMessage>
-                No before/after image available for this view
-              </NoMediaMessage>
+              <NoMediaMessage>{t('viewer.noBeforeAfterImage')}</NoMediaMessage>
             )}
           </DataContainer>
         )}
 
-        {/* Aligners Info OLD */}
-        {/* 
-        <AlignersInfo>
-          <AlignerBox>
-            <AlignerLabel>Upper Jaw</AlignerLabel>
-            <AlignerCount>{caseData.upper_jaw_aligners || 0}</AlignerCount>
-            <AlignerText>Aligners</AlignerText>
-          </AlignerBox>
-          <AlignerBox>
-            <AlignerLabel>Lower Jaw</AlignerLabel>
-            <AlignerCount>{caseData.lower_jaw_aligners || 0}</AlignerCount>
-            <AlignerText>Aligners</AlignerText>
-          </AlignerBox>
-        </AlignersInfo>
-        */}
+        {/* Aligners Info */}
         <AlignersInfo>
           <AlignerBox>
             <JawView
               upperCount={caseData.upper_jaw_aligners || 0}
               jawImg={maxilla}
-              name="Upper Aligners"
+              name={t('viewer.upperAligners')}
             />
           </AlignerBox>
           <AlignerBox>
             <JawView
               upperCount={caseData.lower_jaw_aligners || 0}
               jawImg={mandible}
-              name="Lower Aligners"
+              name={t('viewer.lowerAligners')}
             />
           </AlignerBox>
         </AlignersInfo>
+
+        {/* Disclaimer Section */}
+        <DisclaimerContainer>
+          <DisclaimerTitle>{t('viewer.disclaimer.title')}</DisclaimerTitle>
+          <DisclaimerText isRTL={isRTL}>
+            {t('viewer.disclaimer.text')}
+          </DisclaimerText>
+        </DisclaimerContainer>
       </Container>
     </Content>
   );
 }
 
-// Styled Components
+// Styled Components (unchanged)
 const Content = styled.div`
   text-align: center;
   background-color: #f8f9fa;
@@ -627,6 +609,33 @@ const Header = styled.div`
   align-items: center;
   justify-content: center;
   position: relative;
+`;
+
+const LogoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const LogoImage = styled.img`
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+
+  @media (max-width: 768px) {
+    height: 40px;
+  }
+`;
+
+const LogoText = styled.h1`
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #00adef;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: 1.4rem;
+  }
 `;
 
 const BackButton = styled.button`
@@ -653,13 +662,6 @@ const BackButton = styled.button`
     position: static;
     margin-bottom: 1rem;
   }
-`;
-
-const Logo = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #00adef;
-  margin: 0;
 `;
 
 const Container = styled.div`
@@ -722,7 +724,6 @@ const TabsContainer = styled.div`
 
 const Tab = styled.button`
   padding: 0.75rem 2rem;
-  //background-color: ${(props) => (props.active ? '#1a73e8' : 'transparent')};
   background-color: ${(props) => (props.active ? '#0284c7' : 'transparent')};
   color: ${(props) => (props.active ? '#fff' : '#495057')};
   border: none;
@@ -901,9 +902,7 @@ const PlayButton = styled.button`
   justify-content: center;
 
   &:hover:not(:disabled) {
-    //background-color: #1557b0;
     background-color: #00adef;
-
     transform: scale(1.05);
   }
 
@@ -938,23 +937,38 @@ const AlignerBox = styled.div`
   min-width: 200px;
 `;
 
-const AlignerLabel = styled.div`
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+const DisclaimerContainer = styled.div`
+  width: 100%;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  margin-top: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 `;
 
-const AlignerCount = styled.div`
-  font-size: 2.5rem;
+const DisclaimerTitle = styled.div`
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #1a73e8;
-  margin-bottom: 0.25rem;
+  color: #856404;
+  margin-bottom: 0.75rem;
+  text-align: center;
 `;
 
-const AlignerText = styled.div`
+const DisclaimerText = styled.p`
   font-size: 0.9rem;
-  color: #6c757d;
+  color: #856404;
+  line-height: 1.6;
+  margin: 0;
+  text-align: ${(props) => (props.isRTL ? 'right' : 'left')};
+  direction: ${(props) => (props.isRTL ? 'rtl' : 'ltr')};
+`;
+
+const DisclaimerDivider = styled.div`
+  height: 1px;
+  background-color: #ffc107;
+  margin: 1rem 0;
+  opacity: 0.5;
 `;
 
 const LoadingSpinner = styled.div`

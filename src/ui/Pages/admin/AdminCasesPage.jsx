@@ -110,21 +110,54 @@ const AdminCasesPage = () => {
   const [totalCases, setTotalCases] = useState(0);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [alignerMaterialOptions, setAlignerMaterialOptions] = useState([]);
 
   // Filter states
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedAlignerMaterial, setSelectedAlignerMaterial] = useState('');
   const [selectedDateRange, setSelectedDateRange] = useState('');
   const [sortBy, setSortBy] = useState('created_at_desc');
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showAlignerMaterialDropdown, setShowAlignerMaterialDropdown] =
+    useState(false);
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
 
   // Refs for dropdown handling
   const statusDropdownRef = useRef(null);
+  const alignerMaterialDropdownRef = useRef(null);
   const dateDropdownRef = useRef(null);
   const filterPanelRef = useRef(null);
 
   const navigate = useNavigate();
+
+  // Fetch aligner materials from services table
+  useEffect(() => {
+    const fetchAlignerMaterials = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('services')
+          .select('name')
+          .eq('type', 'aligners_material')
+          .eq('is_active', true)
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        // Convert to simple array of { value, label } objects
+        const options = (data || []).map((item) => ({
+          value: item.name,
+          label: item.name,
+        }));
+
+        setAlignerMaterialOptions(options);
+      } catch (error) {
+        console.error('Error fetching aligner materials:', error);
+      }
+    };
+
+    fetchAlignerMaterials();
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -134,6 +167,12 @@ const AdminCasesPage = () => {
         !statusDropdownRef.current.contains(event.target)
       ) {
         setShowStatusDropdown(false);
+      }
+      if (
+        alignerMaterialDropdownRef.current &&
+        !alignerMaterialDropdownRef.current.contains(event.target)
+      ) {
+        setShowAlignerMaterialDropdown(false);
       }
       if (
         dateDropdownRef.current &&
@@ -220,6 +259,11 @@ const AdminCasesPage = () => {
       // Apply status filter
       if (selectedStatus) {
         baseQuery = baseQuery.eq('status', selectedStatus);
+      }
+
+      // Apply aligner material filter (string comparison)
+      if (selectedAlignerMaterial) {
+        baseQuery = baseQuery.eq('aligner_material', selectedAlignerMaterial);
       }
 
       // Apply date range filter
@@ -309,7 +353,14 @@ const AdminCasesPage = () => {
 
   useEffect(() => {
     fetchCases();
-  }, [page, search, selectedStatus, selectedDateRange, sortBy]);
+  }, [
+    page,
+    search,
+    selectedStatus,
+    selectedAlignerMaterial,
+    selectedDateRange,
+    sortBy,
+  ]);
 
   // Handle search input and debounce
   useEffect(() => {
@@ -323,7 +374,7 @@ const AdminCasesPage = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedStatus, selectedDateRange, sortBy]);
+  }, [selectedStatus, selectedAlignerMaterial, selectedDateRange, sortBy]);
 
   const handleRefresh = () => {
     fetchCases(true);
@@ -331,6 +382,7 @@ const AdminCasesPage = () => {
 
   const clearFilters = () => {
     setSelectedStatus('');
+    setSelectedAlignerMaterial('');
     setSelectedDateRange('');
     setSortBy('created_at_desc');
     setSearchInput('');
@@ -340,6 +392,7 @@ const AdminCasesPage = () => {
 
   const hasActiveFilters =
     selectedStatus ||
+    selectedAlignerMaterial ||
     selectedDateRange ||
     search ||
     sortBy !== 'created_at_desc';
@@ -348,6 +401,14 @@ const AdminCasesPage = () => {
     if (!selectedStatus) return 'Status';
     const option = STATUS_OPTIONS.find((opt) => opt.value === selectedStatus);
     return option?.label || selectedStatus;
+  };
+
+  const getAlignerMaterialLabel = () => {
+    if (!selectedAlignerMaterial) return 'Material';
+    const material = alignerMaterialOptions.find(
+      (m) => m.value === selectedAlignerMaterial
+    );
+    return material?.label || selectedAlignerMaterial;
   };
 
   const getDateLabel = () => {
@@ -400,6 +461,7 @@ const AdminCasesPage = () => {
               }
               onClick={() => {
                 setShowStatusDropdown(!showStatusDropdown);
+                setShowAlignerMaterialDropdown(false);
                 setShowDateDropdown(false);
               }}
             >
@@ -439,6 +501,68 @@ const AdminCasesPage = () => {
             )}
           </div>
 
+          {/* Aligner Material Filter */}
+          <div
+            className="flex-shrink-0 relative"
+            ref={alignerMaterialDropdownRef}
+          >
+            <Button
+              size="sm"
+              variant={
+                selectedAlignerMaterial
+                  ? 'neutral-secondary'
+                  : 'neutral-tertiary'
+              }
+              className="px-3"
+              iconRight={
+                showAlignerMaterialDropdown ? (
+                  <FeatherChevronUp />
+                ) : (
+                  <FeatherChevronDown />
+                )
+              }
+              onClick={() => {
+                setShowAlignerMaterialDropdown(!showAlignerMaterialDropdown);
+                setShowStatusDropdown(false);
+                setShowDateDropdown(false);
+              }}
+            >
+              {getAlignerMaterialLabel()}
+            </Button>
+
+            {showAlignerMaterialDropdown && (
+              <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[140px] max-h-[300px] overflow-y-auto">
+                <div className="py-1">
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
+                    onClick={() => {
+                      setSelectedAlignerMaterial('');
+                      setShowAlignerMaterialDropdown(false);
+                    }}
+                  >
+                    All Materials
+                  </button>
+                  {alignerMaterialOptions.map((material) => (
+                    <button
+                      key={material.value}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 ${
+                        selectedAlignerMaterial === material.value
+                          ? 'bg-neutral-100 text-neutral-900'
+                          : 'text-neutral-700'
+                      }`}
+                      onClick={() => {
+                        setSelectedAlignerMaterial(material.value);
+                        setShowAlignerMaterialDropdown(false);
+                      }}
+                    >
+                      {material.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Date Filter */}
           <div className="flex-shrink-0 relative" ref={dateDropdownRef}>
             <Button
@@ -453,6 +577,7 @@ const AdminCasesPage = () => {
               onClick={() => {
                 setShowDateDropdown(!showDateDropdown);
                 setShowStatusDropdown(false);
+                setShowAlignerMaterialDropdown(false);
               }}
             >
               {getDateLabel()}
@@ -567,6 +692,17 @@ const AdminCasesPage = () => {
               </button>
             </Badge>
           )}
+          {selectedAlignerMaterial && (
+            <Badge variant="neutral" className="text-xs">
+              Material: {getAlignerMaterialLabel()}
+              <button
+                onClick={() => setSelectedAlignerMaterial('')}
+                className="ml-1 hover:text-neutral-800"
+              >
+                ×
+              </button>
+            </Badge>
+          )}
           {selectedDateRange && (
             <Badge variant="neutral" className="text-xs">
               Date: {getDateLabel()}
@@ -606,6 +742,7 @@ const AdminCasesPage = () => {
             <Table.HeaderCell>Patient</Table.HeaderCell>
             <Table.HeaderCell>Doctor</Table.HeaderCell>
             <Table.HeaderCell>Clinic</Table.HeaderCell>
+            <Table.HeaderCell>Material</Table.HeaderCell>
             <Table.HeaderCell>Phone</Table.HeaderCell>
             <Table.HeaderCell>Status</Table.HeaderCell>
             <Table.HeaderCell>Submitted</Table.HeaderCell>
@@ -615,7 +752,7 @@ const AdminCasesPage = () => {
       >
         {loading ? (
           <Table.Row>
-            <Table.Cell colSpan={7}>
+            <Table.Cell colSpan={8}>
               <div className="flex w-full h-full min-h-[100px] justify-center items-center">
                 <Loader size="medium" />
               </div>
@@ -623,7 +760,7 @@ const AdminCasesPage = () => {
           </Table.Row>
         ) : cases.length === 0 ? (
           <Table.Row>
-            <Table.Cell colSpan={7}>
+            <Table.Cell colSpan={8}>
               <div className="text-center py-8">
                 <span className="text-neutral-500">
                   {hasActiveFilters
@@ -672,6 +809,11 @@ const AdminCasesPage = () => {
               <Table.Cell>
                 <span className="whitespace-nowrap text-body font-body text-neutral-500">
                   {caseItem.profiles?.clinic || '-'}
+                </span>
+              </Table.Cell>
+              <Table.Cell>
+                <span className="whitespace-nowrap text-body font-body text-neutral-700">
+                  {caseItem.aligner_material || '-'}
                 </span>
               </Table.Cell>
               <Table.Cell>

@@ -10,21 +10,32 @@ import { IconButton } from '../../components/IconButton';
 import {
   FeatherDownload,
   FeatherSearch,
-  FeatherFilter,
   FeatherX,
   FeatherRefreshCw,
+  FeatherTrash,
 } from '@subframe/core';
 import AdminHeadline from '../../components/AdminHeadline';
 import supabase from '../../../helper/supabaseClient';
+import { useUserRole } from '../../../helper/useUserRole';
+
 import { Link } from 'react-router';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
+import { isSuperAdmin } from '../../../helper/auth';
 
 function AdminTransactionLogPage() {
   const { t, i18n } = useTranslation();
+  const { role } = useUserRole();
+  const isSuperAdminUser = isSuperAdmin(role);
+
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  // Delete confirmation dialog state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -121,6 +132,45 @@ function AdminTransactionLogPage() {
 
   const handleRefresh = () => {
     fetchTransactions(true);
+  };
+
+  const handleDeleteClick = (transaction) => {
+    setTransactionToDelete(transaction);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!transactionToDelete) return;
+
+    try {
+      setDeletingId(transactionToDelete.fullId);
+      setError(null);
+
+      const { error: deleteError } = await supabase
+        .from('payments')
+        .delete()
+        .eq('id', transactionToDelete.fullId);
+
+      if (deleteError) throw deleteError;
+
+      // Remove from local state
+      setTransactions((prev) =>
+        prev.filter((txn) => txn.fullId !== transactionToDelete.fullId)
+      );
+
+      setShowDeleteDialog(false);
+      setTransactionToDelete(null);
+    } catch (err) {
+      console.error('Error deleting transaction:', err);
+      setError(err.message || 'Failed to delete transaction');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false);
+    setTransactionToDelete(null);
   };
 
   const filteredTransactions = useMemo(() => {
@@ -399,12 +449,15 @@ function AdminTransactionLogPage() {
                 <Table.HeaderCell>
                   {t('transactions.table.amount')}
                 </Table.HeaderCell>
+                {isSuperAdminUser && (
+                  <Table.HeaderCell>{t('common.actions')}</Table.HeaderCell>
+                )}
               </Table.HeaderRow>
             }
           >
             {filteredTransactions.length === 0 ? (
               <Table.Row>
-                <Table.Cell colSpan={6}>
+                <Table.Cell colSpan={isSuperAdminUser ? 7 : 6}>
                   <div className="text-center py-8">
                     <span className="text-neutral-500">
                       {t('transactions.noTransactions')}
@@ -468,6 +521,16 @@ function AdminTransactionLogPage() {
                       {txn.type === 'expense' && '-'}${txn.amount.toFixed(2)}
                     </span>
                   </Table.Cell>
+                  {isSuperAdminUser && (
+                    <Table.Cell>
+                      <IconButton
+                        icon={<FeatherTrash />}
+                        onClick={() => handleDeleteClick(txn)}
+                        disabled={deletingId === txn.fullId}
+                        variant="destructive"
+                      />
+                    </Table.Cell>
+                  )}
                 </Table.Row>
               ))
             )}
@@ -482,6 +545,91 @@ function AdminTransactionLogPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && transactionToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-heading-3 font-heading-3 text-default-font mb-2">
+              Delete Transaction
+            </h3>
+            <p className="text-body font-body text-subtext-color mb-4">
+              Are you sure you want to delete this transaction?
+            </p>
+            <div className="bg-neutral-50 rounded-md p-4 mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-caption-bold font-caption-bold text-neutral-700">
+                  Transaction ID:
+                </span>
+                <span className="text-body font-body text-neutral-900">
+                  {transactionToDelete.id}
+                </span>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-caption-bold font-caption-bold text-neutral-700">
+                  Type:
+                </span>
+                <Badge
+                  variant={
+                    transactionToDelete.type === 'expense' ? 'error' : 'brand'
+                  }
+                >
+                  {getTypeLabel(transactionToDelete.type)}
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-caption-bold font-caption-bold text-neutral-700">
+                  Amount:
+                </span>
+                <span
+                  className={`text-body-bold font-body-bold ${
+                    transactionToDelete.type === 'expense'
+                      ? 'text-error-600'
+                      : 'text-success-600'
+                  }`}
+                >
+                  {transactionToDelete.type === 'expense' && '-'}$
+                  {transactionToDelete.amount.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-caption-bold font-caption-bold text-neutral-700">
+                  From:
+                </span>
+                <span className="text-body font-body text-neutral-900">
+                  {transactionToDelete.from}
+                </span>
+              </div>
+            </div>
+            <div className="bg-error-50 border border-error-200 rounded-md p-3 mb-6">
+              <p className="text-caption font-caption text-error-700">
+                ⚠️ This action cannot be undone. The transaction will be
+                permanently deleted.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="neutral-secondary"
+                onClick={handleDeleteCancel}
+                disabled={deletingId === transactionToDelete.fullId}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive-primary"
+                onClick={handleDeleteConfirm}
+                disabled={deletingId === transactionToDelete.fullId}
+                className="flex-1"
+              >
+                {deletingId === transactionToDelete.fullId
+                  ? 'Deleting...'
+                  : 'Delete Transaction'}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

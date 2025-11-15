@@ -300,5 +300,30 @@
     "success": {
       "expenseRecorded": "Expense recorded successfully!"
     }
+  },
+
+  "viewer": {
+    "title": "3DA Viewer",
+    "loadingViewer": "Loading case viewer...",
+    "caseNotFound": "Case not found",
+    "patientName": "Patient Name",
+    "caseNumber": "Case Number",
+    "sequenceAnimation": "Sequence Animation",
+    "beforeAfter": "Before & After",
+    "preloadingImages": "Preloading images...",
+    "step": "Step",
+    "of": "of",
+    "noSequenceImages": "No sequence images available for this view",
+    "noBeforeAfterImage": "No before/after image available for this view",
+    "jumpToStart": "Jump to Start",
+    "previousStep": "Previous Step",
+    "nextStep": "Next Step",
+    "jumpToEnd": "Jump to End",
+    "upperAligners": "Upper Aligners",
+    "lowerAligners": "Lower Aligners",
+    "disclaimer": {
+      "title": "Important Notice",
+      "text": "There may be differences between the computer-generated treatment prediction and the actual clinical outcome. The number of aligners may increase depending on the case requirements. The treating doctor is solely responsible for the treatment plan."
+    }
   }
 }

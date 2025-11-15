@@ -1,17 +1,49 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FeatherGlobe } from '@subframe/core';
+import toast from 'react-hot-toast';
+import supabase from '../../helper/supabaseClient';
 
 function LanguageSwitcher({ variant = 'dropdown' }) {
   const { i18n, t } = useTranslation();
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('language', lng);
-    document.dir = lng === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lng;
-    // Reload to apply RTL styles properly
-    window.location.reload();
+  const changeLanguage = async (lng) => {
+    try {
+      // Change language in i18n
+      i18n.changeLanguage(lng);
+      localStorage.setItem('language', lng);
+      document.dir = lng === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = lng;
+
+      // Save to database
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ language_preference: lng })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error('Error saving language preference:', error);
+          toast.error('Failed to save language preference');
+        } else {
+          toast.success(
+            lng === 'ar'
+              ? 'تم حفظ تفضيل اللغة بنجاح'
+              : 'Language preference saved successfully'
+          );
+        }
+      }
+
+      // Reload to apply RTL styles properly
+      window.location.reload();
+    } catch (error) {
+      console.error('Error changing language:', error);
+      toast.error('Failed to change language');
+    }
   };
 
   if (variant === 'cards') {
@@ -96,7 +128,7 @@ function LanguageSwitcher({ variant = 'dropdown' }) {
             i18n.language === 'ar' ? 'bg-brand-50 text-brand-600' : ''
           }`}
         >
-          <span>🇸🇦</span>
+          <span>ᴀʀ</span>
           <span>العربية</span>
         </button>
       </div>

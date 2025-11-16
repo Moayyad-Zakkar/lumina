@@ -9,7 +9,7 @@ import CaseStatusBadge from '../../components/CaseStatusBadge';
 import { Dialog } from '../../components/Dialog';
 import toast from 'react-hot-toast';
 import DentalChart from '../../components/DentalChart';
-import DeclineCaseDialog from '../../components/DeclineCaseDialog';
+import DeclineCaseDialog from '../../components/AdminDeclineCaseDialog';
 
 // Import refactored components
 import CaseInformation from '../../components/case/CaseInformation';

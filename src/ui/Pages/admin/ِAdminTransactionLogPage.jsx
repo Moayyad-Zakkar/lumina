@@ -13,6 +13,7 @@ import {
   FeatherX,
   FeatherRefreshCw,
   FeatherTrash,
+  FeatherCalendar,
 } from '@subframe/core';
 import AdminHeadline from '../../components/AdminHeadline';
 import supabase from '../../../helper/supabaseClient';
@@ -41,7 +42,20 @@ function AdminTransactionLogPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Get available years from transactions
+  const availableYears = useMemo(() => {
+    const years = new Set();
+    transactions.forEach((txn) => {
+      const year = new Date(txn.datetime).getFullYear();
+      years.add(year);
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [transactions]);
 
   useEffect(() => {
     fetchTransactions();
@@ -184,27 +198,63 @@ function AdminTransactionLogPage() {
 
       const matchesType = typeFilter === 'all' || txn.type === typeFilter;
 
-      let matchesDate = true;
-      if (dateFilter !== 'all') {
-        const txnDate = new Date(txn.datetime);
-        const today = new Date();
+      const txnDate = new Date(txn.datetime);
+      const today = new Date();
 
+      // Quick date filter
+      let matchesQuickDate = true;
+      if (dateFilter !== 'all') {
         if (dateFilter === 'today') {
-          matchesDate = txnDate.toDateString() === today.toDateString();
+          matchesQuickDate = txnDate.toDateString() === today.toDateString();
         } else if (dateFilter === 'week') {
           const weekAgo = new Date(today);
           weekAgo.setDate(weekAgo.getDate() - 7);
-          matchesDate = txnDate >= weekAgo;
+          matchesQuickDate = txnDate >= weekAgo;
         } else if (dateFilter === 'month') {
           const monthAgo = new Date(today);
           monthAgo.setMonth(monthAgo.getMonth() - 1);
-          matchesDate = txnDate >= monthAgo;
+          matchesQuickDate = txnDate >= monthAgo;
         }
       }
 
-      return matchesSearch && matchesType && matchesDate;
+      // Year filter
+      let matchesYear = true;
+      if (selectedYear !== 'all') {
+        matchesYear = txnDate.getFullYear() === parseInt(selectedYear);
+      }
+
+      // Date range filter
+      let matchesDateRange = true;
+      if (startDate || endDate) {
+        if (startDate) {
+          const start = new Date(startDate);
+          start.setHours(0, 0, 0, 0);
+          matchesDateRange = matchesDateRange && txnDate >= start;
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          matchesDateRange = matchesDateRange && txnDate <= end;
+        }
+      }
+
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesQuickDate &&
+        matchesYear &&
+        matchesDateRange
+      );
     });
-  }, [transactions, searchTerm, typeFilter, dateFilter]);
+  }, [
+    transactions,
+    searchTerm,
+    typeFilter,
+    dateFilter,
+    selectedYear,
+    startDate,
+    endDate,
+  ]);
 
   const stats = useMemo(() => {
     const paymentsReceived = filteredTransactions.filter(
@@ -275,7 +325,12 @@ function AdminTransactionLogPage() {
     if (typeFilter !== 'all') {
       filename += `-${typeFilter}`;
     }
-    if (dateFilter !== 'all') {
+    if (selectedYear !== 'all') {
+      filename += `-${selectedYear}`;
+    }
+    if (startDate || endDate) {
+      filename += `-custom-range`;
+    } else if (dateFilter !== 'all') {
       filename += `-${dateFilter}`;
     }
     filename += `-${new Date().toISOString().split('T')[0]}.csv`;
@@ -294,10 +349,18 @@ function AdminTransactionLogPage() {
     setSearchTerm('');
     setTypeFilter('all');
     setDateFilter('all');
+    setSelectedYear('all');
+    setStartDate('');
+    setEndDate('');
   };
 
   const hasActiveFilters =
-    searchTerm || typeFilter !== 'all' || dateFilter !== 'all';
+    searchTerm ||
+    typeFilter !== 'all' ||
+    dateFilter !== 'all' ||
+    selectedYear !== 'all' ||
+    startDate ||
+    endDate;
 
   return (
     <>
@@ -371,59 +434,217 @@ function AdminTransactionLogPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex w-full items-center gap-2">
-            <div className="flex-grow max-w-[400px]">
-              <TextField
-                variant="filled"
-                label=""
-                helpText=""
-                icon={<FeatherSearch />}
+          <div className="flex flex-col gap-3">
+            <div className="flex w-full items-center gap-2 justify-stretch flex-wrap">
+              <div className="flex-grow max-w-[400px]">
+                <TextField
+                  variant="filled"
+                  label=""
+                  helpText=""
+                  icon={<FeatherSearch />}
+                >
+                  <TextField.Input
+                    placeholder={t('transactions.searchPlaceholder')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </TextField>
+              </div>
+
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="rounded-md border border-neutral-border bg-default-background px-3 py-2 text-body font-body text-default-font outline-none focus:border-brand-600"
               >
-                <TextField.Input
-                  placeholder={t('transactions.searchPlaceholder')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </TextField>
-            </div>
+                <option value="all">
+                  {t('transactions.filters.allTypes')}
+                </option>
+                <option value="payment_received">
+                  {t('transactions.filters.paymentsReceived')}
+                </option>
+                <option value="expense">
+                  {t('transactions.filters.expenses')}
+                </option>
+              </select>
 
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="rounded-md border border-neutral-border bg-default-background px-3 py-2 text-body font-body text-default-font outline-none focus:border-brand-600"
-            >
-              <option value="all">{t('transactions.filters.allTypes')}</option>
-              <option value="payment_received">
-                {t('transactions.filters.paymentsReceived')}
-              </option>
-              <option value="expense">
-                {t('transactions.filters.expenses')}
-              </option>
-            </select>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="rounded-md border border-neutral-border bg-default-background px-3 py-2 text-body font-body text-default-font outline-none focus:border-brand-600"
+              >
+                <option value="all">{t('transactions.filters.allTime')}</option>
+                <option value="today">{t('transactions.filters.today')}</option>
+                <option value="week">
+                  {t('transactions.filters.lastWeek')}
+                </option>
+                <option value="month">
+                  {t('transactions.filters.lastMonth')}
+                </option>
+              </select>
 
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="rounded-md border border-neutral-border bg-default-background px-3 py-2 text-body font-body text-default-font outline-none focus:border-brand-600"
-            >
-              <option value="all">{t('transactions.filters.allTime')}</option>
-              <option value="today">{t('transactions.filters.today')}</option>
-              <option value="week">{t('transactions.filters.lastWeek')}</option>
-              <option value="month">
-                {t('transactions.filters.lastMonth')}
-              </option>
-            </select>
-
-            {hasActiveFilters && (
               <Button
                 size="sm"
-                variant="neutral-tertiary"
-                className="px-2 w-auto"
-                onClick={clearFilters}
-                icon={<FeatherX />}
+                variant={
+                  showAdvancedFilters ? 'neutral-secondary' : 'neutral-tertiary'
+                }
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                icon={<FeatherCalendar />}
               >
-                {t('common.clear')}
+                Advanced Filters
               </Button>
+
+              {hasActiveFilters && (
+                <Button
+                  size="sm"
+                  variant="neutral-tertiary"
+                  className="px-2 w-auto"
+                  onClick={clearFilters}
+                  icon={<FeatherX />}
+                >
+                  {t('common.clear')}
+                </Button>
+              )}
+            </div>
+
+            {/* Advanced Filters Panel */}
+            {showAdvancedFilters && (
+              <div className="rounded-md border border-neutral-border bg-neutral-50 p-4">
+                <h3 className="text-body-bold font-body-bold text-default-font mb-3">
+                  Advanced Date Filters
+                </h3>
+                <div className="flex flex-wrap gap-4">
+                  {/* Year Filter */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-caption-bold font-caption-bold text-subtext-color">
+                      Filter by Year
+                    </label>
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                      className="rounded-md border border-neutral-border bg-default-background px-3 py-2 text-body font-body text-default-font outline-none focus:border-brand-600 min-w-[140px]"
+                    >
+                      <option value="all">All Years</option>
+                      {availableYears.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Date Range */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-caption-bold font-caption-bold text-subtext-color">
+                      From Date
+                    </label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="rounded-md border border-neutral-border bg-default-background px-3 py-2 text-body font-body text-default-font outline-none focus:border-brand-600"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-caption-bold font-caption-bold text-subtext-color">
+                      To Date
+                    </label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="rounded-md border border-neutral-border bg-default-background px-3 py-2 text-body font-body text-default-font outline-none focus:border-brand-600"
+                    />
+                  </div>
+                </div>
+                {(startDate || endDate) && (
+                  <p className="text-caption font-caption text-subtext-color mt-2">
+                    {startDate && endDate
+                      ? `Showing transactions from ${new Date(
+                          startDate
+                        ).toLocaleDateString('en-GB')} to ${new Date(
+                          endDate
+                        ).toLocaleDateString('en-GB')}`
+                      : startDate
+                      ? `Showing transactions from ${new Date(
+                          startDate
+                        ).toLocaleDateString('en-GB')} onwards`
+                      : `Showing transactions up to ${new Date(
+                          endDate
+                        ).toLocaleDateString('en-GB')}`}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="text-xs text-neutral-600">
+                  Active filters:
+                </span>
+                {typeFilter !== 'all' && (
+                  <Badge variant="neutral" className="text-xs">
+                    Type:{' '}
+                    {typeFilter === 'payment_received'
+                      ? 'Payments'
+                      : 'Expenses'}
+                    <button
+                      onClick={() => setTypeFilter('all')}
+                      className="ml-1 hover:text-neutral-800"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {dateFilter !== 'all' && (
+                  <Badge variant="neutral" className="text-xs">
+                    Period: {dateFilter}
+                    <button
+                      onClick={() => setDateFilter('all')}
+                      className="ml-1 hover:text-neutral-800"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {selectedYear !== 'all' && (
+                  <Badge variant="neutral" className="text-xs">
+                    Year: {selectedYear}
+                    <button
+                      onClick={() => setSelectedYear('all')}
+                      className="ml-1 hover:text-neutral-800"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {(startDate || endDate) && (
+                  <Badge variant="neutral" className="text-xs">
+                    Custom Range: {startDate || '...'} to {endDate || '...'}
+                    <button
+                      onClick={() => {
+                        setStartDate('');
+                        setEndDate('');
+                      }}
+                      className="ml-1 hover:text-neutral-800"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+                {searchTerm && (
+                  <Badge variant="neutral" className="text-xs">
+                    Search: "{searchTerm}"
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="ml-1 hover:text-neutral-800"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
 

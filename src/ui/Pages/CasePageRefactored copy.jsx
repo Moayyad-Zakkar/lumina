@@ -32,21 +32,17 @@ import {
   FeatherCheck,
   FeatherX,
   FeatherAlertTriangle,
-  FeatherEdit3,
 } from '@subframe/core';
 import { checkCaseTreatmentImages } from '../../helper/caseHasView';
-import ApprovalConfirmDialog from '../components/case/ApprovalConfirmDialog';
-import DeclineCaseDialog from '../components/case/DeclineCaseDialog';
-import RequestEditDialog from '../components/case/RequestEditDialog';
+import ApprovalDialog from '../components/case/ApprovalDialog';
 
 const CasePageRefactored = () => {
   const { caseData, error } = useLoaderData();
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [isAbortDialogOpen, setIsAbortDialogOpen] = useState(false);
   const [caseHasViewer, setCaseHasViewer] = useState(false);
-  const [isApprovalConfirmOpen, setIsApprovalConfirmOpen] = useState(false);
-  const [isDeclineDialogOpen, setIsDeclineDialogOpen] = useState(false);
-  const [isRequestEditOpen, setIsRequestEditOpen] = useState(false);
+  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
 
   // Custom hooks
   const { status, setStatus, alertContent, showPlanSection } = useCaseStatus(
@@ -111,6 +107,7 @@ const CasePageRefactored = () => {
     return <p className="text-neutral-500">Case not found.</p>;
   }
 
+  /*
   const approvePlan = async () => {
     try {
       setSaving(true);
@@ -121,7 +118,27 @@ const CasePageRefactored = () => {
         .eq('id', caseData.id);
       if (updateError) throw updateError;
       setStatus('approved');
-      setIsApprovalConfirmOpen(false);
+      toast.success('Plan approved successfully');
+    } catch (e) {
+      setActionError(e.message || 'Failed to approve plan');
+      toast.error(e.message || 'Failed to approve plan');
+    } finally {
+      setSaving(false);
+    }
+  };
+  */
+
+  const approvePlan = async () => {
+    try {
+      setSaving(true);
+      setActionError(null);
+      const { error: updateError } = await supabase
+        .from('cases')
+        .update({ status: 'approved' })
+        .eq('id', caseData.id);
+      if (updateError) throw updateError;
+      setStatus('approved');
+      setIsApprovalDialogOpen(false);
       toast.success('Plan approved successfully');
     } catch (e) {
       setActionError(e.message || 'Failed to approve plan');
@@ -131,7 +148,7 @@ const CasePageRefactored = () => {
     }
   };
 
-  const declinePlan = async (reason) => {
+  const declinePlan = async () => {
     const CaseStudyFee = parseFloat(caseData?.case_study_fee || 0);
 
     try {
@@ -139,15 +156,10 @@ const CasePageRefactored = () => {
       setActionError(null);
       const { error: updateError } = await supabase
         .from('cases')
-        .update({
-          status: 'user_rejected',
-          total_cost: CaseStudyFee,
-          decline_reason: reason,
-        })
+        .update({ status: 'user_rejected', total_cost: CaseStudyFee })
         .eq('id', caseData.id);
       if (updateError) throw updateError;
       setStatus('user_rejected');
-      setIsDeclineDialogOpen(false);
       toast.success('Plan declined successfully');
     } catch (e) {
       setActionError(e.message || 'Failed to decline plan');
@@ -156,6 +168,26 @@ const CasePageRefactored = () => {
       setSaving(false);
     }
   };
+  /*
+  const requestAbortion = async () => {
+    try {
+      setSaving(true);
+      setActionError(null);
+      const { error: updateError } = await supabase
+        .from('cases')
+        .update({ status: 'user_rejected' })
+        .eq('id', caseData.id);
+      if (updateError) throw updateError;
+      setStatus('user_rejected');
+      toast.success('Abortion request submitted');
+    } catch (e) {
+      setActionError(e.message || 'Failed to request abortion');
+      toast.error(e.message || 'Failed to request abortion');
+    } finally {
+      setSaving(false);
+    }
+  };
+*/
 
   const handleViewerClick = () => {
     // Open the viewer in a new tab with the case ID
@@ -163,14 +195,26 @@ const CasePageRefactored = () => {
     window.open(viewerUrl, '_blank');
   };
 
-  const changeMaterial = async (newMaterial, materialChanged, userNote) => {
+  const handleApproveClick = () => {
+    setIsApprovalDialogOpen(true);
+  };
+
+  const contactSupport = () => {
+    setIsApprovalDialogOpen(false);
+    // contact support logic here
+
+    window.location.href =
+      'mailto:support@3da.com?subject=Question about Treatment Plan';
+    // or use: window.open('/contact-support', '_blank');
+  };
+
+  const changeMaterial = async (newMaterial, materialChanged) => {
     try {
       setSaving(true);
       setActionError(null);
 
       const updateData = {
         aligner_material: newMaterial,
-        user_note: userNote || null,
       };
 
       // If material changed, set status back to 'accepted' for re-evaluation
@@ -195,7 +239,7 @@ const CasePageRefactored = () => {
         toast.success('Material updated successfully.');
       }
 
-      setIsRequestEditOpen(false);
+      setIsApprovalDialogOpen(false);
     } catch (e) {
       setActionError(e.message || 'Failed to update material');
       toast.error(e.message || 'Failed to update material');
@@ -320,7 +364,7 @@ const CasePageRefactored = () => {
               <div className="flex w-full items-center justify-between">
                 <span className="text-body font-body text-subtext-color">
                   {status === 'awaiting_user_approval'
-                    ? 'Please review the treatment plan details and choose to approve, decline, or request edits.'
+                    ? 'Please review the treatment plan details and choose to approve or decline.'
                     : status === 'approved'
                     ? 'Your plan is approved. Production will start soon.'
                     : status === 'in_production'
@@ -339,26 +383,16 @@ const CasePageRefactored = () => {
                   {status === 'awaiting_user_approval' && (
                     <>
                       <Button
-                        variant="destructive-secondary"
-                        icon={<FeatherX />}
+                        variant="neutral-secondary"
                         disabled={saving}
-                        onClick={() => setIsDeclineDialogOpen(true)}
+                        onClick={declinePlan}
                       >
                         Decline Plan
                       </Button>
                       <Button
-                        variant="neutral-secondary"
-                        icon={<FeatherEdit3 />}
-                        disabled={saving}
-                        onClick={() => setIsRequestEditOpen(true)}
-                      >
-                        Request Edit
-                      </Button>
-                      <Button
-                        variant="brand-primary"
                         icon={<FeatherCheck />}
                         disabled={saving}
-                        onClick={() => setIsApprovalConfirmOpen(true)}
+                        onClick={handleApproveClick}
                       >
                         Approve Plan
                       </Button>
@@ -376,6 +410,21 @@ const CasePageRefactored = () => {
           handleFileDownload={downloadSingleFile}
         />
 
+        {/* Abort Button */
+        /*<div className="flex w-full items-center justify-end">
+          {(status === 'approved' || status === 'in_production') && (
+            <Button
+              variant="destructive-primary"
+              icon={<FeatherX />}
+              disabled={saving}
+              onClick={() => setIsAbortDialogOpen(true)}
+              className="w-auto"
+            >
+              Request Abortion
+            </Button>
+          )}
+        </div>*/}
+
         {/* Refinement Section */}
         <RefinementSection caseData={caseData} />
 
@@ -383,27 +432,49 @@ const CasePageRefactored = () => {
         <RefinementHistory caseData={caseData} />
       </div>
 
-      {/* Approval Confirmation Dialog */}
-      <ApprovalConfirmDialog
-        isOpen={isApprovalConfirmOpen}
-        onClose={() => setIsApprovalConfirmOpen(false)}
-        onConfirm={approvePlan}
-        isLoading={saving}
-      />
-
-      {/* Decline Dialog */}
-      <DeclineCaseDialog
-        isOpen={isDeclineDialogOpen}
-        onClose={() => setIsDeclineDialogOpen(false)}
-        onConfirm={declinePlan}
-        isLoading={saving}
-      />
-
-      {/* Request Edit Dialog */}
-      <RequestEditDialog
-        isOpen={isRequestEditOpen}
-        onClose={() => setIsRequestEditOpen(false)}
+      {/*
+      isAbortDialogOpen && (
+        <Dialog open={isAbortDialogOpen} onOpenChange={setIsAbortDialogOpen}>
+          <Dialog.Content className="p-6 max-w-[480px]">
+            <div className="flex items-start gap-3">
+              <span className="text-heading-3 font-heading-3 text-default-font">
+                Confirm Abort Request
+              </span>
+            </div>
+            <div className="mt-2 text-body font-body text-subtext-color">
+              This will request aborting the case. This action may halt
+              production if already started. Are you sure?
+            </div>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <Button
+                variant="neutral-secondary"
+                onClick={() => setIsAbortDialogOpen(false)}
+                disabled={saving}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive-primary"
+                onClick={async () => {
+                  await requestAbortion();
+                  setIsAbortDialogOpen(false);
+                }}
+                disabled={saving}
+                icon={<FeatherAlertTriangle />}
+              >
+                Confirm Abort
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog>
+      )
+      */}
+      <ApprovalDialog
+        isOpen={isApprovalDialogOpen}
+        onClose={() => setIsApprovalDialogOpen(false)}
+        onConfirmApprove={approvePlan}
         onChangeMaterial={changeMaterial}
+        onContactSupport={contactSupport}
         saving={saving}
         caseData={caseData}
       />

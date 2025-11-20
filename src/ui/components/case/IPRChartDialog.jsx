@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FeatherX, FeatherSave } from '@subframe/core';
 import { Button } from '../Button';
 
-// Dialog component for IPR input
+// Dialog component for IPR input - Mesial and Distal per tooth
 const IPRChartDialog = ({
   isOpen,
   onClose,
@@ -10,20 +10,16 @@ const IPRChartDialog = ({
   initialData = {},
   caseId,
 }) => {
-  // Initialize IPR data - 31 spaces (between 32 teeth)
-  // Upper: spaces 1-2, 2-3, ..., 15-16 (15 spaces)
-  // Lower: spaces 32-31, 31-30, ..., 18-17 (15 spaces)
-  // Plus one space between 16-17 (upper to lower midline) if needed
-
+  // Initialize IPR data - each tooth has mesial and distal values
+  // Structure: { "1": { "mesial": 0.2, "distal": 0.3 }, "2": { "mesial": 0.1, "distal": 0.2 }, ... }
   const [iprData, setIprData] = useState(() => {
     const initialIpr = {};
-    // Upper jaw spaces (1-15)
-    for (let i = 1; i <= 15; i++) {
-      initialIpr[`${i}-${i + 1}`] = initialData[`${i}-${i + 1}`] || '';
-    }
-    // Lower jaw spaces (17-31)
-    for (let i = 17; i <= 31; i++) {
-      initialIpr[`${i}-${i + 1}`] = initialData[`${i}-${i + 1}`] || '';
+    // Initialize all 32 teeth with empty mesial and distal values
+    for (let i = 1; i <= 32; i++) {
+      initialIpr[i] = {
+        mesial: initialData[i]?.mesial || '',
+        distal: initialData[i]?.distal || '',
+      };
     }
     return initialIpr;
   });
@@ -32,35 +28,59 @@ const IPRChartDialog = ({
 
   useEffect(() => {
     if (Object.keys(initialData).length > 0) {
-      setIprData((prevData) => ({ ...prevData, ...initialData }));
+      setIprData((prevData) => {
+        const updated = { ...prevData };
+        Object.keys(initialData).forEach((toothNum) => {
+          updated[toothNum] = {
+            mesial: initialData[toothNum]?.mesial || '',
+            distal: initialData[toothNum]?.distal || '',
+          };
+        });
+        return updated;
+      });
     }
   }, [initialData]);
 
-  const handleInputChange = (space, value) => {
+  const handleInputChange = (toothNum, side, value) => {
     // Allow empty or valid decimal numbers up to 2 decimal places
     if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
-      setIprData((prev) => ({ ...prev, [space]: value }));
+      setIprData((prev) => ({
+        ...prev,
+        [toothNum]: {
+          ...prev[toothNum],
+          [side]: value,
+        },
+      }));
     }
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Filter out empty values
-      const filteredData = Object.entries(iprData).reduce(
-        (acc, [key, value]) => {
-          if (
-            value !== '' &&
-            value !== '0' &&
-            value !== '0.0' &&
-            value !== '0.00'
-          ) {
-            acc[key] = parseFloat(value);
-          }
-          return acc;
-        },
-        {}
-      );
+      // Filter out teeth with no values and convert strings to numbers
+      const filteredData = {};
+      Object.entries(iprData).forEach(([toothNum, values]) => {
+        const mesial = values.mesial;
+        const distal = values.distal;
+
+        const hasMesial =
+          mesial !== '' &&
+          mesial !== '0' &&
+          mesial !== '0.0' &&
+          mesial !== '0.00';
+        const hasDistal =
+          distal !== '' &&
+          distal !== '0' &&
+          distal !== '0.0' &&
+          distal !== '0.00';
+
+        if (hasMesial || hasDistal) {
+          filteredData[toothNum] = {
+            mesial: hasMesial ? parseFloat(mesial) : 0,
+            distal: hasDistal ? parseFloat(distal) : 0,
+          };
+        }
+      });
 
       await onSave(filteredData);
       onClose();
@@ -74,33 +94,46 @@ const IPRChartDialog = ({
 
   if (!isOpen) return null;
 
-  const renderToothSpace = (tooth1, tooth2, isUpper) => {
-    const space = `${tooth1}-${tooth2}`;
+  const renderTooth = (toothNum, isUpper) => {
     return (
       <div
-        key={space}
+        key={toothNum}
         className="flex flex-col items-center gap-1"
         style={{ width: '48px' }}
       >
-        {isUpper ? (
-          <div className="text-xs text-gray-500 font-medium">
-            {tooth1}↔{tooth2}
-          </div>
-        ) : (
-          <div className="text-xs text-gray-500 font-medium">
-            {tooth2}↔{tooth1}
-          </div>
-        )}
+        <div className="text-xs font-bold text-gray-700 mb-1">#{toothNum}</div>
 
-        <input
-          type="text"
-          inputMode="decimal"
-          value={iprData[space] || ''}
-          onChange={(e) => handleInputChange(space, e.target.value)}
-          placeholder="0.0"
-          className="w-full px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <div className="text-xs text-gray-400">mm</div>
+        {/* Mesial input */}
+        <div className="flex flex-col items-center w-full">
+          <div className="text-[10px] text-gray-500 font-medium mb-0.5">M</div>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={iprData[toothNum]?.mesial || ''}
+            onChange={(e) =>
+              handleInputChange(toothNum, 'mesial', e.target.value)
+            }
+            placeholder="0.0"
+            className="w-full px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Distal input */}
+        <div className="flex flex-col items-center w-full">
+          <div className="text-[10px] text-gray-500 font-medium mb-0.5">D</div>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={iprData[toothNum]?.distal || ''}
+            onChange={(e) =>
+              handleInputChange(toothNum, 'distal', e.target.value)
+            }
+            placeholder="0.0"
+            className="w-full px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="text-[10px] text-gray-400 mt-0.5">mm</div>
       </div>
     );
   };
@@ -113,7 +146,8 @@ const IPRChartDialog = ({
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">IPR Chart</h2>
             <p className="text-sm text-gray-600 mt-1">
-              Enter interproximal reduction values in millimeters for each space
+              Enter mesial (M) and distal (D) IPR values in millimeters for each
+              tooth
             </p>
           </div>
           <button
@@ -134,10 +168,9 @@ const IPRChartDialog = ({
                 Upper Jaw (Maxilla)
               </h3>
               <div className="flex justify-center" style={{ gap: '4px' }}>
-                {[...Array(15)].map((_, i) => {
-                  const tooth1 = i + 1;
-                  const tooth2 = i + 2;
-                  return renderToothSpace(tooth1, tooth2, true);
+                {[...Array(16)].map((_, i) => {
+                  const toothNum = i + 1;
+                  return renderTooth(toothNum, true);
                 })}
               </div>
             </div>
@@ -151,10 +184,9 @@ const IPRChartDialog = ({
                 Lower Jaw (Mandible)
               </h3>
               <div className="flex justify-center" style={{ gap: '4px' }}>
-                {[...Array(15)].map((_, i) => {
-                  const tooth1 = 32 - i;
-                  const tooth2 = 31 - i;
-                  return renderToothSpace(tooth2, tooth1, false);
+                {[...Array(16)].map((_, i) => {
+                  const toothNum = 32 - i;
+                  return renderTooth(toothNum, false);
                 })}
               </div>
             </div>
@@ -166,8 +198,19 @@ const IPRChartDialog = ({
               Instructions:
             </h4>
             <ul className="text-body font-body text-default-font space-y-1 list-disc list-inside">
-              <li>Enter IPR values in millimeters (e.g., 0.2, 0.5)</li>
-              <li>Leave fields empty for spaces with no IPR</li>
+              <li>
+                <strong>M (Mesial):</strong> IPR value towards the midline
+                (between #8-#9 upper, #24-#25 lower)
+              </li>
+              <li>
+                <strong>D (Distal):</strong> IPR value away from the midline
+              </li>
+              <li>Enter values in millimeters (e.g., 0.2, 0.5)</li>
+              <li>Leave fields empty for surfaces with no IPR</li>
+              <li>
+                The viewer will combine adjacent values (e.g., distal of #8 +
+                mesial of #9)
+              </li>
               <li>Click Save to store the IPR chart with the treatment plan</li>
             </ul>
           </div>

@@ -325,5 +325,79 @@
       "title": "Important Notice",
       "text": "There may be differences between the computer-generated treatment prediction and the actual clinical outcome. The number of aligners may increase depending on the case requirements. The treating doctor is solely responsible for the treatment plan."
     }
+  },
+
+  "casePage": {
+    "caseDetails": "Case Details",
+    "downloadFiles": "Download Files",
+    "downloading": "Downloading...",
+    "openViewer": "Open 3DA Viewer",
+    "viewOriginalCase": "View Original Case",
+    "refinement": "Refinement",
+    "deleteCase": "Delete Case",
+    "deleteCaseConfirm": "This action cannot be undone. Are you sure you want to permanently delete this case?",
+    "caseDeclined": "Case Declined",
+    "reason": "Reason",
+    "declinedOn": "Declined on",
+    "at": "at",
+    "undoDecline": "Undo Decline",
+    "undoing": "Undoing...",
+    "dentalChart": "Dental Chart",
+    "caseInformation": "Case Information",
+    "patientInformation": "Patient Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "doctorName": "Doctor's Name",
+    "phone": "Phone",
+    "submissionDate": "Submission Date",
+    "caseId": "Case ID",
+    "clinic": "Clinic",
+    "alignerMaterial": "Aligner Material",
+    "notSpecified": "Not specified",
+    "refinementReason": "Refinement Reason",
+    "printCaseInfo": "Print Case Info",
+    "exportPDF": "Export PDF",
+    "alerts": {
+      "submitted": {
+        "title": "Review the case and accept it",
+        "description": "Review the case information, then accept or decline the case."
+      },
+      "accepted": {
+        "title": "Case accepted - Create treatment plan",
+        "description": "Set aligners count and duration, then send to doctor for approval."
+      },
+      "awaiting_user_approval": {
+        "title": "Treatment plan is sent to doctor for approval",
+        "description": "Waiting for the doctor approval to proceed with the production process."
+      },
+      "approved": {
+        "title": "Doctor approved the treatment plan",
+        "description": "Proceed with manufacturing. Update the case status as production progresses."
+      },
+      "in_production": {
+        "title": "Aligners are in production",
+        "description": "Update to Ready for Delivery when manufacturing is complete."
+      },
+      "ready_for_delivery": {
+        "title": "Aligners are ready for delivery",
+        "description": "Mark as Delivered once the clinic receives their aligners."
+      },
+      "delivered": {
+        "title": "Aligners delivered to clinic",
+        "description": "Mark the case as Completed when treatment concludes."
+      },
+      "completed": {
+        "title": "The case is complete",
+        "description": "The doctor had finished the case"
+      },
+      "rejected": {
+        "title": "Case has been declined",
+        "description": "This case was declined and is no longer active. You can undo this action if needed."
+      },
+      "user_rejected": {
+        "title": "Treatment plan was declined",
+        "description": "This case's Treatment plan was declined by the doctor and the case is no longer active."
+      }
+    }
   }
 }

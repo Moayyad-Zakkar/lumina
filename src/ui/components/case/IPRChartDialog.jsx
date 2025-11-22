@@ -198,17 +198,10 @@ const IPRChartDialog = ({
               Instructions:
             </h4>
             <ul className="text-body font-body text-default-font space-y-1 list-disc list-inside">
-              <li>
-                <strong>M (Mesial):</strong> IPR value towards the midline
-                (between #8-#9 upper, #24-#25 lower)
-              </li>
-              <li>
-                <strong>D (Distal):</strong> IPR value away from the midline
-              </li>
               <li>Enter values in millimeters (e.g., 0.2, 0.5)</li>
               <li>Leave fields empty for surfaces with no IPR</li>
               <li>
-                The viewer will combine adjacent values (e.g., distal of #8 +
+                The viewer will combine adjacent values (e.g., mesial of #8 +
                 mesial of #9)
               </li>
               <li>Click Save to store the IPR chart with the treatment plan</li>

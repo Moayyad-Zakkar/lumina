@@ -1,4 +1,4 @@
-// src/ui/components/DentalChart.jsx - Simple Alignment Fix
+// src/ui/components/DentalChart.jsx - With built-in scaling support
 import React, { useState } from 'react';
 import { toothPaths } from '../../assets/toothPaths';
 
@@ -10,7 +10,7 @@ const TOOTH_STATUSES = {
   },
   unmovable: {
     color: '#F44336', // red
-    description: 'Dental implant, bridge, or ankylosed teeth',
+    description: 'Dental implant, bridge pontic, or ankylosed teeth',
   },
   missing: {
     color: '#9E9E9E', // gray
@@ -53,7 +53,6 @@ const Tooth = ({
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          //viewBox="468 235 40 85" // Slightly larger viewBox to ensure all teeth fit
           viewBox="0 0 21.1 56.7" // Slightly larger viewBox to ensure all teeth fit
           className="w-full h-full"
           fill={color}
@@ -84,7 +83,13 @@ const Tooth = ({
   );
 };
 
-const DentalChart = ({ initialStatus = {}, onChange, readOnly = false }) => {
+const DentalChart = ({
+  initialStatus = {},
+  onChange,
+  readOnly = false,
+  scale = 1, // New prop for scaling
+  showLegend = true, // New prop to optionally hide legend
+}) => {
   const [toothStatus, setToothStatus] = useState(() =>
     Object.keys(initialStatus).length > 0
       ? initialStatus
@@ -101,8 +106,17 @@ const DentalChart = ({ initialStatus = {}, onChange, readOnly = false }) => {
     onChange?.(updated); // notify parent (CaseSubmit or CaseDetail page)
   };
 
+  // Wrapper style for scaling
+  const wrapperStyle =
+    scale !== 1
+      ? {
+          transform: `scale(${scale})`,
+          transformOrigin: 'top center',
+        }
+      : {};
+
   return (
-    <div className="flex flex-col items-center gap-8 p-4">
+    <div className="flex flex-col items-center gap-8 p-4" style={wrapperStyle}>
       {/* Upper jaw */}
       <div className="flex" style={{ gap: '4px' }}>
         {[...Array(16)].map((_, i) => {
@@ -146,24 +160,26 @@ const DentalChart = ({ initialStatus = {}, onChange, readOnly = false }) => {
       </div>
 
       {/* Legend with descriptions */}
-      <div className="flex flex-col gap-3 mt-4 max-w-2xl">
-        {Object.entries(TOOTH_STATUSES).map(
-          ([status, { color, description }]) => (
-            <div key={status} className="flex items-center gap-3">
-              <div
-                style={{ backgroundColor: color }}
-                className="w-5 h-5 border flex-shrink-0"
-              />
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <span className="capitalize font-medium text-sm">
-                  {status}:
-                </span>
-                <span className="text-sm text-gray-600">{description}</span>
+      {showLegend && (
+        <div className="flex flex-col gap-3 mt-4 max-w-2xl">
+          {Object.entries(TOOTH_STATUSES).map(
+            ([status, { color, description }]) => (
+              <div key={status} className="flex items-center gap-3">
+                <div
+                  style={{ backgroundColor: color }}
+                  className="w-5 h-5 border flex-shrink-0"
+                />
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                  <span className="capitalize font-medium text-sm">
+                    {status}:
+                  </span>
+                  <span className="text-sm text-gray-600">{description}</span>
+                </div>
               </div>
-            </div>
-          )
-        )}
-      </div>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 };

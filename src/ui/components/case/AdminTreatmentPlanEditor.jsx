@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { Button } from '../Button';
 import { TextField } from '../TextField';
 import { DataFieldHorizontal } from '../DataFieldHorizontal';
 import { Badge } from '../Badge';
 import { IconButton } from '../IconButton';
+import { Dialog } from '../Dialog';
+import IPRChartViewer, { PrintableIPRChart } from '../IPRChartViewer';
 import {
   FeatherGrid,
   FeatherClock,
@@ -11,15 +14,147 @@ import {
   FeatherFileText,
   FeatherTruck,
   FeatherEdit2,
-  FeatherX,
   FeatherCheck,
   FeatherImage,
   FeatherEye,
   FeatherCopy,
   FeatherSlice,
+  FeatherPrinter,
 } from '@subframe/core';
 import TreatmentPlanImagesUpload from './TreatmentPlanImagesUpload';
 import IPRChartDialog from './IPRChartDialog';
+import { capitalizeFirstSafe } from '../../../helper/formatText';
+
+/* -------------------------------------------------------
+   PrintField Component
+------------------------------------------------------- */
+const PrintField = ({ label, value }) => (
+  <div>
+    <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
+    <p className="text-sm text-gray-900">{value}</p>
+  </div>
+);
+
+/* -------------------------------------------------------
+   PrintableTreatmentPlan Component
+------------------------------------------------------- */
+const PrintableTreatmentPlan = React.forwardRef(
+  (
+    {
+      caseData,
+      upperJawAligners,
+      lowerJawAligners,
+      estimatedDurationMonths,
+      iprData,
+    },
+    ref
+  ) => {
+    const hasIPRData = iprData && Object.keys(iprData).length > 0;
+
+    return (
+      <div ref={ref} className="p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-brand-600">3DA</h1>
+            <p className="text-sm text-gray-600">Treatment Plan Details</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">
+              Case ID: <strong>CASE-{caseData.id}</strong>
+            </p>
+            <p className="text-sm text-gray-600">
+              {new Date().toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        {/* Patient Information */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            Patient Information
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <PrintField
+                label="First Name"
+                value={capitalizeFirstSafe(caseData.first_name) || 'N/A'}
+              />
+              <PrintField
+                label="Last Name"
+                value={capitalizeFirstSafe(caseData.last_name) || 'N/A'}
+              />
+            </div>
+            <div className="space-y-3">
+              <PrintField
+                label="Doctor Name"
+                value={
+                  capitalizeFirstSafe(caseData.profiles?.full_name) || 'N/A'
+                }
+              />
+              <PrintField
+                label="Clinic"
+                value={caseData.profiles?.clinic || 'N/A'}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Treatment Plan Details */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            Treatment Plan
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <PrintField
+                label="Aligner Material"
+                value={caseData.aligner_material || 'Not specified'}
+              />
+              <PrintField
+                label="Upper Jaw Aligners"
+                value={`${upperJawAligners || '—'} Aligners`}
+              />
+            </div>
+            <div className="space-y-3">
+              <PrintField
+                label="Lower Jaw Aligners"
+                value={`${lowerJawAligners || '—'} Aligners`}
+              />
+              <PrintField
+                label="Estimated Duration"
+                value={`${estimatedDurationMonths || '—'} Months`}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* IPR Chart Section */}
+        {hasIPRData && (
+          <div className="mb-6 page-break-inside-avoid">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              IPR Chart
+            </h2>
+            <div className="border border-gray-300 rounded-lg p-4 bg-white overflow-hidden flex justify-center">
+              <PrintableIPRChart
+                toothStatus={caseData.tooth_status || {}}
+                iprData={iprData}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
+          <p>
+            This document was generated on {new Date().toLocaleString()} |
+            Lumina Clear Aligners
+          </p>
+        </div>
+      </div>
+    );
+  }
+);
 
 const AdminTreatmentPlanEditor = ({
   caseData,
@@ -51,7 +186,16 @@ const AdminTreatmentPlanEditor = ({
 }) => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isIPRDialogOpen, setIsIPRDialogOpen] = useState(false);
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [isIPRViewerOpen, setIsIPRViewerOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+
+  const printRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Case-${caseData.id}-Treatment-Plan`,
+  });
 
   const handleCopyLink = async () => {
     try {
@@ -92,6 +236,18 @@ const AdminTreatmentPlanEditor = ({
 
   const hasIPRData = Object.keys(iprData).length > 0;
 
+  // Check if we're in read-only mode
+  const isReadOnly = isEditingPlan
+    ? [
+        'approved',
+        'in_production',
+        'ready_for_delivery',
+        'delivered',
+        'completed',
+        'user_rejected',
+      ].includes(currentStatus)
+    : true;
+
   return (
     <>
       <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
@@ -99,6 +255,18 @@ const AdminTreatmentPlanEditor = ({
           <span className="text-heading-3 font-heading-3 text-default-font">
             Treatment Plan Review
           </span>
+
+          {/* Print Button - Only show in read-only mode */}
+          {isReadOnly && (
+            <Button
+              size="small"
+              variant="neutral-secondary"
+              icon={<FeatherPrinter />}
+              onClick={() => setIsPrintDialogOpen(true)}
+            >
+              Print Treatment Plan
+            </Button>
+          )}
         </div>
 
         <div className="flex w-full flex-col items-start gap-6">
@@ -197,10 +365,19 @@ const AdminTreatmentPlanEditor = ({
                   </DataFieldHorizontal>
                   {hasIPRData && (
                     <DataFieldHorizontal
-                      icon={<FeatherGrid />}
+                      icon={<FeatherSlice />}
                       label="IPR Chart"
                     >
-                      <Badge variant="brand">Available</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="brand">Available</Badge>
+                        <Button
+                          size="small"
+                          variant="neutral-secondary"
+                          onClick={() => setIsIPRViewerOpen(true)}
+                        >
+                          View Chart
+                        </Button>
+                      </div>
                     </DataFieldHorizontal>
                   )}
                 </>
@@ -401,7 +578,7 @@ const AdminTreatmentPlanEditor = ({
         caseId={caseData.id}
       />
 
-      {/* IPR Chart Dialog */}
+      {/* IPR Chart Dialog (for editing) */}
       <IPRChartDialog
         isOpen={isIPRDialogOpen}
         onClose={() => setIsIPRDialogOpen(false)}
@@ -409,8 +586,50 @@ const AdminTreatmentPlanEditor = ({
         initialData={iprData}
         caseId={caseData.id}
       />
+
+      {/* IPR Chart Viewer (for viewing) */}
+      <IPRChartViewer
+        isOpen={isIPRViewerOpen}
+        onClose={() => setIsIPRViewerOpen(false)}
+        toothStatus={caseData.tooth_status || {}}
+        iprData={iprData}
+      />
+
+      {/* Print Dialog */}
+      <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
+        <Dialog.Content className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between px-1 py-3 w-full">
+            <span className="text-heading-2 font-heading-2 text-default-font">
+              Print Treatment Plan
+            </span>
+
+            <Button
+              variant="brand-primary"
+              icon={<FeatherPrinter />}
+              onClick={() => {
+                handlePrint();
+                setIsPrintDialogOpen(false);
+              }}
+              className="w-auto"
+            >
+              Print
+            </Button>
+          </div>
+
+          <div className="border border-neutral-border rounded-lg bg-white">
+            {/* Print Content */}
+            <PrintableTreatmentPlan
+              ref={printRef}
+              caseData={caseData}
+              upperJawAligners={upperJawAligners}
+              lowerJawAligners={lowerJawAligners}
+              estimatedDurationMonths={estimatedDurationMonths}
+              iprData={iprData}
+            />
+          </div>
+        </Dialog.Content>
+      </Dialog>
     </>
   );
 };
-
 export default AdminTreatmentPlanEditor;

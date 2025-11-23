@@ -270,6 +270,26 @@ const CasePageRefactored = () => {
       <div className="flex w-full flex-col items-start gap-6">
         <CaseInformation caseData={caseData} isAdmin={false} />
 
+        {/* Decline Reason Section */}
+        {(status === 'user_rejected' || status === 'rejected') &&
+          caseData.decline_reason && (
+            <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-red-200 bg-red-50 px-6 pt-4 pb-6 shadow-sm">
+              <div className="flex items-center gap-2">
+                <FeatherAlertTriangle className="w-5 h-5 text-red-600" />
+                <span className="text-heading-3 font-heading-3 text-red-900">
+                  {status === 'user_rejected'
+                    ? 'Decline Reason'
+                    : 'Rejection Reason'}
+                </span>
+              </div>
+              <div className="w-full bg-white border border-red-200 rounded-md p-4 shadow-sm">
+                <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+                  {caseData.decline_reason}
+                </div>
+              </div>
+            </div>
+          )}
+
         <CaseNotes
           noteText={noteText}
           setNoteText={setNoteText}

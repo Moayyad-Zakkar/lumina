@@ -43,6 +43,9 @@ const AdminCasePageRefactored = () => {
   const navigate = useNavigate();
   const [caseHasViewer, setCaseHasViewer] = useState(false);
 
+  // Initialize IPR data from caseData - this is the key fix!
+  const [iprData, setIprData] = useState(caseData?.ipr_data || {});
+
   // Custom hooks
   const { downloadingFiles, downloadSingleFile, downloadAllFiles } =
     useFileDownload();
@@ -60,7 +63,6 @@ const AdminCasePageRefactored = () => {
   const {
     currentStatus,
     saving,
-    ipr_data,
     actionError,
     actionSuccess,
     caseStudyFee,
@@ -94,7 +96,13 @@ const AdminCasePageRefactored = () => {
   } = useAdminCaseActions(caseData);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [iprData, setIprData] = useState(ipr_data || {});
+
+  // Update iprData when caseData changes (important for when data is refetched)
+  useEffect(() => {
+    if (caseData?.ipr_data) {
+      setIprData(caseData.ipr_data);
+    }
+  }, [caseData?.ipr_data]);
 
   // Mark admin notifications for this case as read when page opens
   useEffect(() => {
@@ -135,9 +143,9 @@ const AdminCasePageRefactored = () => {
 
   const alertContent = {
     submitted: {
-      title: 'Review the case and provide plan details',
+      title: 'Review and Accept/Decline Case',
       description:
-        'Set aligners count and duration, then send to doctor for approval or decline the case.',
+        'Review the submitted case and decide whether to accept or decline it.',
     },
     accepted: {
       title: 'Case accepted - Create treatment plan',
@@ -225,11 +233,16 @@ const AdminCasePageRefactored = () => {
 
       if (error) throw error;
 
+      // Update local state immediately
       setIprData(data);
-      // Show success message
+
+      // Also update the caseData object so it persists
+      caseData.ipr_data = data;
+
+      toast.success('IPR data saved successfully');
     } catch (error) {
       console.error('Error saving IPR data:', error);
-      // Show error message
+      toast.error('Failed to save IPR data');
     }
   };
 
@@ -362,7 +375,7 @@ const AdminCasePageRefactored = () => {
       )}
 
       {/* Standard status alert for non-rejected cases */}
-      {currentStatus !== 'rejected' && (
+      {currentStatus !== 'rejected' && currentStatus !== 'user_rejected' && (
         <Alert
           variant={currentAlert.variant || 'brand'}
           icon={<FeatherBell />}
@@ -371,17 +384,47 @@ const AdminCasePageRefactored = () => {
           actions={null}
         />
       )}
-      {/* Success and Error Messages */}
-      {/*
-      {actionError && <Error error={actionError} />}
-      {actionSuccess && (
-        <div className="rounded-md border border-solid border-success-200 bg-success-50 p-4 text-success-700">
-          {actionSuccess}
-        </div>
+
+      {/* User rejected alert */}
+      {currentStatus === 'user_rejected' && (
+        <Alert
+          variant="destructive"
+          icon={<FeatherAlertTriangle />}
+          title={currentAlert.title}
+          description={currentAlert.description}
+          actions={null}
+        />
       )}
-   */}
+
       <div className="flex w-full flex-col items-start gap-6">
         <CaseInformation caseData={caseData} isAdmin={true} />
+
+        {/* Decline Reason Section */}
+        {(currentStatus === 'user_rejected' || currentStatus === 'rejected') &&
+          caseData.decline_reason && (
+            <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-red-200 bg-red-50 px-6 pt-4 pb-6 shadow-sm">
+              <div className="flex items-center gap-2">
+                <FeatherAlertTriangle className="w-5 h-5 text-red-600" />
+                <span className="text-heading-3 font-heading-3 text-red-900">
+                  {currentStatus === 'user_rejected'
+                    ? 'Doctor Decline Reason'
+                    : 'Admin Decline Reason'}
+                </span>
+              </div>
+              <div className="w-full bg-white border border-red-200 rounded-md p-4 shadow-sm">
+                <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+                  {caseData.decline_reason}
+                </div>
+              </div>
+              {caseData.declined_at && (
+                <div className="text-caption font-caption text-red-700">
+                  Declined on{' '}
+                  {new Date(caseData.declined_at).toLocaleDateString()} at{' '}
+                  {new Date(caseData.declined_at).toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+          )}
 
         {caseData.user_note && (
           <CaseNotes

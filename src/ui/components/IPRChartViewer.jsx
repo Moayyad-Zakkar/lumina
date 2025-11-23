@@ -337,4 +337,236 @@ const IPRChartViewer = ({
   );
 };
 
+/* -------------------------------------------------------
+   Printable IPR Chart Component (simplified for printing)
+------------------------------------------------------- */
+export const PrintableIPRChart = ({ toothStatus, iprData }) => {
+  // Reusable Tooth component for printing
+  const ToothWithIPR = ({
+    num,
+    paths,
+    status,
+    isUpperJaw,
+    iprBefore,
+    iprAfter,
+  }) => {
+    const TOOTH_STATUSES = {
+      movable: { color: '#00adef' },
+      unmovable: { color: '#F44336' },
+      missing: { color: '#9E9E9E' },
+      note: { color: '#fa9600' },
+    };
+
+    const color = TOOTH_STATUSES[status]?.color || '#00adef';
+
+    return (
+      <>
+        {/* IPR value before tooth */}
+        {iprBefore && (
+          <div
+            className="flex items-center justify-center"
+            style={{ width: '4px', minHeight: '64px' }}
+          >
+            <div
+              className="text-xs font-semibold text-orange-600 bg-orange-50 px-1 rounded whitespace-nowrap"
+              style={{
+                position: 'relative',
+                top: isUpperJaw ? '8px' : '-16px',
+              }}
+            >
+              {iprBefore}
+            </div>
+          </div>
+        )}
+
+        {/* Tooth */}
+        <div
+          className="flex flex-col items-center relative"
+          style={{ width: '48px', minHeight: '64px' }}
+        >
+          <div
+            className="flex justify-center mb-1"
+            style={{
+              width: '48px',
+              height: '72px',
+              alignItems: isUpperJaw ? 'flex-end' : 'flex-start',
+              marginBottom: isUpperJaw ? '10px' : 0,
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 21.1 56.7"
+              className="w-full h-full"
+              fill={color}
+              style={{ maxWidth: '48px', maxHeight: '72px', display: 'block' }}
+            >
+              {paths.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </svg>
+          </div>
+          <p
+            className="text-xs text-center"
+            style={{ lineHeight: '1', width: '100%', margin: 0 }}
+          >
+            {num}
+          </p>
+        </div>
+
+        {/* IPR value after tooth */}
+        {iprAfter && (
+          <div
+            className="flex items-center justify-center"
+            style={{ width: '4px', minHeight: '64px' }}
+          >
+            <div
+              className="text-xs font-semibold text-orange-600 bg-orange-50 px-1 rounded whitespace-nowrap"
+              style={{
+                position: 'relative',
+                top: isUpperJaw ? '8px' : '-16px',
+              }}
+            >
+              {iprAfter}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const getSingleIPR = (toothNum, side) => {
+    const toothData = iprData[toothNum];
+    if (!toothData) return null;
+    const value = toothData[side] || 0;
+    if (value > 0) {
+      return value % 1 === 0
+        ? value.toString()
+        : value.toFixed(2).replace(/\.?0+$/, '');
+    }
+    return null;
+  };
+
+  const getCombinedIPR = (tooth1, tooth2) => {
+    const tooth1Data = iprData[tooth1];
+    const tooth2Data = iprData[tooth2];
+    if (!tooth1Data && !tooth2Data) return null;
+
+    let value = 0;
+
+    if (tooth1 >= 1 && tooth1 <= 16) {
+      if (tooth1 === 1 && tooth2 === 2) {
+        value = (tooth1Data?.mesial || 0) + (tooth2Data?.distal || 0);
+      } else if (tooth1 >= 2 && tooth1 <= 7 && tooth2 === tooth1 + 1) {
+        value = (tooth1Data?.mesial || 0) + (tooth2Data?.distal || 0);
+      } else if (tooth1 === 8 && tooth2 === 9) {
+        value = (tooth1Data?.mesial || 0) + (tooth2Data?.mesial || 0);
+      } else if (tooth1 >= 9 && tooth1 <= 15 && tooth2 === tooth1 + 1) {
+        value = (tooth1Data?.distal || 0) + (tooth2Data?.mesial || 0);
+      }
+    } else if (tooth1 >= 17 && tooth1 <= 32) {
+      if (tooth1 === 32 && tooth2 === 31) {
+        value = (tooth1Data?.mesial || 0) + (tooth2Data?.distal || 0);
+      } else if (tooth1 >= 26 && tooth1 <= 31 && tooth2 === tooth1 - 1) {
+        value = (tooth1Data?.mesial || 0) + (tooth2Data?.distal || 0);
+      } else if (tooth1 === 25 && tooth2 === 24) {
+        value = (tooth1Data?.mesial || 0) + (tooth2Data?.mesial || 0);
+      } else if (tooth1 >= 18 && tooth1 <= 24 && tooth2 === tooth1 - 1) {
+        value = (tooth1Data?.distal || 0) + (tooth2Data?.mesial || 0);
+      } else if (tooth1 === 18 && tooth2 === 17) {
+        value = (tooth1Data?.distal || 0) + (tooth2Data?.mesial || 0);
+      }
+    }
+
+    if (value > 0) {
+      return value % 1 === 0
+        ? value.toString()
+        : value.toFixed(2).replace(/\.?0+$/, '');
+    }
+    return null;
+  };
+
+  return (
+    <div
+      className="flex flex-col items-center gap-8"
+      style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}
+    >
+      {/* Upper jaw */}
+      <div className="flex relative items-center">
+        {[...Array(16)].map((_, i) => {
+          const num = i + 1;
+          const paths = toothPaths[`tooth${num}`] || [];
+          const status = toothStatus[num] || 'movable';
+
+          let iprBefore = null;
+          let iprAfter = null;
+
+          if (num === 1) {
+            iprBefore = getSingleIPR(1, 'distal');
+          } else {
+            iprBefore = getCombinedIPR(num - 1, num);
+          }
+
+          if (num === 16) {
+            iprAfter = getSingleIPR(16, 'distal');
+          }
+
+          return (
+            <ToothWithIPR
+              key={num}
+              num={num}
+              paths={paths}
+              status={status}
+              isUpperJaw={true}
+              iprBefore={iprBefore}
+              iprAfter={iprAfter}
+            />
+          );
+        })}
+      </div>
+
+      {/* Lower jaw */}
+      <div className="flex relative items-center">
+        {[...Array(16)].map((_, i) => {
+          const num = 32 - i;
+          const paths = toothPaths[`tooth${num}`] || [];
+          const status = toothStatus[num] || 'movable';
+
+          let iprBefore = null;
+          let iprAfter = null;
+
+          if (num === 32) {
+            iprBefore = getSingleIPR(32, 'distal');
+          } else {
+            iprBefore = getCombinedIPR(num + 1, num);
+          }
+
+          if (num === 17) {
+            iprAfter = getSingleIPR(17, 'distal');
+          }
+
+          return (
+            <ToothWithIPR
+              key={num}
+              num={num}
+              paths={paths}
+              status={status}
+              isUpperJaw={false}
+              iprBefore={iprBefore}
+              iprAfter={iprAfter}
+            />
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-2 text-sm text-gray-600 bg-orange-50 px-4 py-2 rounded">
+        <div className="w-3 h-3 bg-orange-600 rounded"></div>
+        <span>
+          Orange values indicate IPR (Interproximal Reduction) in millimeters
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export default IPRChartViewer;

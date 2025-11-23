@@ -9,6 +9,8 @@ import { FeatherSearch } from '@subframe/core';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 import BillingStats from '../../components/billing/BillingStats';
 import { useBillingData } from '../../../hooks/useBillingData';
+import { useUserRole } from '../../../helper/useUserRole';
+import { isSuperAdmin } from '../../../helper/auth';
 import Error from '../../components/Error';
 
 function AdminDashboard() {
@@ -19,6 +21,9 @@ function AdminDashboard() {
     submittedCases,
     completedCases,
   } = useLoaderData();
+
+  const { role } = useUserRole();
+  const isSuperAdminUser = isSuperAdmin(role);
 
   const {
     totalEarnings,
@@ -69,7 +74,7 @@ function AdminDashboard() {
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
-            COMPLETED BY 3DA
+            COMPLETED
           </span>
           <span className="text-heading-2 font-heading-2 text-success-700">
             {completedCases === null ? (
@@ -198,22 +203,26 @@ function AdminDashboard() {
         )}
       </Table>
 
-      {/* Payment Overview Section */}
-      <span className="text-heading-2 font-heading-2 text-default-font">
-        Payment Overview
-      </span>
+      {/* Payment Overview Section - Only visible to Super Admin */}
+      {isSuperAdminUser && (
+        <>
+          <span className="text-heading-2 font-heading-2 text-default-font">
+            Payment Overview
+          </span>
 
-      {billingLoading ? (
-        <div className="flex w-full h-full min-h-[150px] justify-center items-center">
-          <Loader size="medium" />
-        </div>
-      ) : (
-        <BillingStats
-          totalEarnings={totalEarnings}
-          totalDue={totalDue}
-          totalExpenses={totalExpenses}
-          withButtons={false}
-        />
+          {billingLoading ? (
+            <div className="flex w-full h-full min-h-[150px] justify-center items-center">
+              <Loader size="medium" />
+            </div>
+          ) : (
+            <BillingStats
+              totalEarnings={totalEarnings}
+              totalDue={totalDue}
+              totalExpenses={totalExpenses}
+              withButtons={false}
+            />
+          )}
+        </>
       )}
     </>
   );

@@ -446,7 +446,7 @@ const AdminCasePageRefactored = () => {
           <span className="text-heading-3 font-heading-3 text-default-font">
             Dental Chart
           </span>
-          <div>
+          <div className="flex w-full justify-center">
             <DentalChart
               initialStatus={caseData.tooth_status || {}}
               onChange={(updated) =>

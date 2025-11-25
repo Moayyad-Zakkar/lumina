@@ -308,7 +308,7 @@ const CasePageRefactored = () => {
           <span className="text-heading-3 font-heading-3 text-default-font">
             Dental Chart
           </span>
-          <div>
+          <div className="flex w-full justify-center">
             <DentalChart
               initialStatus={caseData.tooth_status || {}}
               onChange={(updated) =>
@@ -389,18 +389,17 @@ const CasePageRefactored = () => {
             </div>
           </div>
         )}
+        {/* Refinement Section */}
+        <RefinementSection caseData={caseData} />
+
+        {/* Refinement History */}
+        <RefinementHistory caseData={caseData} />
 
         <FileDownloadTable
           caseData={caseData}
           downloadingFiles={downloadingFiles}
           handleFileDownload={downloadSingleFile}
         />
-
-        {/* Refinement Section */}
-        <RefinementSection caseData={caseData} />
-
-        {/* Refinement History */}
-        <RefinementHistory caseData={caseData} />
       </div>
 
       {/* Approval Confirmation Dialog */}

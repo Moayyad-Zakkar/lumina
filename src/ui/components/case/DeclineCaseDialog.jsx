@@ -1,5 +1,6 @@
 import { FeatherAlertTriangle, FeatherX } from '@subframe/core';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../Button';
 
 const DeclineCaseDialog = ({
@@ -8,12 +9,13 @@ const DeclineCaseDialog = ({
   onConfirm,
   isLoading = false,
 }) => {
+  const { t } = useTranslation();
   const [declineReason, setDeclineReason] = useState('');
   const [error, setError] = useState('');
 
   const handleConfirm = () => {
     if (!declineReason.trim()) {
-      setError('Please provide a reason for declining this case.');
+      setError(t('casePage.dialogs.decline.reasonRequired'));
       return;
     }
 
@@ -48,7 +50,7 @@ const DeclineCaseDialog = ({
                 <FeatherAlertTriangle className="w-4 h-4 text-red-600" />
               </div>
               <h2 className="text-heading-3 font-heading-3 text-default-font">
-                Decline Case
+                {t('casePage.dialogs.decline.title')}
               </h2>
             </div>
             <button
@@ -63,7 +65,7 @@ const DeclineCaseDialog = ({
           {/* Content */}
           <div className="p-6">
             <p className="text-body font-body text-neutral-700 mb-4">
-              Please provide the reason of declining the treatment plan.
+              {t('casePage.dialogs.decline.message')}
             </p>
 
             <div className="flex flex-col gap-2">
@@ -71,7 +73,8 @@ const DeclineCaseDialog = ({
                 htmlFor="declineReason"
                 className="text-body-bold font-body-bold text-default-font"
               >
-                Decline Reason <span className="text-red-500">*</span>
+                {t('casePage.dialogs.decline.reasonLabel')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="declineReason"
@@ -80,7 +83,7 @@ const DeclineCaseDialog = ({
                   setDeclineReason(e.target.value);
                   if (error) setError('');
                 }}
-                placeholder="Enter the reason for declining this case..."
+                placeholder={t('casePage.dialogs.decline.reasonPlaceholder')}
                 rows={4}
                 disabled={isLoading}
                 className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[100px] placeholder:text-subtext-color disabled:opacity-50 disabled:cursor-not-allowed"
@@ -91,8 +94,7 @@ const DeclineCaseDialog = ({
                 </span>
               )}
               <span className="text-caption font-caption text-subtext-color">
-                This information will be recorded and may be shared with
-                relevant team members.
+                {t('casePage.dialogs.decline.infoText')}
               </span>
             </div>
           </div>
@@ -104,14 +106,16 @@ const DeclineCaseDialog = ({
               onClick={handleClose}
               disabled={isLoading}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive-primary"
               onClick={handleConfirm}
               disabled={isLoading || !declineReason.trim()}
             >
-              {isLoading ? 'Declining...' : 'Confirm Decline'}
+              {isLoading
+                ? t('casePage.dialogs.decline.declining')
+                : t('casePage.dialogs.decline.confirmButton')}
             </Button>
           </div>
         </div>

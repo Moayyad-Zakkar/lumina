@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FeatherCheck, FeatherX } from '@subframe/core';
 import { Button } from '../Button';
 
@@ -8,6 +9,8 @@ const ApprovalConfirmDialog = ({
   onConfirm,
   isLoading = false,
 }) => {
+  const { t } = useTranslation();
+
   if (!isOpen) return null;
 
   return (
@@ -28,7 +31,7 @@ const ApprovalConfirmDialog = ({
                 <FeatherCheck className="w-4 h-4 text-green-600" />
               </div>
               <h2 className="text-heading-3 font-heading-3 text-default-font">
-                Confirm Treatment Plan Approval
+                {t('casePage.dialogs.approval.title')}
               </h2>
             </div>
             <button
@@ -43,15 +46,14 @@ const ApprovalConfirmDialog = ({
           {/* Content */}
           <div className="p-6">
             <p className="text-body font-body text-neutral-700">
-              Are you sure you want to approve this treatment plan? Once
-              approved, production will begin and the plan cannot be modified.
+              {t('casePage.dialogs.approval.message')}
             </p>
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
               <p className="text-body-bold font-body-bold text-green-800">
-                ✓ Treatment plan will be locked
+                {t('casePage.dialogs.approval.lockMessage')}
               </p>
               <p className="text-body font-body text-green-700 mt-1">
-                Production of your aligners will begin shortly after approval.
+                {t('casePage.dialogs.approval.productionMessage')}
               </p>
             </div>
           </div>
@@ -63,7 +65,7 @@ const ApprovalConfirmDialog = ({
               onClick={onClose}
               disabled={isLoading}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="brand-primary"
@@ -71,7 +73,9 @@ const ApprovalConfirmDialog = ({
               onClick={onConfirm}
               disabled={isLoading}
             >
-              {isLoading ? 'Approving...' : 'Confirm Approval'}
+              {isLoading
+                ? t('casePage.dialogs.approval.approving')
+                : t('casePage.dialogs.approval.confirmButton')}
             </Button>
           </div>
         </div>

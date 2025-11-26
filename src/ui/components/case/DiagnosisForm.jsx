@@ -1,24 +1,33 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextField } from '../TextField';
 import RadioGroup from '../RadioGroup';
 
 const DiagnosisForm = ({ formData, handleChange }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
       <span className="text-heading-3 font-heading-3 text-default-font">
-        Basic Diagnosis
+        {t('caseSubmit.diagnosis.title')}
       </span>
 
       {/* Upper Midline */}
       <div className="w-full">
         <div className="flex flex-col gap-4">
           <RadioGroup
-            label="Upper Midline"
+            label={t('caseSubmit.diagnosis.upperMidline')}
             name="upperMidline"
             options={[
-              { label: 'Centered', value: 'centered' },
-              { label: 'Shifted right', value: 'shifted_right' },
-              { label: 'Shifted left', value: 'shifted_left' },
+              { label: t('caseSubmit.diagnosis.centered'), value: 'centered' },
+              {
+                label: t('caseSubmit.diagnosis.shiftedRight'),
+                value: 'shifted_right',
+              },
+              {
+                label: t('caseSubmit.diagnosis.shiftedLeft'),
+                value: 'shifted_left',
+              },
             ]}
             selectedValue={formData.upperMidline}
             onChange={handleChange}
@@ -28,11 +37,11 @@ const DiagnosisForm = ({ formData, handleChange }) => {
             <div className="ml-6">
               <TextField
                 className="h-auto w-48 flex-none"
-                label="Shift Amount"
-                helpText="Enter shift in millimeters"
+                label={t('caseSubmit.diagnosis.shiftAmount')}
+                helpText={t('caseSubmit.diagnosis.shiftAmountHelp')}
               >
                 <TextField.Input
-                  placeholder="e.g., 2.5"
+                  placeholder={t('caseSubmit.diagnosis.shiftAmountPlaceholder')}
                   type="number"
                   step="0.1"
                   id="upperMidlineShift"
@@ -50,12 +59,18 @@ const DiagnosisForm = ({ formData, handleChange }) => {
       <div className="w-full">
         <div className="flex flex-col gap-4">
           <RadioGroup
-            label="Lower Midline"
+            label={t('caseSubmit.diagnosis.lowerMidline')}
             name="lowerMidline"
             options={[
-              { label: 'Centered', value: 'centered' },
-              { label: 'Shifted right', value: 'shifted_right' },
-              { label: 'Shifted left', value: 'shifted_left' },
+              { label: t('caseSubmit.diagnosis.centered'), value: 'centered' },
+              {
+                label: t('caseSubmit.diagnosis.shiftedRight'),
+                value: 'shifted_right',
+              },
+              {
+                label: t('caseSubmit.diagnosis.shiftedLeft'),
+                value: 'shifted_left',
+              },
             ]}
             selectedValue={formData.lowerMidline}
             onChange={handleChange}
@@ -65,11 +80,11 @@ const DiagnosisForm = ({ formData, handleChange }) => {
             <div className="ml-6">
               <TextField
                 className="h-auto w-48 flex-none"
-                label="Shift Amount"
-                helpText="Enter shift in millimeters"
+                label={t('caseSubmit.diagnosis.shiftAmount')}
+                helpText={t('caseSubmit.diagnosis.shiftAmountHelp')}
               >
                 <TextField.Input
-                  placeholder="e.g., 1.8"
+                  placeholder={t('caseSubmit.diagnosis.shiftAmountPlaceholder')}
                   type="number"
                   step="0.1"
                   id="lowerMidlineShift"
@@ -86,12 +101,12 @@ const DiagnosisForm = ({ formData, handleChange }) => {
       {/* Canine Relationship */}
       <div className="w-full">
         <span className="text-body-bold font-body-bold text-default-font mb-4 block">
-          Canine Relationship
+          {t('caseSubmit.diagnosis.canineRelationship')}
         </span>
         <div className="flex gap-8">
           <div className="flex flex-col gap-2">
             <span className="text-body font-body text-default-font">
-              Right Side
+              {t('caseSubmit.diagnosis.rightSide')}
             </span>
             <select
               name="canineRightClass"
@@ -99,15 +114,21 @@ const DiagnosisForm = ({ formData, handleChange }) => {
               onChange={handleChange}
               className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select class</option>
-              <option value="class_i">Class I</option>
-              <option value="class_ii">Class II</option>
-              <option value="class_iii">Class III</option>
+              <option value="">{t('caseSubmit.diagnosis.selectClass')}</option>
+              <option value="class_i">
+                {t('caseSubmit.diagnosis.classI')}
+              </option>
+              <option value="class_ii">
+                {t('caseSubmit.diagnosis.classII')}
+              </option>
+              <option value="class_iii">
+                {t('caseSubmit.diagnosis.classIII')}
+              </option>
             </select>
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-body font-body text-default-font">
-              Left Side
+              {t('caseSubmit.diagnosis.leftSide')}
             </span>
             <select
               name="canineLeftClass"
@@ -115,10 +136,16 @@ const DiagnosisForm = ({ formData, handleChange }) => {
               onChange={handleChange}
               className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select class</option>
-              <option value="class_i">Class I</option>
-              <option value="class_ii">Class II</option>
-              <option value="class_iii">Class III</option>
+              <option value="">{t('caseSubmit.diagnosis.selectClass')}</option>
+              <option value="class_i">
+                {t('caseSubmit.diagnosis.classI')}
+              </option>
+              <option value="class_ii">
+                {t('caseSubmit.diagnosis.classII')}
+              </option>
+              <option value="class_iii">
+                {t('caseSubmit.diagnosis.classIII')}
+              </option>
             </select>
           </div>
         </div>
@@ -127,12 +154,12 @@ const DiagnosisForm = ({ formData, handleChange }) => {
       {/* Molar Relationship */}
       <div className="w-full">
         <span className="text-body-bold font-body-bold text-default-font mb-4 block">
-          Molar Relationship
+          {t('caseSubmit.diagnosis.molarRelationship')}
         </span>
         <div className="flex gap-8">
           <div className="flex flex-col gap-2">
             <span className="text-body font-body text-default-font">
-              Right Side
+              {t('caseSubmit.diagnosis.rightSide')}
             </span>
             <select
               name="molarRightClass"
@@ -140,15 +167,21 @@ const DiagnosisForm = ({ formData, handleChange }) => {
               onChange={handleChange}
               className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select class</option>
-              <option value="class_i">Class I</option>
-              <option value="class_ii">Class II</option>
-              <option value="class_iii">Class III</option>
+              <option value="">{t('caseSubmit.diagnosis.selectClass')}</option>
+              <option value="class_i">
+                {t('caseSubmit.diagnosis.classI')}
+              </option>
+              <option value="class_ii">
+                {t('caseSubmit.diagnosis.classII')}
+              </option>
+              <option value="class_iii">
+                {t('caseSubmit.diagnosis.classIII')}
+              </option>
             </select>
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-body font-body text-default-font">
-              Left Side
+              {t('caseSubmit.diagnosis.leftSide')}
             </span>
             <select
               name="molarLeftClass"
@@ -156,10 +189,16 @@ const DiagnosisForm = ({ formData, handleChange }) => {
               onChange={handleChange}
               className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select class</option>
-              <option value="class_i">Class I</option>
-              <option value="class_ii">Class II</option>
-              <option value="class_iii">Class III</option>
+              <option value="">{t('caseSubmit.diagnosis.selectClass')}</option>
+              <option value="class_i">
+                {t('caseSubmit.diagnosis.classI')}
+              </option>
+              <option value="class_ii">
+                {t('caseSubmit.diagnosis.classII')}
+              </option>
+              <option value="class_iii">
+                {t('caseSubmit.diagnosis.classIII')}
+              </option>
             </select>
           </div>
         </div>
@@ -172,19 +211,19 @@ const DiagnosisForm = ({ formData, handleChange }) => {
             htmlFor="userNote"
             className="text-body-bold font-body-bold text-default-font"
           >
-            Additional Notes
+            {t('caseSubmit.diagnosis.additionalNotes')}
           </label>
           <textarea
             id="userNote"
             name="userNote"
             value={formData.userNote}
             onChange={handleChange}
-            placeholder="Enter any special instructions, patient history, or additional details..."
+            placeholder={t('caseSubmit.diagnosis.additionalNotesPlaceholder')}
             rows={4}
             className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[100px] placeholder:text-subtext-color"
           />
           <span className="text-caption font-caption text-subtext-color">
-            Add any additional information or special instructions for this case
+            {t('caseSubmit.diagnosis.additionalNotesHelp')}
           </span>
         </div>
       </div>

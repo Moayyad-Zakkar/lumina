@@ -357,6 +357,86 @@
     "refinementReason": "Refinement Reason",
     "printCaseInfo": "Print Case Info",
     "exportPDF": "Export PDF",
+    "caseNotFound": "Case not found.",
+    "caseNumber": "Case-{{id}}",
+    "refinementBadge": "Refinement #{{number}}",
+    "treatmentPlanReview": "Treatment Plan Review",
+    "declineReason": "Decline Reason",
+    "rejectionReason": "Rejection Reason",
+    "declinePlan": "Decline Plan",
+    "requestEdit": "Request Edit",
+    "approvePlan": "Approve Plan",
+    "dialogs": {
+      "approval": {
+        "title": "Confirm Treatment Plan Approval",
+        "message": "Are you sure you want to approve this treatment plan? Once approved, production will begin and the plan cannot be modified.",
+        "lockMessage": "✓ Treatment plan will be locked",
+        "productionMessage": "Production of your aligners will begin shortly after approval.",
+        "approving": "Approving...",
+        "confirmButton": "Confirm Approval"
+      },
+      "decline": {
+        "title": "Decline Case",
+        "message": "Please provide the reason of declining the treatment plan.",
+        "reasonLabel": "Decline Reason",
+        "reasonPlaceholder": "Enter the reason for declining this case...",
+        "reasonRequired": "Please provide a reason for declining this case.",
+        "infoText": "This information will be recorded and may be shared with relevant team members.",
+        "declining": "Declining...",
+        "confirmButton": "Confirm Decline"
+      },
+      "requestEdit": {
+        "title": "Request Treatment Plan Edit",
+        "subtitle": "Request changes to your treatment plan by selecting a different aligner material and adding notes.",
+        "changeMaterial": "Change Aligner Material",
+        "currentMaterial": "Current material:",
+        "materialDescription": "Select a different aligner material. Your case will be re-evaluated by the admin.",
+        "selectMaterial": "Select New Aligner Material",
+        "noMaterials": "No materials available",
+        "notesLabel": "Additional Notes (Optional)",
+        "notesDescription": "Add any specific requests or concerns about your treatment plan.",
+        "notesPlaceholder": "Enter any additional notes or requests for the admin...",
+        "notesHelp": "These notes will be visible to the admin reviewing your case.",
+        "warningTitle": "⚠️ Important Information",
+        "warningMessage": "Changing the aligner material will send your case back to 3DA for re-evaluation. You will need to approve the updated treatment plan once it's ready.",
+        "submitting": "Submitting...",
+        "submitButton": "Submit Edit Request"
+      }
+    },
+
+    "treatmentPlan": {
+      "upperJawAligners": "Upper Jaw Aligners",
+      "lowerJawAligners": "Lower Jaw Aligners",
+      "aligners": "Aligners",
+      "estimatedDuration": "Estimated Duration",
+      "months": "Months",
+      "caseStudyFee": "Case Study Fee",
+      "alignersPrice": "Aligners Price",
+      "deliveryCharges": "Delivery Charges",
+      "totalCost": "Total Cost",
+      "viewIPRChart": "View IPR Chart",
+      "adminNotes": "3DA Notes"
+    },
+
+    "toast": {
+      "planApproved": "Plan approved successfully",
+      "approveFailed": "Failed to approve plan",
+      "planDeclined": "Plan declined successfully",
+      "declineFailed": "Failed to decline plan",
+      "materialUpdatedReeval": "Material updated. Case is sent for re-evaluation by admin.",
+      "materialUpdated": "Material updated successfully.",
+      "updateMaterialFailed": "Failed to update material"
+    },
+
+    "statusMessages": {
+      "awaitingApproval": "Please review the treatment plan details and choose to approve, decline, or request edits.",
+      "approved": "Your plan is approved. Production will start soon.",
+      "inProduction": "Your aligners are currently being manufactured.",
+      "readyForDelivery": "Your aligners are ready for delivery.",
+      "delivered": "Your aligners have been delivered. Follow your treatment schedule.",
+      "completed": "Your treatment is completed.",
+      "userRejected": "You have declined the treatment plan."
+    },
     "alerts": {
       "submitted": {
         "title": "Review the case and accept it",
@@ -398,6 +478,98 @@
         "title": "Treatment plan was declined",
         "description": "This case's Treatment plan was declined by the doctor and the case is no longer active."
       }
+    }
+  },
+  "caseSubmit": {
+    "title": "Submit New Case",
+    "newCase": "New Case",
+    "submitCase": "Submit Case",
+    "submitting": "Submitting...",
+    "unknownDoctor": "Unknown Doctor",
+    "unknownPatient": "Unknown Patient",
+    "upperJawScan": "Upper Jaw Scan",
+    "lowerJawScan": "Lower Jaw Scan",
+    "biteScan": "Bite Scan",
+    "compressedScans": "Compressed Scans Archive",
+    "additionalFile": "Additional File {{number}}",
+
+    "patientInfo": {
+      "firstNameLabel": "First Name (required)",
+      "firstNamePlaceholder": "Enter patient's first name",
+      "lastNameLabel": "Last Name (required)",
+      "lastNamePlaceholder": "Enter patient's last name",
+      "urgentCase": "Urgent Case",
+      "deliveryDateLabel": "Required Delivery Date",
+      "deliveryDateHelp": "Select the latest acceptable delivery date",
+      "urgentNoticeTitle": "Urgent Case Notice",
+      "urgentNoticeDescription": "Urgent cases may incur additional fees and are subject to availability. We'll contact you to confirm the delivery timeline and any extra charges."
+    },
+
+    "treatmentOptions": {
+      "treatmentArch": "Treatment Arch",
+      "upperArch": "Upper arch",
+      "lowerArch": "Lower arch",
+      "bothArches": "Both arches",
+      "alignerMaterial": "Preferred Aligner Material"
+    },
+
+    "fileUpload": {
+      "requiredScans": "Required Scans",
+      "uploadMethod": "Choose Upload Method",
+      "individualFiles": "Individual Files (Upload each scan separately)",
+      "compressedArchive": "Compressed Archive (Upload all scans in one ZIP/RAR file)",
+      "individualTitle": "Individual Files",
+      "individualDescription": "Please upload each scan file separately. Ensure all scan files are in STL, OBJ, or PLY format.",
+      "upperJawLabel": "Upper Jaw Scan",
+      "lowerJawLabel": "Lower Jaw Scan",
+      "biteScanLabel": "Bite Scan",
+      "compressedTitle": "Compressed Archive Requirements",
+      "compressedDescription": "Upload a single ZIP or RAR file containing all three required scans: Upper Jaw, Lower Jaw, and Bite scans. Please name your files clearly (e.g., upper_jaw.stl, lower_jaw.stl, bite.stl) for easy identification.",
+      "compressedLabel": "Compressed Scan Archive",
+      "additionalFiles": "Additional Files (Optional)",
+      "filesSelected": "{{count}} file(s) selected"
+    },
+
+    "diagnosis": {
+      "title": "Basic Diagnosis",
+      "upperMidline": "Upper Midline",
+      "lowerMidline": "Lower Midline",
+      "centered": "Centered",
+      "shiftedRight": "Shifted right",
+      "shiftedLeft": "Shifted left",
+      "shiftAmount": "Shift Amount",
+      "shiftAmountHelp": "Enter shift in millimeters",
+      "shiftAmountPlaceholder": "e.g., 2.5",
+      "canineRelationship": "Canine Relationship",
+      "molarRelationship": "Molar Relationship",
+      "rightSide": "Right Side",
+      "leftSide": "Left Side",
+      "selectClass": "Select class",
+      "classI": "Class I",
+      "classII": "Class II",
+      "classIII": "Class III",
+      "additionalNotes": "Additional Notes",
+      "additionalNotesPlaceholder": "Enter any special instructions, patient history, or additional details...",
+      "additionalNotesHelp": "Add any additional information or special instructions for this case"
+    },
+
+    "errors": {
+      "authRequired": "User must be authenticated to submit a case",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "deliveryDateRequired": "Delivery date is required for urgent cases",
+      "deliveryDateFuture": "Delivery date must be in the future",
+      "scanRequired": "{{scan}} is required",
+      "compressedRequired": "Compressed scan archive is required",
+      "maxFilesExceeded": "Maximum of 5 additional files allowed",
+      "fileTooLarge": "File is too large. Maximum file size is 100MB.",
+      "invalidFileType": "Invalid file type. Allowed types are: {{types}}",
+      "uploadFailed": "Upload failed",
+      "unexpected": "An unexpected error occurred"
+    },
+
+    "success": {
+      "submitted": "Case submitted successfully!"
     }
   }
 }

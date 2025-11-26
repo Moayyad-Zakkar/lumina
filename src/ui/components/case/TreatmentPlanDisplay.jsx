@@ -1,4 +1,6 @@
 import React from 'react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DataFieldHorizontal } from '../DataFieldHorizontal';
 import { Badge } from '../Badge';
 import {
@@ -11,10 +13,11 @@ import {
 } from '@subframe/core';
 import { Button } from '../Button';
 import IPRChartViewer from '../IPRChartViewer';
-import { useState } from 'react';
 
 const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
+  const { t } = useTranslation();
   const [isIPROpen, setIsIPROpen] = useState(false);
+
   if (!showPlanSection) return null;
 
   const handleViewerClick = () => {
@@ -29,29 +32,36 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
           <DataFieldHorizontal
             icon={<FeatherGrid />}
-            label="Upper Jaw Aligners"
+            label={t('casePage.treatmentPlan.upperJawAligners')}
           >
-            <Badge>{caseData.upper_jaw_aligners ?? '—'} Aligners</Badge>
+            <Badge>
+              {caseData.upper_jaw_aligners ?? '—'}{' '}
+              {t('casePage.treatmentPlan.aligners')}
+            </Badge>
           </DataFieldHorizontal>
           <DataFieldHorizontal
             icon={<FeatherGrid />}
-            label="Lower Jaw Aligners"
+            label={t('casePage.treatmentPlan.lowerJawAligners')}
           >
-            <Badge>{caseData.lower_jaw_aligners ?? '—'} Aligners</Badge>
+            <Badge>
+              {caseData.lower_jaw_aligners ?? '—'}{' '}
+              {t('casePage.treatmentPlan.aligners')}
+            </Badge>
           </DataFieldHorizontal>
           <DataFieldHorizontal
             icon={<FeatherClock />}
-            label="Estimated Duration"
+            label={t('casePage.treatmentPlan.estimatedDuration')}
           >
             <span className="whitespace-nowrap text-body font-body text-default-font">
-              {caseData.estimated_duration_months ?? '—'} Months
+              {caseData.estimated_duration_months ?? '—'}{' '}
+              {t('casePage.treatmentPlan.months')}
             </span>
           </DataFieldHorizontal>
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
           <DataFieldHorizontal
             icon={<FeatherDollarSign />}
-            label="Case Study Fee"
+            label={t('casePage.treatmentPlan.caseStudyFee')}
           >
             <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
               $
@@ -60,7 +70,10 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
                 : '0'}
             </span>
           </DataFieldHorizontal>
-          <DataFieldHorizontal icon={<FeatherGrid />} label="Aligners Price">
+          <DataFieldHorizontal
+            icon={<FeatherGrid />}
+            label={t('casePage.treatmentPlan.alignersPrice')}
+          >
             <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
               $
               {caseData.aligners_price
@@ -70,7 +83,7 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
           </DataFieldHorizontal>
           <DataFieldHorizontal
             icon={<FeatherPlusCircle />}
-            label="Delivery Charges"
+            label={t('casePage.treatmentPlan.deliveryCharges')}
           >
             <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
               $
@@ -79,7 +92,10 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
                 : '0'}
             </span>
           </DataFieldHorizontal>
-          <DataFieldHorizontal icon={<FeatherCalculator />} label="Total Cost">
+          <DataFieldHorizontal
+            icon={<FeatherCalculator />}
+            label={t('casePage.treatmentPlan.totalCost')}
+          >
             <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
               $
               {caseData.total_cost
@@ -98,13 +114,12 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
             icon={<FeatherEye />}
             className="w-auto"
           >
-            Open 3DA Viewer
+            {t('casePage.openViewer')}
           </Button>
         </div>
       )}
 
       {/* View IPR Button */}
-
       {caseData.ipr_data && Object.keys(caseData.ipr_data).length > 0 && (
         <div className="mt-8">
           <Button
@@ -112,7 +127,7 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
             icon={<FeatherEye />}
             className="w-auto"
           >
-            View IPR Chart
+            {t('casePage.treatmentPlan.viewIPRChart')}
           </Button>
           <IPRChartViewer
             toothStatus={caseData.tooth_status || {}}
@@ -128,7 +143,7 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
         <>
           <div className="flex w-full items-center justify-between">
             <span className="text-heading-3 font-heading-3 text-default-font">
-              3DA Notes
+              {t('casePage.treatmentPlan.adminNotes')}
             </span>
           </div>
           <div className="w-full">

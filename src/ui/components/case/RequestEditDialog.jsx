@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FeatherEdit3,
   FeatherRefreshCw,
@@ -18,6 +19,7 @@ const RequestEditDialog = ({
   saving,
   caseData,
 }) => {
+  const { t } = useTranslation();
   const [showMaterialEdit, setShowMaterialEdit] = useState(false);
   const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [selectedMaterial, setSelectedMaterial] = useState('');
@@ -98,11 +100,10 @@ const RequestEditDialog = ({
 
             <div className="flex-1">
               <h3 className="text-heading-3 font-heading-3 text-default-font">
-                Request Treatment Plan Edit
+                {t('casePage.dialogs.requestEdit.title')}
               </h3>
               <p className="mt-1 text-body font-body text-subtext-color">
-                Request changes to your treatment plan by selecting a different
-                aligner material and adding notes.
+                {t('casePage.dialogs.requestEdit.subtitle')}
               </p>
             </div>
 
@@ -125,7 +126,7 @@ const RequestEditDialog = ({
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h4 className="text-body-bold font-body-bold text-default-font">
-                    Change Aligner Material
+                    {t('casePage.dialogs.requestEdit.changeMaterial')}
                   </h4>
                   {showMaterialEdit ? (
                     <FeatherChevronUp className="w-5 h-5 text-subtext-color" />
@@ -134,14 +135,13 @@ const RequestEditDialog = ({
                   )}
                 </div>
                 <p className="text-body font-body text-subtext-color mt-1">
-                  Current material:{' '}
+                  {t('casePage.dialogs.requestEdit.currentMaterial')}{' '}
                   <span className="font-semibold">
-                    {caseData?.aligner_material || 'Not specified'}
+                    {caseData?.aligner_material || t('casePage.notSpecified')}
                   </span>
                 </p>
                 <p className="text-body font-body text-subtext-color mt-1">
-                  Select a different aligner material. Your case will be
-                  re-evaluated by the admin.
+                  {t('casePage.dialogs.requestEdit.materialDescription')}
                 </p>
               </div>
             </div>
@@ -155,7 +155,7 @@ const RequestEditDialog = ({
                   </div>
                 ) : alignerMaterials.length > 0 ? (
                   <RadioGroup
-                    label="Select New Aligner Material"
+                    label={t('casePage.dialogs.requestEdit.selectMaterial')}
                     name="alignerMaterial"
                     options={alignerMaterials.map((mat) => ({
                       label: mat.name,
@@ -166,7 +166,7 @@ const RequestEditDialog = ({
                   />
                 ) : (
                   <p className="text-body font-body text-subtext-color">
-                    No materials available
+                    {t('casePage.dialogs.requestEdit.noMaterials')}
                   </p>
                 )}
               </div>
@@ -180,22 +180,22 @@ const RequestEditDialog = ({
                 htmlFor="userNote"
                 className="text-body-bold font-body-bold text-default-font"
               >
-                Additional Notes (Optional)
+                {t('casePage.dialogs.requestEdit.notesLabel')}
               </label>
               <p className="text-body font-body text-subtext-color -mt-1 mb-2">
-                Add any specific requests or concerns about your treatment plan.
+                {t('casePage.dialogs.requestEdit.notesDescription')}
               </p>
               <textarea
                 id="userNote"
                 value={userNote}
                 onChange={(e) => setUserNote(e.target.value)}
-                placeholder="Enter any additional notes or requests for the admin..."
+                placeholder={t('casePage.dialogs.requestEdit.notesPlaceholder')}
                 rows={4}
                 disabled={saving}
                 className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 resize-vertical min-h-[100px] placeholder:text-subtext-color disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="text-caption font-caption text-subtext-color">
-                These notes will be visible to the admin reviewing your case.
+                {t('casePage.dialogs.requestEdit.notesHelp')}
               </span>
             </div>
           </div>
@@ -203,12 +203,10 @@ const RequestEditDialog = ({
           {/* Info Box */}
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
             <p className="text-body-bold font-body-bold text-amber-800">
-              ⚠️ Important Information
+              {t('casePage.dialogs.requestEdit.warningTitle')}
             </p>
             <p className="text-body font-body text-amber-700 mt-1">
-              Changing the aligner material will send your case back to 3DA for
-              re-evaluation. You will need to approve the updated treatment plan
-              once it's ready.
+              {t('casePage.dialogs.requestEdit.warningMessage')}
             </p>
           </div>
 
@@ -219,7 +217,7 @@ const RequestEditDialog = ({
               onClick={handleClose}
               disabled={saving}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="brand-primary"
@@ -231,7 +229,9 @@ const RequestEditDialog = ({
                 selectedMaterial === caseData?.aligner_material
               }
             >
-              {saving ? 'Submitting...' : 'Submit Edit Request'}
+              {saving
+                ? t('casePage.dialogs.requestEdit.submitting')
+                : t('casePage.dialogs.requestEdit.submitButton')}
             </Button>
           </div>
         </div>

@@ -1,19 +1,22 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextField } from '../TextField';
 import { Alert } from '../Alert';
 
 const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
       <div className="flex w-full items-start gap-4">
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
           <TextField
             className="h-auto w-full flex-none"
-            label="First Name (required)"
+            label={t('caseSubmit.patientInfo.firstNameLabel')}
             helpText=""
           >
             <TextField.Input
-              placeholder="Enter patient's first name"
+              placeholder={t('caseSubmit.patientInfo.firstNamePlaceholder')}
               type="text"
               id="firstName"
               name="firstName"
@@ -26,11 +29,11 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
           <TextField
             className="h-auto w-full flex-none"
-            label="Last Name (required)"
+            label={t('caseSubmit.patientInfo.lastNameLabel')}
             helpText=""
           >
             <TextField.Input
-              placeholder="Enter patient's last name"
+              placeholder={t('caseSubmit.patientInfo.lastNamePlaceholder')}
               type="text"
               id="lastName"
               name="lastName"
@@ -57,7 +60,7 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
             htmlFor="isUrgent"
             className="text-body-bold font-body-bold text-default-font cursor-pointer"
           >
-            Urgent Case
+            {t('caseSubmit.patientInfo.urgentCase')}
           </label>
         </div>
 
@@ -65,8 +68,8 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
           <div className="ml-7 w-full max-w-xs">
             <TextField
               className="h-auto w-full flex-none"
-              label="Required Delivery Date"
-              helpText="Select the latest acceptable delivery date"
+              label={t('caseSubmit.patientInfo.deliveryDateLabel')}
+              helpText={t('caseSubmit.patientInfo.deliveryDateHelp')}
             >
               <TextField.Input
                 type="date"
@@ -85,8 +88,8 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
         {formData.isUrgent && (
           <div className="ml-7">
             <Alert
-              title="Urgent Case Notice"
-              description="Urgent cases may incur additional fees and are subject to availability. We'll contact you to confirm the delivery timeline and any extra charges."
+              title={t('caseSubmit.patientInfo.urgentNoticeTitle')}
+              description={t('caseSubmit.patientInfo.urgentNoticeDescription')}
             />
           </div>
         )}

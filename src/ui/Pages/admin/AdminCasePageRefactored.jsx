@@ -63,8 +63,6 @@ const AdminCasePageRefactored = () => {
   const {
     currentStatus,
     saving,
-    actionError,
-    actionSuccess,
     caseStudyFee,
     setCaseStudyFee,
     alignerUnitPrice,

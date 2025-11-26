@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLoaderData } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { Button } from '../components/Button';
 import { Alert } from '../components/Alert';
@@ -40,6 +41,7 @@ import DeclineCaseDialog from '../components/case/DeclineCaseDialog';
 import RequestEditDialog from '../components/case/RequestEditDialog';
 
 const CasePageRefactored = () => {
+  const { t } = useTranslation();
   const { caseData, error } = useLoaderData();
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -108,7 +110,7 @@ const CasePageRefactored = () => {
   }
 
   if (!caseData) {
-    return <p className="text-neutral-500">Case not found.</p>;
+    return <p className="text-neutral-500">{t('casePage.caseNotFound')}</p>;
   }
 
   const approvePlan = async () => {
@@ -122,10 +124,10 @@ const CasePageRefactored = () => {
       if (updateError) throw updateError;
       setStatus('approved');
       setIsApprovalConfirmOpen(false);
-      toast.success('Plan approved successfully');
+      toast.success(t('casePage.toast.planApproved'));
     } catch (e) {
-      setActionError(e.message || 'Failed to approve plan');
-      toast.error(e.message || 'Failed to approve plan');
+      setActionError(e.message || t('casePage.toast.approveFailed'));
+      toast.error(e.message || t('casePage.toast.approveFailed'));
     } finally {
       setSaving(false);
     }
@@ -148,10 +150,10 @@ const CasePageRefactored = () => {
       if (updateError) throw updateError;
       setStatus('user_rejected');
       setIsDeclineDialogOpen(false);
-      toast.success('Plan declined successfully');
+      toast.success(t('casePage.toast.planDeclined'));
     } catch (e) {
-      setActionError(e.message || 'Failed to decline plan');
-      toast.error(e.message || 'Failed to decline plan');
+      setActionError(e.message || t('casePage.toast.declineFailed'));
+      toast.error(e.message || t('casePage.toast.declineFailed'));
     } finally {
       setSaving(false);
     }
@@ -188,19 +190,38 @@ const CasePageRefactored = () => {
       // Update local state
       if (materialChanged) {
         setStatus('accepted');
-        toast.success(
-          'Material updated. Case is sent for re-evaluation by admin.'
-        );
+        toast.success(t('casePage.toast.materialUpdatedReeval'));
       } else {
-        toast.success('Material updated successfully.');
+        toast.success(t('casePage.toast.materialUpdated'));
       }
 
       setIsRequestEditOpen(false);
     } catch (e) {
-      setActionError(e.message || 'Failed to update material');
-      toast.error(e.message || 'Failed to update material');
+      setActionError(e.message || t('casePage.toast.updateMaterialFailed'));
+      toast.error(e.message || t('casePage.toast.updateMaterialFailed'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const getStatusMessage = () => {
+    switch (status) {
+      case 'awaiting_user_approval':
+        return t('casePage.statusMessages.awaitingApproval');
+      case 'approved':
+        return t('casePage.statusMessages.approved');
+      case 'in_production':
+        return t('casePage.statusMessages.inProduction');
+      case 'ready_for_delivery':
+        return t('casePage.statusMessages.readyForDelivery');
+      case 'delivered':
+        return t('casePage.statusMessages.delivered');
+      case 'completed':
+        return t('casePage.statusMessages.completed');
+      case 'user_rejected':
+        return t('casePage.statusMessages.userRejected');
+      default:
+        return '';
     }
   };
 
@@ -209,20 +230,24 @@ const CasePageRefactored = () => {
       <div className="flex w-full flex-col items-start gap-2">
         <Breadcrumbs>
           <Link to="/app/cases">
-            <Breadcrumbs.Item>Cases</Breadcrumbs.Item>
+            <Breadcrumbs.Item>{t('navigation.cases')}</Breadcrumbs.Item>
           </Link>
           <Breadcrumbs.Divider />
-          <Breadcrumbs.Item active={true}>Case Details</Breadcrumbs.Item>
+          <Breadcrumbs.Item active={true}>
+            {t('casePage.caseDetails')}
+          </Breadcrumbs.Item>
         </Breadcrumbs>
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="text-heading-2 font-heading-2 text-default-font">
-              Case-{caseData.id}
+              {t('casePage.caseNumber', { id: caseData.id })}
             </span>
             <CaseStatusBadge status={status} />
             {caseData.parent_case_id && (
               <Badge variant="brand" icon={<FeatherRefreshCw />}>
-                Refinement #{caseData.refinement_number || 1}
+                {t('casePage.refinementBadge', {
+                  number: caseData.refinement_number || 1,
+                })}
               </Badge>
             )}
           </div>
@@ -234,7 +259,7 @@ const CasePageRefactored = () => {
                 asChild
               >
                 <Link to={`/app/cases/${caseData.parent_case_id}`}>
-                  View Original Case
+                  {t('casePage.viewOriginalCase')}
                 </Link>
               </Button>
             )}
@@ -245,12 +270,12 @@ const CasePageRefactored = () => {
               disabled={downloadingFiles.size > 0}
             >
               {downloadingFiles.size > 0
-                ? 'Downloading...'
-                : 'Download All Files'}
+                ? t('casePage.downloading')
+                : t('casePage.downloadFiles')}
             </Button>
             {caseHasViewer && (
               <Button onClick={handleViewerClick} icon={<FeatherEye />}>
-                Open 3DA Viewer
+                {t('casePage.openViewer')}
               </Button>
             )}
           </div>
@@ -278,8 +303,8 @@ const CasePageRefactored = () => {
                 <FeatherAlertTriangle className="w-5 h-5 text-red-600" />
                 <span className="text-heading-3 font-heading-3 text-red-900">
                   {status === 'user_rejected'
-                    ? 'Decline Reason'
-                    : 'Rejection Reason'}
+                    ? t('casePage.declineReason')
+                    : t('casePage.rejectionReason')}
                 </span>
               </div>
               <div className="w-full bg-white border border-red-200 rounded-md p-4 shadow-sm">
@@ -306,7 +331,7 @@ const CasePageRefactored = () => {
         {/* Dental Chart */}
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
-            Dental Chart
+            {t('casePage.dentalChart')}
           </span>
           <div className="flex w-full justify-center">
             <DentalChart
@@ -326,7 +351,7 @@ const CasePageRefactored = () => {
         {showPlanSection && (
           <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
             <span className="text-heading-3 font-heading-3 text-default-font">
-              Treatment Plan Review
+              {t('casePage.treatmentPlanReview')}
             </span>
             {actionError && <Error error={actionError} />}
             <div className="flex w-full flex-col items-start gap-6">
@@ -339,21 +364,7 @@ const CasePageRefactored = () => {
               <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
               <div className="flex w-full items-center justify-between">
                 <span className="text-body font-body text-subtext-color">
-                  {status === 'awaiting_user_approval'
-                    ? 'Please review the treatment plan details and choose to approve, decline, or request edits.'
-                    : status === 'approved'
-                    ? 'Your plan is approved. Production will start soon.'
-                    : status === 'in_production'
-                    ? 'Your aligners are currently being manufactured.'
-                    : status === 'ready_for_delivery'
-                    ? 'Your aligners are ready for delivery.'
-                    : status === 'delivered'
-                    ? 'Your aligners have been delivered. Follow your treatment schedule.'
-                    : status === 'completed'
-                    ? 'Your treatment is completed.'
-                    : status === 'user_rejected'
-                    ? 'You have declined the treatment plan.'
-                    : ''}
+                  {getStatusMessage()}
                 </span>
                 <div className="flex items-center gap-2">
                   {status === 'awaiting_user_approval' && (
@@ -364,7 +375,7 @@ const CasePageRefactored = () => {
                         disabled={saving}
                         onClick={() => setIsDeclineDialogOpen(true)}
                       >
-                        Decline Plan
+                        {t('casePage.declinePlan')}
                       </Button>
                       <Button
                         variant="neutral-secondary"
@@ -372,7 +383,7 @@ const CasePageRefactored = () => {
                         disabled={saving}
                         onClick={() => setIsRequestEditOpen(true)}
                       >
-                        Request Edit
+                        {t('casePage.requestEdit')}
                       </Button>
                       <Button
                         variant="brand-primary"
@@ -380,7 +391,7 @@ const CasePageRefactored = () => {
                         disabled={saving}
                         onClick={() => setIsApprovalConfirmOpen(true)}
                       >
-                        Approve Plan
+                        {t('casePage.approvePlan')}
                       </Button>
                     </>
                   )}

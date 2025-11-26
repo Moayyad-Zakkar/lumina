@@ -1,18 +1,21 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert } from '../Alert';
 
 const FileUploadSection = ({ formData, handleChange }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
       <span className="text-heading-3 font-heading-3 text-default-font">
-        Required Scans
+        {t('caseSubmit.fileUpload.requiredScans')}
       </span>
 
       {/* Upload Method Selection */}
       <div className="w-full border-b border-neutral-border pb-4">
         <fieldset className="flex flex-col gap-3">
           <legend className="text-body-bold font-body-bold text-default-font mb-3">
-            Choose Upload Method
+            {t('caseSubmit.fileUpload.uploadMethod')}
           </legend>
           <label className="flex items-center gap-3 cursor-pointer text-body font-body text-default-font">
             <input
@@ -23,7 +26,7 @@ const FileUploadSection = ({ formData, handleChange }) => {
               onChange={handleChange}
               className="accent-blue-600 w-4 h-4"
             />
-            <span>Individual Files (Upload each scan separately)</span>
+            <span>{t('caseSubmit.fileUpload.individualFiles')}</span>
           </label>
           <label className="flex items-center gap-3 cursor-pointer text-body font-body text-default-font">
             <input
@@ -34,9 +37,7 @@ const FileUploadSection = ({ formData, handleChange }) => {
               onChange={handleChange}
               className="accent-blue-600 w-4 h-4"
             />
-            <span>
-              Compressed Archive (Upload all scans in one ZIP/RAR file)
-            </span>
+            <span>{t('caseSubmit.fileUpload.compressedArchive')}</span>
           </label>
         </fieldset>
       </div>
@@ -44,8 +45,8 @@ const FileUploadSection = ({ formData, handleChange }) => {
       {formData.uploadMethod === 'individual' && (
         <>
           <Alert
-            title="Individual Files"
-            description="Please upload each scan file separately. Ensure all scan files are in STL, OBJ, or PLY format."
+            title={t('caseSubmit.fileUpload.individualTitle')}
+            description={t('caseSubmit.fileUpload.individualDescription')}
           />
 
           <div>
@@ -53,7 +54,8 @@ const FileUploadSection = ({ formData, handleChange }) => {
               htmlFor="upperJawScan"
               className="block text-sm font-medium text-gray-700"
             >
-              Upper Jaw Scan <span className="text-red-500">*</span>
+              {t('caseSubmit.fileUpload.upperJawLabel')}{' '}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -75,7 +77,8 @@ const FileUploadSection = ({ formData, handleChange }) => {
               htmlFor="lowerJawScan"
               className="block text-sm font-medium text-gray-700"
             >
-              Lower Jaw Scan <span className="text-red-500">*</span>
+              {t('caseSubmit.fileUpload.lowerJawLabel')}{' '}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -97,7 +100,8 @@ const FileUploadSection = ({ formData, handleChange }) => {
               htmlFor="biteScan"
               className="block text-sm font-medium text-gray-700"
             >
-              Bite Scan <span className="text-red-500">*</span>
+              {t('caseSubmit.fileUpload.biteScanLabel')}{' '}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -119,8 +123,8 @@ const FileUploadSection = ({ formData, handleChange }) => {
       {formData.uploadMethod === 'compressed' && (
         <>
           <Alert
-            title="Compressed Archive Requirements"
-            description="Upload a single ZIP or RAR file containing all three required scans: Upper Jaw, Lower Jaw, and Bite scans. Please name your files clearly (e.g., upper_jaw.stl, lower_jaw.stl, bite.stl) for easy identification."
+            title={t('caseSubmit.fileUpload.compressedTitle')}
+            description={t('caseSubmit.fileUpload.compressedDescription')}
           />
 
           <div>
@@ -128,7 +132,8 @@ const FileUploadSection = ({ formData, handleChange }) => {
               htmlFor="compressedScans"
               className="block text-sm font-medium text-gray-700"
             >
-              Compressed Scan Archive <span className="text-red-500">*</span>
+              {t('caseSubmit.fileUpload.compressedLabel')}{' '}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -153,7 +158,7 @@ const FileUploadSection = ({ formData, handleChange }) => {
           htmlFor="additionalFiles"
           className="block text-sm font-medium text-gray-700"
         >
-          Additional Files (Optional)
+          {t('caseSubmit.fileUpload.additionalFiles')}
         </label>
         <input
           type="file"
@@ -170,7 +175,9 @@ const FileUploadSection = ({ formData, handleChange }) => {
         />
         {formData.additionalFiles.length > 0 && (
           <div className="mt-2 text-sm text-gray-500">
-            {formData.additionalFiles.length} file(s) selected
+            {t('caseSubmit.fileUpload.filesSelected', {
+              count: formData.additionalFiles.length,
+            })}
           </div>
         )}
       </div>

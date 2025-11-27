@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../Button';
 import Error from '../Error';
 import { FeatherEdit3, FeatherSave, FeatherFileText } from '@subframe/core';
@@ -15,12 +16,14 @@ const CaseNotes = ({
   caseData,
   isAdmin = false,
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
       <div className="flex w-full items-center gap-2">
         <FeatherFileText className="h-5 w-5 text-neutral-600" />
         <span className="text-heading-3 font-heading-3 text-default-font">
-          {isAdmin ? 'Doctor Notes' : 'Case Notes'}
+          {isAdmin ? t('casePage.caseNotes.doctorNotes') : t('casePage.caseNotes.caseNotes')}
         </span>
       </div>
 
@@ -38,7 +41,7 @@ const CaseNotes = ({
                 htmlFor="noteTextarea"
                 className="text-body-bold font-body-bold text-default-font"
               >
-                Additional Notes
+                {t('casePage.caseNotes.additionalNotes')}
               </label>
               <textarea
                 id="noteTextarea"
@@ -46,8 +49,8 @@ const CaseNotes = ({
                 onChange={(e) => setNoteText(e.target.value)}
                 placeholder={
                   isAdmin
-                    ? 'Enter any special instructions, internal comments, etc...'
-                    : 'Enter any special instructions, patient history, or additional details...'
+                    ? t('casePage.caseNotes.adminPlaceholder')
+                    : t('casePage.caseNotes.userPlaceholder')
                 }
                 rows={6}
                 className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[120px] placeholder:text-subtext-color"
@@ -55,8 +58,8 @@ const CaseNotes = ({
               />
               <span className="text-caption font-caption text-subtext-color">
                 {isAdmin
-                  ? 'Add any additional information or internal notes about this case.'
-                  : 'Add any additional information or special instructions for this case'}
+                  ? t('casePage.caseNotes.adminHelp')
+                  : t('casePage.caseNotes.userHelp')}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -66,7 +69,7 @@ const CaseNotes = ({
                 disabled={noteSaving}
                 size="small"
               >
-                {noteSaving ? 'Saving...' : 'Save Note'}
+                {noteSaving ? t('casePage.caseNotes.saving') : t('casePage.caseNotes.saveNote')}
               </Button>
               <Button
                 variant="neutral-secondary"
@@ -74,7 +77,7 @@ const CaseNotes = ({
                 disabled={noteSaving}
                 size="small"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
@@ -88,7 +91,7 @@ const CaseNotes = ({
               </div>
             ) : (
               <div className="w-full bg-neutral-50 text-sm text-neutral-500 rounded-md p-3">
-                No notes added yet
+                {t('casePage.caseNotes.noNotes')}
               </div>
             )}
           </div>

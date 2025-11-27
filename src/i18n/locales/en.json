@@ -37,7 +37,7 @@
     "hello": "Hello, Dr.",
     "totalCases": "TOTAL CASES",
     "pendingReview": "PENDING REVIEW",
-    "completedBy3DA": "COMPLETED BY 3DA",
+    "completedBy3DA": "COMPLETED",
     "recentCases": "Recent Cases",
     "paymentOverview": "Payment Overview",
     "noCases": "No recent cases.",
@@ -108,264 +108,399 @@
     "searchDoctors": "Search doctors...",
     "transactionLog": "Transaction Log",
     "receivePayment": "Receive Payment",
-    "makePayment": "Make Payment"
-  },
-  "signUpRequests": {
-    "title": "Sign Up Requests",
-    "subtitle": "Review and approve new user registrations",
-    "name": "Name",
-    "email": "Email",
-    "clinic": "Clinic",
-    "phone": "Phone",
-    "status": "Status",
-    "date": "Date",
-    "noRequests": "No sign-up requests found",
-    "reviewRequest": "Review Sign-Up Request",
-    "fullName": "Full Name",
-    "clinicName": "Clinic Name",
-    "phoneNumber": "Phone Number",
-    "clinicAddress": "Clinic Address",
-    "setPassword": "Set Password",
-    "passwordRequired": "Password must be at least 6 characters",
-    "passwordPlaceholder": "Enter password for user",
-    "passwordHint": "Minimum 6 characters. Make sure to save this password.",
-    "approveAndCreate": "Approve & Create Account",
-    "creatingAccount": "Creating Account...",
-    "createUser": "Create User",
-    "userCreatedSuccess": "User account created successfully!",
-    "confirmReject": "Are you sure you want to reject this request?",
-    "statusPending": "Pending",
-    "statusApproved": "Approved",
-    "statusRejected": "Rejected"
-  },
-  "settings": {
-    "title": "Settings",
-    "adminSettings": "Admin Settings",
-    "subtitle": "Manage your account and preferences",
-    "adminSubtitle": "Manage your account security and service options",
-    "language": "Language",
-    "selectLanguage": "Select Language",
-    "english": "English",
-    "arabic": "Arabic",
-    "currentLanguage": "Current Language",
-    "updateEmail": "Update Email",
-    "newEmail": "New Email",
-    "emailDescription": "Change the email address you use to sign in",
-    "emailPlaceholder": "Enter new email",
-    "changePassword": "Change Password",
-    "currentPassword": "Current Password",
-    "newPassword": "New Password",
-    "confirmPassword": "Confirm Password",
-    "passwordDescription": "Set a new password for your account",
-    "passwordPlaceholder": "Enter new password",
-    "currentPasswordPlaceholder": "Enter current password",
-    "confirmPasswordPlaceholder": "Confirm new password",
-    "updatePassword": "Update Password",
-    "accountSecurity": "Account Security",
-    "contactInformation": "Contact Information",
-    "emailAddress": "Email Address",
-    "phoneNumber": "Phone Number",
-    "updateContactInfo": "Update Contact Info",
-    "serviceManagement": "Service Management",
-    "caseStudyFee": "Case Study Fee",
-    "caseStudyFeeDescription": "This fee is charged when a new case is accepted.",
-    "amountUSD": "Amount (USD)",
-    "saveFee": "Save Fee",
-    "alignerMaterials": "Aligner Materials",
-    "services": "Services",
-
-    "errors": {
-      "invalidEmail": "Please enter a valid email address.",
-      "passwordTooShort": "Password must be at least 6 characters.",
-      "passwordMismatch": "New password and confirmation do not match.",
-      "fillAllFields": "Please fill all password fields",
-      "incorrectPassword": "Current password is incorrect"
-    },
-    "success": {
-      "emailUpdated": "Email updated successfully.",
-      "passwordUpdated": "Password updated successfully.",
-      "contactUpdated": "Contact info updated",
-      "phoneUpdated": "Phone updated",
-      "feeUpdated": "Case acceptance fee updated",
-      "preferencesSaved": "Preferences saved"
-    }
-  },
-  "auth": {
-    "signIn": "Sign In",
-    "signUp": "Sign Up",
-    "signOut": "Sign Out",
-    "email": "Email",
-    "password": "Password",
-    "forgotPassword": "Forgot Password?",
-    "dontHaveAccount": "Don't have an account?",
-    "alreadyHaveAccount": "Already have an account?"
-  },
-  "profile": {
-    "title": "Profile Settings",
-    "subtitle": "Manage your personal information and contact details",
-    "profilePhoto": "Profile Photo",
-    "avatarDescription": "Upload a profile picture or avatar",
-    "personalInformation": "Personal Information",
-    "personalInfoDescription": "Update your personal details and contact information",
-    "fullName": "Full Name",
-    "fullNamePlaceholder": "Enter your full name",
-    "email": "Email",
-    "emailPlaceholder": "Your Email",
-    "phoneNumber": "Phone Number",
-    "phonePlaceholder": "Enter your phone number",
-    "clinicName": "Clinic Name",
-    "clinicPlaceholder": "Enter your clinic name",
-    "clinicAddress": "Clinic Address",
-    "addressPlaceholder": "Enter your clinic address",
-    "saveChanges": "Save Changes",
-    "errors": {
-      "fetchFailed": "Failed to load profile",
-      "updateFailed": "Failed to update profile",
-      "avatarFailed": "Failed to upload avatar"
-    },
-    "success": {
-      "updated": "Profile updated successfully!",
-      "avatarUpdated": "Avatar updated successfully"
-    }
-  },
-  "transactions": {
-    "title": "Transaction Log",
-    "subtitle": "View all payment and expense transactions",
-    "exportCSV": "Export CSV",
-    "searchPlaceholder": "Search by name, email, clinic, or transaction ID...",
-    "noTransactions": "No transactions found matching your filters",
-    "showing": "Showing",
-    "of": "of",
-    "transactions": "transactions",
-    "processedBy": "Processed by",
-    "paymentReceived": "Payment",
-    "expense": "Expense",
-    "stats": {
-      "totalTransactions": "TOTAL TRANSACTIONS",
-      "totalRevenue": "TOTAL REVENUE",
-      "totalExpenses": "TOTAL EXPENSES",
-      "netIncome": "NET INCOME"
-    },
-    "filters": {
-      "allTypes": "All Types",
-      "paymentsReceived": "Payments Received",
-      "expenses": "Expenses",
-      "allTime": "All Time",
-      "today": "Today",
-      "lastWeek": "Last 7 Days",
-      "lastMonth": "Last 30 Days"
-    },
+    "makePayment": "Make Payment",
     "table": {
-      "transactionId": "Transaction ID",
-      "id": "ID",
+      "case": "Case",
+      "patient": "Patient",
+      "treatmentDetails": "Treatment Details",
       "date": "Date",
-      "type": "Type",
-      "from": "From",
+      "payment": "Payment",
+      "noCases": "No cases found.",
+      "unknownPatient": "Unknown Patient",
+      "standardTreatment": "Standard Treatment",
+      "alignersCount": "{{count}} aligners",
+      "urgent": "URGENT",
+      "notSet": "Not set",
+      "remaining": "remaining",
+      "paymentStatus": {
+        "unpaid": "Unpaid",
+        "paid": "Paid",
+        "na": "N/A",
+        "due": "Due",
+        "overdue": "Overdue",
+        "pending": "Pending",
+        "processing": "Processing",
+        "unknown": "Unknown"
+      }
+    },
+    "signUpRequests": {
+      "title": "Sign Up Requests",
+      "subtitle": "Review and approve new user registrations",
+      "name": "Name",
       "email": "Email",
       "clinic": "Clinic",
-      "description": "Description",
-      "amount": "Amount",
-      "processedBy": "Processed By"
-    }
-  },
-  "doctorTransactions": {
-    "title": "Payment History",
-    "subtitle": "View your payment transaction history",
-    "searchPlaceholder": "Search by description, case name, or transaction ID...",
-    "noPayments": "No payment transactions found",
-    "cases": "Cases",
-    "case": "case",
-    "receivedBy": "Received By",
-    "notes": "Notes",
-    "generalPayment": "General payment",
-    "payments": "payments",
-    "stats": {
-      "totalPayments": "TOTAL PAYMENTS",
-      "totalPaid": "TOTAL PAID",
-      "amountDue": "AMOUNT DUE"
-    }
-  },
-  "expenseDialog": {
-    "title": "Record Expense",
-    "subtitle": "Enter expense details for business costs and payments made.",
-    "expenseAmount": "Expense Amount *",
-    "description": "Description/Notes *",
-    "descriptionPlaceholder": "Describe the expense (e.g., Munqeth Wahood Lab Fees, office supplies, equipment)...",
-    "recordExpense": "Record Expense",
-    "recording": "Recording...",
-    "errors": {
-      "recordFailed": "Failed to record expense",
-      "validExpense": "Please enter a valid expense amount"
+      "phone": "Phone",
+      "status": "Status",
+      "date": "Date",
+      "noRequests": "No sign-up requests found",
+      "reviewRequest": "Review Sign-Up Request",
+      "fullName": "Full Name",
+      "clinicName": "Clinic Name",
+      "phoneNumber": "Phone Number",
+      "clinicAddress": "Clinic Address",
+      "setPassword": "Set Password",
+      "passwordRequired": "Password must be at least 6 characters",
+      "passwordPlaceholder": "Enter password for user",
+      "passwordHint": "Minimum 6 characters. Make sure to save this password.",
+      "approveAndCreate": "Approve & Create Account",
+      "creatingAccount": "Creating Account...",
+      "createUser": "Create User",
+      "userCreatedSuccess": "User account created successfully!",
+      "confirmReject": "Are you sure you want to reject this request?",
+      "statusPending": "Pending",
+      "statusApproved": "Approved",
+      "statusRejected": "Rejected"
     },
-    "success": {
-      "expenseRecorded": "Expense recorded successfully!"
-    }
-  },
+    "settings": {
+      "title": "Settings",
+      "adminSettings": "Admin Settings",
+      "subtitle": "Manage your account and preferences",
+      "adminSubtitle": "Manage your account security and service options",
+      "language": "Language",
+      "selectLanguage": "Select Language",
+      "english": "English",
+      "arabic": "Arabic",
+      "currentLanguage": "Current Language",
+      "updateEmail": "Update Email",
+      "newEmail": "New Email",
+      "emailDescription": "Change the email address you use to sign in",
+      "emailPlaceholder": "Enter new email",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "passwordDescription": "Set a new password for your account",
+      "passwordPlaceholder": "Enter new password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "updatePassword": "Update Password",
+      "accountSecurity": "Account Security",
+      "contactInformation": "Contact Information",
+      "emailAddress": "Email Address",
+      "phoneNumber": "Phone Number",
+      "updateContactInfo": "Update Contact Info",
+      "serviceManagement": "Service Management",
+      "caseStudyFee": "Case Study Fee",
+      "caseStudyFeeDescription": "This fee is charged when a new case is accepted.",
+      "amountUSD": "Amount (USD)",
+      "saveFee": "Save Fee",
+      "alignerMaterials": "Aligner Materials",
+      "services": "Services",
 
-  "viewer": {
-    "title": "3DA Viewer",
-    "loadingViewer": "Loading case viewer...",
-    "caseNotFound": "Case not found",
-    "patientName": "Patient Name",
-    "caseNumber": "Case Number",
-    "sequenceAnimation": "Sequence Animation",
-    "beforeAfter": "Before & After",
-    "preloadingImages": "Preloading images...",
-    "step": "Step",
-    "of": "of",
-    "noSequenceImages": "No sequence images available for this view",
-    "noBeforeAfterImage": "No before/after image available for this view",
-    "jumpToStart": "Jump to Start",
-    "previousStep": "Previous Step",
-    "nextStep": "Next Step",
-    "jumpToEnd": "Jump to End",
-    "upperAligners": "Upper Aligners",
-    "lowerAligners": "Lower Aligners",
-    "disclaimer": {
-      "title": "Important Notice",
-      "text": "There may be differences between the computer-generated treatment prediction and the actual clinical outcome. The number of aligners may increase depending on the case requirements. The treating doctor is solely responsible for the treatment plan."
-    }
-  },
+      "errors": {
+        "invalidEmail": "Please enter a valid email address.",
+        "passwordTooShort": "Password must be at least 6 characters.",
+        "passwordMismatch": "New password and confirmation do not match.",
+        "fillAllFields": "Please fill all password fields",
+        "incorrectPassword": "Current password is incorrect"
+      },
+      "success": {
+        "emailUpdated": "Email updated successfully.",
+        "passwordUpdated": "Password updated successfully.",
+        "contactUpdated": "Contact info updated",
+        "phoneUpdated": "Phone updated",
+        "feeUpdated": "Case acceptance fee updated",
+        "preferencesSaved": "Preferences saved"
+      }
+    },
+    "auth": {
+      "signIn": "Sign In",
+      "signUp": "Sign Up",
+      "signOut": "Sign Out",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot Password?",
+      "dontHaveAccount": "Don't have an account?",
+      "alreadyHaveAccount": "Already have an account?"
+    },
+    "profile": {
+      "title": "Profile Settings",
+      "subtitle": "Manage your personal information and contact details",
+      "profilePhoto": "Profile Photo",
+      "avatarDescription": "Upload a profile picture or avatar",
+      "personalInformation": "Personal Information",
+      "personalInfoDescription": "Update your personal details and contact information",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "email": "Email",
+      "emailPlaceholder": "Your Email",
+      "phoneNumber": "Phone Number",
+      "phonePlaceholder": "Enter your phone number",
+      "clinicName": "Clinic Name",
+      "clinicPlaceholder": "Enter your clinic name",
+      "clinicAddress": "Clinic Address",
+      "addressPlaceholder": "Enter your clinic address",
+      "saveChanges": "Save Changes",
+      "errors": {
+        "fetchFailed": "Failed to load profile",
+        "updateFailed": "Failed to update profile",
+        "avatarFailed": "Failed to upload avatar"
+      },
+      "success": {
+        "updated": "Profile updated successfully!",
+        "avatarUpdated": "Avatar updated successfully"
+      }
+    },
+    "transactions": {
+      "title": "Transaction Log",
+      "subtitle": "View all payment and expense transactions",
+      "exportCSV": "Export CSV",
+      "searchPlaceholder": "Search by name, email, clinic, or transaction ID...",
+      "noTransactions": "No transactions found matching your filters",
+      "showing": "Showing",
+      "of": "of",
+      "transactions": "transactions",
+      "processedBy": "Processed by",
+      "paymentReceived": "Payment",
+      "expense": "Expense",
+      "stats": {
+        "totalTransactions": "TOTAL TRANSACTIONS",
+        "totalRevenue": "TOTAL REVENUE",
+        "totalExpenses": "TOTAL EXPENSES",
+        "netIncome": "NET INCOME"
+      },
+      "filters": {
+        "allTypes": "All Types",
+        "paymentsReceived": "Payments Received",
+        "expenses": "Expenses",
+        "allTime": "All Time",
+        "today": "Today",
+        "lastWeek": "Last 7 Days",
+        "lastMonth": "Last 30 Days"
+      },
+      "table": {
+        "transactionId": "Transaction ID",
+        "id": "ID",
+        "date": "Date",
+        "type": "Type",
+        "from": "From",
+        "email": "Email",
+        "clinic": "Clinic",
+        "description": "Description",
+        "amount": "Amount",
+        "processedBy": "Processed By"
+      }
+    },
+    "doctorTransactions": {
+      "title": "Payment History",
+      "subtitle": "View your payment transaction history",
+      "searchPlaceholder": "Search by description, case name, or transaction ID...",
+      "noPayments": "No payment transactions found",
+      "cases": "Cases",
+      "case": "case",
+      "receivedBy": "Received By",
+      "notes": "Notes",
+      "generalPayment": "General payment",
+      "payments": "payments",
+      "stats": {
+        "totalPayments": "TOTAL PAYMENTS",
+        "totalPaid": "TOTAL PAID",
+        "amountDue": "AMOUNT DUE"
+      }
+    },
+    "expenseDialog": {
+      "title": "Record Expense",
+      "subtitle": "Enter expense details for business costs and payments made.",
+      "expenseAmount": "Expense Amount *",
+      "description": "Description/Notes *",
+      "descriptionPlaceholder": "Describe the expense (e.g., Munqeth Wahood Lab Fees, office supplies, equipment)...",
+      "recordExpense": "Record Expense",
+      "recording": "Recording...",
+      "errors": {
+        "recordFailed": "Failed to record expense",
+        "validExpense": "Please enter a valid expense amount"
+      },
+      "success": {
+        "expenseRecorded": "Expense recorded successfully!"
+      }
+    },
 
-  "casePage": {
-    "caseDetails": "Case Details",
-    "downloadFiles": "Download Files",
-    "downloading": "Downloading...",
-    "openViewer": "Open 3DA Viewer",
-    "viewOriginalCase": "View Original Case",
-    "refinement": "Refinement",
-    "deleteCase": "Delete Case",
-    "deleteCaseConfirm": "This action cannot be undone. Are you sure you want to permanently delete this case?",
-    "caseDeclined": "Case Declined",
-    "reason": "Reason",
-    "declinedOn": "Declined on",
-    "at": "at",
-    "undoDecline": "Undo Decline",
-    "undoing": "Undoing...",
-    "dentalChart": "Dental Chart",
-    "caseInformation": "Case Information",
-    "patientInformation": "Patient Information",
-    "firstName": "First Name",
-    "lastName": "Last Name",
-    "doctorName": "Doctor's Name",
-    "phone": "Phone",
-    "submissionDate": "Submission Date",
-    "caseId": "Case ID",
-    "clinic": "Clinic",
-    "alignerMaterial": "Aligner Material",
-    "notSpecified": "Not specified",
-    "refinementReason": "Refinement Reason",
-    "printCaseInfo": "Print Case Info",
-    "exportPDF": "Export PDF",
-    "caseNotFound": "Case not found.",
-    "caseNumber": "Case-{{id}}",
-    "refinementBadge": "Refinement #{{number}}",
-    "treatmentPlanReview": "Treatment Plan Review",
-    "declineReason": "Decline Reason",
-    "rejectionReason": "Rejection Reason",
-    "declinePlan": "Decline Plan",
-    "requestEdit": "Request Edit",
-    "approvePlan": "Approve Plan",
+    "viewer": {
+      "title": "Case Viewer",
+      "loadingViewer": "Loading case viewer...",
+      "caseNotFound": "Case not found",
+      "patientName": "Patient Name",
+      "caseNumber": "Case Number",
+      "sequenceAnimation": "Sequence Animation",
+      "beforeAfter": "Before & After",
+      "preloadingImages": "Preloading images...",
+      "step": "Step",
+      "of": "of",
+      "noSequenceImages": "No sequence images available for this view",
+      "noBeforeAfterImage": "No before/after image available for this view",
+      "jumpToStart": "Jump to Start",
+      "previousStep": "Previous Step",
+      "nextStep": "Next Step",
+      "jumpToEnd": "Jump to End",
+      "upperAligners": "Upper Aligners",
+      "lowerAligners": "Lower Aligners",
+      "disclaimer": {
+        "title": "Important Notice",
+        "text": "There may be differences between the computer-generated treatment prediction and the actual clinical outcome. The number of aligners may increase depending on the case requirements. The treating doctor is solely responsible for the treatment plan."
+      }
+    },
+
+    "casePage": {
+      "caseDetails": "Case Details",
+      "downloadFiles": "Download Files",
+      "downloading": "Downloading...",
+      "openViewer": "Open Case Viewer",
+      "viewOriginalCase": "View Original Case",
+      "refinementCase": "Refinement",
+      "deleteCase": "Delete Case",
+      "deleteCaseConfirm": "This action cannot be undone. Are you sure you want to permanently delete this case?",
+      "caseDeclined": "Case Declined",
+      "reason": "Reason",
+      "declinedOn": "Declined on",
+      "at": "at",
+      "undoDecline": "Undo Decline",
+      "undoing": "Undoing...",
+      "dentalChart": "Dental Chart",
+      "caseInformation": "Case Information",
+      "patientInformation": "Patient Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "doctorName": "Doctor's Name",
+      "phone": "Phone",
+      "submissionDate": "Submission Date",
+      "caseId": "Case ID",
+      "clinic": "Clinic",
+      "alignerMaterial": "Aligner Material",
+      "notSpecified": "Not specified",
+      "refinementReason": "Refinement Reason",
+      "printCaseInfo": "Print Case Info",
+      "exportPDF": "Export PDF",
+      "caseNotFound": "Case not found.",
+      "caseNumber": "Case-{{id}}",
+      "refinementBadge": "Refinement #{{number}}",
+      "treatmentPlanReview": "Treatment Plan Review",
+      "declineReason": "Decline Reason",
+      "rejectionReason": "Rejection Reason",
+      "declinePlan": "Decline Plan",
+      "requestEdit": "Request Edit",
+      "approvePlan": "Approve Plan",
+      "satisfaction": {
+        "display": {
+          "title": "Case Satisfaction",
+          "rating": "Rating",
+          "feedback": "Feedback",
+          "completedOn": "Completed on"
+        },
+        "dialog": {
+          "title": "Complete Case",
+          "description": "Rate your experience with this case and provide feedback",
+          "ratingLabel": "How would you rate this case?",
+          "commentsLabel": "Additional Comments",
+          "commentsHelp": "Share your thoughts about the treatment outcome",
+          "commentsPlaceholder": "Share your experience with this case...",
+          "submitting": "Submitting...",
+          "submitButton": "Complete Case"
+        },
+        "success": {
+          "completed": "Case marked as completed successfully"
+        },
+        "errors": {
+          "ratingRequired": "Please provide a rating",
+          "completeFailed": "Failed to complete case. Please try again."
+        }
+      }
+    },
+    "refinement": {
+      "caseActions": "Case Actions",
+      "description": "Mark your case as completed or request a refinement if you need additional aligners or treatment adjustments.",
+      "markCompleted": "Mark as Completed",
+      "requestRefinement": "Request Refinement",
+      "dialog": {
+        "title": "Request Refinement",
+        "description": "Request a refinement of your treatment plan with new scans and updated preferences.",
+        "warningTitle": "⚠️ Important Information",
+        "warningMessage": "Your refinement request will be reviewed by our team. We will contact you with pricing and treatment details.",
+        "reasonLabel": "Reason for Refinement",
+        "reasonHelp": "Please describe why you need refinement (e.g., treatment not progressing as expected, new concerns, etc.)",
+        "reasonPlaceholder": "Enter reason for refinement...",
+        "materialLabel": "Preferred Aligner Material *",
+        "noMaterials": "No materials available",
+        "uploadMethod": "Choose Upload Method",
+        "individualFiles": "Individual Files (Upload each scan separately)",
+        "compressedArchive": "Compressed Archive (Upload all scans in one ZIP/RAR file)",
+        "scansRequired": "New Scans Required *",
+        "individualHelp": "Please upload each scan file separately. Ensure all scan files are in STL, OBJ, or PLY format.",
+        "compressedHelp": "Upload a single ZIP or RAR file containing all three required scans: Upper Jaw, Lower Jaw, and Bite scans. Please name your files clearly for easy identification.",
+        "upperJawScan": "Upper Jaw Scan",
+        "lowerJawScan": "Lower Jaw Scan",
+        "biteScan": "Bite Scan",
+        "compressedLabel": "Compressed Scan Archive",
+        "additionalFiles": "Additional Files (Optional)",
+        "filesSelected": "{{count}} file(s) selected",
+        "submitting": "Submitting...",
+        "submitButton": "Submit Refinement Request"
+      },
+
+      "errors": {
+        "loadServicesFailed": "Failed to load service options",
+        "reasonRequired": "Please provide a reason for the refinement request",
+        "materialRequired": "Please select an aligner material",
+        "allScansRequired": "Please upload all required scan files",
+        "compressedRequired": "Please upload the compressed scan archive",
+        "notAuthenticated": "User not authenticated",
+        "compressedUploadFailed": "Failed to upload compressed scan file",
+        "scanUploadFailed": "Failed to upload one or more scan files",
+        "submitFailed": "Failed to submit refinement case"
+      },
+
+      "success": {
+        "submitted": "Refinement case submitted successfully!"
+      }
+    },
+    "refinementHistory": {
+      "title": "Refinement History",
+      "loading": "Loading refinement history...",
+      "caseTitle": "Refinement Case #{{id}}",
+      "caseDescription": "Refinement {{number}} - {{material}} aligners - {{reason}}",
+      "standardMaterial": "Standard",
+      "noReason": "No reason provided",
+      "viewCase": "View Case →",
+      "status": {
+        "submitted": "Submitted",
+        "awaitingApproval": "Awaiting Approval",
+        "approved": "Approved",
+        "inProduction": "In Production",
+        "readyForDelivery": "Ready for Delivery",
+        "delivered": "Delivered",
+        "completed": "Completed"
+      }
+    },
+    "satisfaction": {
+      "dialog": {
+        "title": "Complete Your Case",
+        "description": "Please share your experience with us. Your feedback helps us improve our service.",
+        "ratingLabel": "How satisfied are you with the treatment?",
+        "commentsLabel": "Additional Comments (Optional)",
+        "commentsHelp": "Tell us about your experience with the treatment.",
+        "commentsPlaceholder": "Share your feedback...",
+        "submitting": "Submitting...",
+        "submitButton": "Complete Case"
+      },
+
+      "errors": {
+        "ratingRequired": "Please provide a rating",
+        "completeFailed": "Failed to mark case as completed"
+      },
+
+      "success": {
+        "completed": "Case marked as completed!"
+      }
+    },
     "dialogs": {
       "approval": {
         "title": "Confirm Treatment Plan Approval",
@@ -390,15 +525,15 @@
         "subtitle": "Request changes to your treatment plan by selecting a different aligner material and adding notes.",
         "changeMaterial": "Change Aligner Material",
         "currentMaterial": "Current material:",
-        "materialDescription": "Select a different aligner material. Your case will be re-evaluated by the admin.",
+        "materialDescription": "Select a different aligner material. Your case will be re-evaluated by our team.",
         "selectMaterial": "Select New Aligner Material",
         "noMaterials": "No materials available",
         "notesLabel": "Additional Notes (Optional)",
         "notesDescription": "Add any specific requests or concerns about your treatment plan.",
-        "notesPlaceholder": "Enter any additional notes or requests for the admin...",
-        "notesHelp": "These notes will be visible to the admin reviewing your case.",
+        "notesPlaceholder": "Enter any additional notes or requests for our team...",
+        "notesHelp": "These notes will be visible to the team member reviewing your case.",
         "warningTitle": "⚠️ Important Information",
-        "warningMessage": "Changing the aligner material will send your case back to 3DA for re-evaluation. You will need to approve the updated treatment plan once it's ready.",
+        "warningMessage": "Changing the aligner material will send your case back to out team for re-evaluation. You will need to approve the updated treatment plan once it's ready.",
         "submitting": "Submitting...",
         "submitButton": "Submit Edit Request"
       }
@@ -415,15 +550,48 @@
       "deliveryCharges": "Delivery Charges",
       "totalCost": "Total Cost",
       "viewIPRChart": "View IPR Chart",
-      "adminNotes": "3DA Notes"
+      "adminNotes": "Admin Notes"
     },
 
+    "caseNotes": {
+      "doctorNotes": "Doctor Notes",
+      "caseNotes": "Case Notes",
+      "additionalNotes": "Additional Notes",
+      "adminPlaceholder": "Enter any special instructions, internal comments, etc...",
+      "userPlaceholder": "Enter any special instructions, patient history, or additional details...",
+      "adminHelp": "Add any additional information or internal notes about this case.",
+      "userHelp": "Add any additional information or special instructions for this case",
+      "saving": "Saving...",
+      "saveNote": "Save Note",
+      "noNotes": "No notes added yet"
+    },
+
+    "fileDownload": {
+      "uploadedFiles": "Uploaded Files",
+      "fileName": "File Name",
+      "type": "Type",
+      "status": "Status",
+      "actions": "Actions",
+      "upperJawScan": "Upper Jaw Scan",
+      "lowerJawScan": "Lower Jaw Scan",
+      "biteScan": "Bite Scan",
+      "allInOne": "All-in-One",
+      "additionalFile": "Additional File {{number}}",
+      "upperJaw": "Upper Jaw",
+      "lowerJaw": "Lower Jaw",
+      "bite": "Bite",
+      "compressedFile": "Compressed File",
+      "additional": "Additional",
+      "available": "Available",
+      "notUploaded": "Not uploaded",
+      "noFiles": "No files uploaded for this case."
+    },
     "toast": {
       "planApproved": "Plan approved successfully",
       "approveFailed": "Failed to approve plan",
       "planDeclined": "Plan declined successfully",
       "declineFailed": "Failed to decline plan",
-      "materialUpdatedReeval": "Material updated. Case is sent for re-evaluation by admin.",
+      "materialUpdatedReeval": "Material updated. Case is sent for re-evaluation by our team.",
       "materialUpdated": "Material updated successfully.",
       "updateMaterialFailed": "Failed to update material"
     },
@@ -570,6 +738,45 @@
 
     "success": {
       "submitted": "Case submitted successfully!"
+    }
+  },
+
+  "caseStatus": {
+    "submitted": {
+      "title": "Waiting for admin acceptance",
+      "description": "Your case is submitted successfully, please wait for the admin acceptance"
+    },
+    "awaitingUserApproval": {
+      "title": "Treatment Plan Ready for Approval",
+      "description": "Please review the aligners count and estimated duration, then approve or decline the plan."
+    },
+    "approved": {
+      "title": "Treatment Plan Approved",
+      "description": "Your treatment plan has been approved. Production will start soon."
+    },
+    "inProduction": {
+      "title": "Aligners Are In Production",
+      "description": "Your aligners are being manufactured. You will be notified when they are ready for delivery."
+    },
+    "readyForDelivery": {
+      "title": "Aligners Ready for Delivery",
+      "description": "Your aligners are ready. 3DA will contact you to arrange pickup or delivery."
+    },
+    "delivered": {
+      "title": "Aligners Delivered",
+      "description": "You have received the aligners. Please advise your patient to follow the wear schedule and instructions."
+    },
+    "completed": {
+      "title": "Treatment Completed",
+      "description": "The treatment is complete. Thank you for choosing us!"
+    },
+    "rejected": {
+      "title": "Case has been declined",
+      "description": "This case was declined and is no longer active. You can undo this action if needed."
+    },
+    "default": {
+      "title": "Case Updates",
+      "description": "We will notify you here when there are updates to your treatment plan."
     }
   }
 }

@@ -108,7 +108,31 @@
     "searchDoctors": "البحث عن الأطباء...",
     "transactionLog": "سجل المعاملات",
     "receivePayment": "استلام دفعة",
-    "makePayment": "تسجيل نفقة"
+    "makePayment": "تسجيل نفقة",
+    "table": {
+      "case": "الحالة",
+      "patient": "المريض",
+      "treatmentDetails": "تفاصيل المعالجة",
+      "date": "التاريخ",
+      "payment": "الدفع",
+      "noCases": "لم يتم العثور على حالات.",
+      "unknownPatient": "مريض غير معروف",
+      "standardTreatment": "معالجة قياسية",
+      "alignersCount": "{{count}} راصفات",
+      "urgent": "عاجل",
+      "notSet": "غير محدد",
+      "remaining": "متبقي",
+      "paymentStatus": {
+        "unpaid": "غير مدفوع",
+        "paid": "مدفوع",
+        "na": "غير قابل للتطبيق",
+        "due": "مستحق",
+        "overdue": "متأخر",
+        "pending": "معلق",
+        "processing": "قيد المعالجة",
+        "unknown": "غير معروف"
+      }
+    }
   },
   "signUpRequests": {
     "title": "طلبات التسجيل",
@@ -171,7 +195,7 @@
     "caseStudyFeeDescription": "يتم فرض هذا الرسم عند قبول حالة جديدة.",
     "amountUSD": "المبلغ (دولار أمريكي)",
     "saveFee": "حفظ الرسوم",
-    "alignerMaterials": "مادة الراصفة",
+    "alignerMaterials": "نوع الراصفة",
     "services": "الخدمات",
     "errors": {
       "invalidEmail": "الرجاء إدخال عنوان بريد إلكتروني صالح.",
@@ -333,7 +357,7 @@
     "downloading": "جاري التحميل",
     "openViewer": "فتح مستعرض الحالات",
     "viewOriginalCase": "عرض الحالة الأصلية",
-    "refinement": "حالة محسّنة",
+    "refinementCase": "حالة محسّنة",
     "deleteCase": "حذف الحالة",
     "deleteCaseConfirm": "لا يمكن التراجع عن هذا الإجراء، هل أنت متأكد من الحذف النهائي لهذه الحالة؟",
     "caseDeclined": "حالة مرفوضة",
@@ -366,7 +390,96 @@
     "declinePlan": "رفض الخطة",
     "requestEdit": "طلب تعديل",
     "approvePlan": "الموافقة على الخطة",
+    "refinement": {
+      "caseActions": "إجراءات الحالة",
+      "description": "حدد حالتك كمكتملة أو اطلب تحسينًا إذا كنت بحاجة إلى راصفات إضافية أو تعديلات على المعالجة.",
+      "markCompleted": "تحديد كمكتملة",
+      "requestRefinement": "طلب تحسين",
+      "dialog": {
+        "title": "طلب تحسين",
+        "description": "اطلب تحسينًا لخطة المعالجة الخاصة بك مع مسوحات جديدة وتفضيلات محدثة.",
+        "warningTitle": "⚠️ معلومات مهمة",
+        "warningMessage": "سيتم مراجعة طلب التحسين الخاص بك من قبل فريقنا. سنتصل بك مع تفاصيل التسعير والمعالجة.",
+        "reasonLabel": "سبب طلب التحسين",
+        "reasonHelp": "يرجى وصف سبب حاجتك للتحسين (على سبيل المثال، لا يتقدم العلاج كما هو متوقع، مخاوف جديدة، إلخ)",
+        "reasonPlaceholder": "أدخل سبب طلب التحسين...",
+        "materialLabel": "مادة الراصفة المفضلة *",
+        "noMaterials": "لا توجد مواد متاحة",
+        "uploadMethod": "اختر طريقة الرفع",
+        "individualFiles": "ملفات منفردة (رفع كل مسح على حدة)",
+        "compressedArchive": "أرشيف مضغوط (رفع جميع المسوحات في ملف ZIP/RAR واحد)",
+        "scansRequired": "المسوحات الجديدة المطلوبة *",
+        "individualHelp": "يرجى رفع كل ملف مسح على حدة. تأكد من أن جميع ملفات المسح بصيغة STL أو OBJ أو PLY.",
+        "compressedHelp": "قم برفع ملف ZIP أو RAR واحد يحتوي على جميع المسوحات الثلاثة المطلوبة: الفك العلوي، الفك السفلي، ومسح العضة. يرجى تسمية ملفاتك بوضوح لسهولة التعرف عليها.",
+        "upperJawScan": "مسح الفك العلوي",
+        "lowerJawScan": "مسح الفك السفلي",
+        "biteScan": "مسح العضة",
+        "compressedLabel": "أرشيف المسح المضغوط",
+        "additionalFiles": "ملفات إضافية (اختياري)",
+        "filesSelected": "تم تحديد {{count}} ملف",
+        "submitting": "جاري الإرسال...",
+        "submitButton": "إرسال طلب التحسين"
+      },
 
+      "errors": {
+        "loadServicesFailed": "فشل في تحميل خيارات الخدمة",
+        "reasonRequired": "يرجى تقديم سبب لطلب التحسين",
+        "materialRequired": "يرجى اختيار مادة الراصفة",
+        "allScansRequired": "يرجى رفع جميع ملفات المسح المطلوبة",
+        "compressedRequired": "يرجى رفع أرشيف المسح المضغوط",
+        "notAuthenticated": "المستخدم غير مصادق عليه",
+        "compressedUploadFailed": "فشل في رفع ملف المسح المضغوط",
+        "scanUploadFailed": "فشل في رفع واحد أو أكثر من ملفات المسح",
+        "submitFailed": "فشل في إرسال حالة التحسين"
+      },
+
+      "success": {
+        "submitted": "تم إرسال حالة التحسين بنجاح!"
+      }
+    },
+    "refinementHistory": {
+      "title": "سجل التحسينات",
+      "loading": "جاري تحميل سجل التحسينات...",
+      "caseTitle": "حالة تحسين #{{id}}",
+      "caseDescription": "تحسين {{number}} - تقويمات {{material}} - {{reason}}",
+      "standardMaterial": "قياسي",
+      "noReason": "لم يتم تقديم سبب",
+      "viewCase": "عرض الحالة ←",
+      "status": {
+        "submitted": "مُرسلة",
+        "awaitingApproval": "في انتظار الموافقة",
+        "approved": "موافق عليها",
+        "inProduction": "قيد الإنتاج",
+        "readyForDelivery": "جاهزة للتسليم",
+        "delivered": "مُسلّمة",
+        "completed": "مكتملة"
+      }
+    },
+    "satisfaction": {
+      "display": {
+        "title": "رضا الحالة",
+        "rating": "التقييم",
+        "feedback": "الملاحظات",
+        "completedOn": "اكتملت في"
+      },
+      "errors": {
+        "ratingRequired": "يرجى تقديم تقييم",
+        "completeFailed": "فشل في إتمام الحالة. يرجى المحاولة مرة أخرى."
+      },
+      "dialog": {
+        "title": "إكمال الحالة",
+        "description": "يرجى مشاركة تجربتك معنا. ملاحظاتك تساعدنا على تحسين خدمتنا.",
+        "ratingLabel": "ما مدى رضاك عن المعالجة؟",
+        "commentsLabel": "تعليقات إضافية (اختياري)",
+        "commentsHelp": "أخبرنا عن تجربتك مع المعالجة.",
+        "commentsPlaceholder": "شارك ملاحظاتك...",
+        "submitting": "جاري الإرسال...",
+        "submitButton": "إكمال الحالة"
+      },
+      "success": {
+        "completed": "تم تحديد الحالة كمكتملة!"
+      }
+    },
     "dialogs": {
       "approval": {
         "title": "تأكيد الموافقة على خطة المعالجة",
@@ -388,18 +501,18 @@
       },
       "requestEdit": {
         "title": "طلب تعديل خطة المعالجة",
-        "subtitle": "اطلب تغييرات على خطة المعالجة الخاصة بك عن طريق اختيار مادة راصفة مختلفة وإضافة ملاحظات.",
-        "changeMaterial": "تغيير مادة الراصفة",
-        "currentMaterial": "المادة الحالية:",
-        "materialDescription": "اختر مادة راصفة مختلفة. سيتم إعادة تقييم حالتك من قبل المسؤول.",
-        "selectMaterial": "اختر مادة راصفة جديدة",
+        "subtitle": "اطلب تغييرات على خطة المعالجة الخاصة بك عن طريق اختيار نوع راصفة مختلفة وإضافة ملاحظات.",
+        "changeMaterial": "تغيير نوع الراصفة",
+        "currentMaterial": "نوع الراصفة الحالية:",
+        "materialDescription": "اختر نوع راصفة مختلفة. سيتم إعادة تقييم حالتك من قبل فريقنا.",
+        "selectMaterial": "اختر نوع راصفة جديدة",
         "noMaterials": "لا توجد مواد متاحة",
         "notesLabel": "ملاحظات إضافية (اختياري)",
         "notesDescription": "أضف أي طلبات محددة أو مخاوف بشأن خطة المعالجة الخاصة بك.",
-        "notesPlaceholder": "أدخل أي ملاحظات إضافية أو طلبات للمسؤول...",
-        "notesHelp": "ستكون هذه الملاحظات مرئية للمسؤول الذي يراجع حالتك.",
+        "notesPlaceholder": "أدخل أي ملاحظات إضافية أو طلبات لفريقنا...",
+        "notesHelp": "ستكون هذه الملاحظات مرئية لعضو فريقنا الذي يراجع حالتك.",
         "warningTitle": "⚠️ معلومات مهمة",
-        "warningMessage": "سيؤدي تغيير مادة الراصفة إلى إرسال حالتك مرة أخرى إلى 3DA لإعادة التقييم. ستحتاج إلى الموافقة على خطة المعالجة المحدثة بمجرد أن تصبح جاهزة.",
+        "warningMessage": "سيؤدي تغيير نوع الراصفة إلى إرسال حالتك مرة أخرى إلى فريقنا لإعادة التقييم. ستحتاج إلى الموافقة على خطة المعالجة المحدثة بمجرد أن تصبح جاهزة.",
         "submitting": "جاري الإرسال...",
         "submitButton": "إرسال طلب التعديل"
       }
@@ -412,20 +525,55 @@
       "estimatedDuration": "المدة المقدرة",
       "months": "أشهر",
       "caseStudyFee": "رسوم دراسة الحالة",
-      "alignersPrice": "سعر الراصفات",
+      "alignersPrice": "تكلفة الراصفات",
       "deliveryCharges": "رسوم التوصيل",
       "totalCost": "التكلفة الإجمالية",
-      "viewIPRChart": "عرض مخطط IPR",
-      "adminNotes": "ملاحظات 3DA"
+      "viewIPRChart": "عرض مخطط السحل الملاصق",
+      "adminNotes": "ملاحظات المختبرات"
     },
+
+    "caseNotes": {
+      "doctorNotes": "ملاحظات الطبيب",
+      "caseNotes": "ملاحظات الحالة",
+      "additionalNotes": "ملاحظات إضافية",
+      "adminPlaceholder": "أدخل أي تعليمات خاصة، أو تعليقات داخلية، إلخ...",
+      "userPlaceholder": "أدخل أي تعليمات خاصة، أو تاريخ المريض، أو تفاصيل إضافية...",
+      "adminHelp": "أضف أي معلومات إضافية أو ملاحظات داخلية عن هذه الحالة.",
+      "userHelp": "أضف أي معلومات إضافية أو تعليمات خاصة لهذه الحالة",
+      "saving": "جاري الحفظ...",
+      "saveNote": "حفظ الملاحظة",
+      "noNotes": "لم تتم إضافة ملاحظات بعد"
+    },
+
+    "fileDownload": {
+      "uploadedFiles": "الملفات المرفوعة",
+      "fileName": "اسم الملف",
+      "type": "النوع",
+      "status": "الحالة",
+      "actions": "الإجراءات",
+      "upperJawScan": "مسح الفك العلوي",
+      "lowerJawScan": "مسح الفك السفلي",
+      "biteScan": "مسح العضة",
+      "allInOne": "ملف شامل",
+      "additionalFile": "ملف إضافي {{number}}",
+      "upperJaw": "الفك العلوي",
+      "lowerJaw": "الفك السفلي",
+      "bite": "العضة",
+      "compressedFile": "ملف مضغوط",
+      "additional": "إضافي",
+      "available": "متاح",
+      "notUploaded": "لم يتم رفعه",
+      "noFiles": "لم يتم رفع أي ملفات لهذه الحالة."
+    },
+
     "toast": {
       "planApproved": "تمت الموافقة على الخطة بنجاح",
       "approveFailed": "فشل في الموافقة على الخطة",
       "planDeclined": "تم رفض الخطة بنجاح",
       "declineFailed": "فشل في رفض الخطة",
-      "materialUpdatedReeval": "تم تحديث المادة. تم إرسال الحالة لإعادة التقييم من قبل مختبراتنا.",
-      "materialUpdated": "تم تحديث المادة بنجاح.",
-      "updateMaterialFailed": "فشل في تحديث المادة"
+      "materialUpdatedReeval": "تم تحديث نوع الراصفة. تم إرسال الحالة لإعادة التقييم من قبل مختبراتنا.",
+      "materialUpdated": "تم تحديث نوع الراصفة بنجاح.",
+      "updateMaterialFailed": "فشل في تحديث نوع الراصفة"
     },
 
     "statusMessages": {
@@ -510,7 +658,7 @@
       "upperArch": "القوس العلوي",
       "lowerArch": "القوس السفلي",
       "bothArches": "كلا القوسين",
-      "alignerMaterial": "مادة الراصفة المفضلة"
+      "alignerMaterial": "نوع الراصفة المفضلة"
     },
 
     "fileUpload": {
@@ -570,6 +718,44 @@
 
     "success": {
       "submitted": "تم إرسال الحالة بنجاح!"
+    }
+  },
+  "caseStatus": {
+    "submitted": {
+      "title": "بانتظار قبول المسؤول",
+      "description": "تم إرسال حالتك بنجاح، يرجى انتظار قبول المسؤول"
+    },
+    "awaitingUserApproval": {
+      "title": "خطة المعالجة جاهزة للموافقة",
+      "description": "يرجى مراجعة عدد الراصفات والمدة المقدرة، ثم الموافقة أو رفض الخطة."
+    },
+    "approved": {
+      "title": "تمت الموافقة على خطة المعالجة",
+      "description": "تمت الموافقة على خطة المعالجة الخاصة بك. سيبدأ الإنتاج قريباً."
+    },
+    "inProduction": {
+      "title": "الراصفات قيد التصنيع",
+      "description": "يتم تصنيع راصفاتك. سيتم إخطارك عندما تكون جاهزة للتسليم."
+    },
+    "readyForDelivery": {
+      "title": "الراصفات جاهزة للتسليم",
+      "description": "راصفاتك جاهزة. سيتصل بك 3DA لترتيب الاستلام أو التوصيل."
+    },
+    "delivered": {
+      "title": "تم تسليم الراصفات",
+      "description": "لقد استلمت الراصفات. يرجى نصح مريضك باتباع جدول الارتداء والتعليمات."
+    },
+    "completed": {
+      "title": "اكتملت المعالجة",
+      "description": "اكتملت المعالجة. شكراً لاختيارنا!"
+    },
+    "rejected": {
+      "title": "تم رفض الحالة",
+      "description": "تم رفض هذه الحالة ولم تعد نشطة. يمكنك التراجع عن هذا الإجراء إذا لزم الأمر."
+    },
+    "default": {
+      "title": "تحديثات الحالة",
+      "description": "سنقوم بإخطارك هنا عند وجود تحديثات على خطة المعالجة الخاصة بك."
     }
   }
 }

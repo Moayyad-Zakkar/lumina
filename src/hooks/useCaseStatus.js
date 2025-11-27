@@ -1,66 +1,60 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const useCaseStatus = (initialStatus) => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState(initialStatus);
 
   const alertContent = useMemo(() => {
     switch (status) {
       case 'submitted':
         return {
-          title: 'Waiting for 3DA Acceptance',
-          description:
-            'Your case is submitted successfully, please wait for 3DA acceptance',
+          title: t('caseStatus.submitted.title'),
+          description: t('caseStatus.submitted.description'),
         };
       case 'awaiting_user_approval':
         return {
-          title: 'Treatment Plan Ready for Approval',
-          description:
-            'Please review the aligners count and estimated duration, then approve or decline the plan.',
+          title: t('caseStatus.awaitingUserApproval.title'),
+          description: t('caseStatus.awaitingUserApproval.description'),
         };
       case 'approved':
         return {
-          title: 'Treatment Plan Approved',
-          description:
-            'Your treatment plan has been approved. Production will start soon.',
+          title: t('caseStatus.approved.title'),
+          description: t('caseStatus.approved.description'),
         };
       case 'in_production':
         return {
-          title: 'Aligners Are In Production',
-          description:
-            'Your aligners are being manufactured. You will be notified when they are ready for delivery.',
+          title: t('caseStatus.inProduction.title'),
+          description: t('caseStatus.inProduction.description'),
         };
       case 'ready_for_delivery':
         return {
-          title: 'Aligners Ready for Delivery',
-          description:
-            'Your aligners are ready. 3DA will contact you to arrange pickup or delivery.',
+          title: t('caseStatus.readyForDelivery.title'),
+          description: t('caseStatus.readyForDelivery.description'),
         };
       case 'delivered':
         return {
-          title: 'Aligners Delivered',
-          description:
-            'You have received the aligners. Please advise your patient to follow the wear schedule and instructions.',
+          title: t('caseStatus.delivered.title'),
+          description: t('caseStatus.delivered.description'),
         };
       case 'completed':
         return {
-          title: 'Treatment Completed',
-          description: 'The treatment is complete. Thank you for choosing us!',
+          title: t('caseStatus.completed.title'),
+          description: t('caseStatus.completed.description'),
         };
       case 'rejected':
         return {
-          title: 'Case has been declined',
-          description:
-            'This case was declined and is no longer active. You can undo this action if needed.',
+          title: t('caseStatus.rejected.title'),
+          description: t('caseStatus.rejected.description'),
           variant: 'destructive',
         };
       default:
         return {
-          title: 'Case Updates',
-          description:
-            'We will notify you here when there are updates to your treatment plan.',
+          title: t('caseStatus.default.title'),
+          description: t('caseStatus.default.description'),
         };
     }
-  }, [status]);
+  }, [status, t]);
 
   const showPlanSection = useMemo(() => {
     return [

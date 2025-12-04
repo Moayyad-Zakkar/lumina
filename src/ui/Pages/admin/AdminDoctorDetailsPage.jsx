@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
-import { Link, useLoaderData, useNavigate, useParams } from 'react-router';
+import { Link, useLoaderData, useNavigate } from 'react-router';
 
 import Error from '../../components/Error';
 import { Table } from '../../components/Table';
@@ -19,22 +20,26 @@ import { Loader } from '../../components/Loader';
 
 // Payment status component with derived status
 const PaymentStatusBadge = ({ paymentStatus, paymentPercentage = 0 }) => {
+  const { t } = useTranslation();
+
   const statusConfig = {
     unpaid: {
       color: 'error',
-      text: 'Unpaid',
+      text: t('billing.table.paymentStatus.unpaid'),
     },
     partially_paid: {
       color: 'warning',
-      text: `${paymentPercentage.toFixed(0)}% Paid`,
+      text: t('adminDoctorDetails.partialPayment', {
+        percent: paymentPercentage.toFixed(0),
+      }),
     },
     paid: {
       color: 'success',
-      text: 'Paid',
+      text: t('billing.table.paymentStatus.paid'),
     },
     not_applicable: {
       color: 'neutral',
-      text: 'No Cost',
+      text: t('billing.table.paymentStatus.na'),
     },
   };
 
@@ -85,14 +90,13 @@ const calculateCasePaymentInfo = (case_, allPayments = []) => {
 };
 
 export default function AdminDoctorDetailsPage() {
+  const { t } = useTranslation();
   const { doctor, cases, error } = useLoaderData();
   const navigate = useNavigate();
-  const { doctorId } = useParams();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [casesWithPaymentInfo, setCasesWithPaymentInfo] = useState([]);
-  const [paymentAllocations, setPaymentAllocations] = useState([]);
   const [loadingPaymentData, setLoadingPaymentData] = useState(true);
 
   // Load payment data
@@ -111,8 +115,6 @@ export default function AdminDoctorDetailsPage() {
           .in('case_id', caseIds);
 
         if (paymentsError) throw paymentsError;
-
-        setPaymentAllocations(payments || []);
 
         const casesWithPayment = cases.map((case_) => {
           const paymentInfo = calculateCasePaymentInfo(case_, payments || []);
@@ -198,8 +200,6 @@ export default function AdminDoctorDetailsPage() {
 
       if (paymentsError) throw paymentsError;
 
-      setPaymentAllocations(payments || []);
-
       const casesWithPayment = cases.map((case_) => {
         const paymentInfo = calculateCasePaymentInfo(case_, payments || []);
         return {
@@ -237,10 +237,12 @@ export default function AdminDoctorDetailsPage() {
       <div className="flex w-full flex-wrap items-center gap-8">
         <Breadcrumbs>
           <Link to="/admin/doctors">
-            <Breadcrumbs.Item>Doctors</Breadcrumbs.Item>
+            <Breadcrumbs.Item>{t('navigation.doctors')}</Breadcrumbs.Item>
           </Link>
           <Breadcrumbs.Divider />
-          <Breadcrumbs.Item active={true}>Doctor Details</Breadcrumbs.Item>
+          <Breadcrumbs.Item active={true}>
+            {t('adminDoctorDetails.breadcrumbTitle')}
+          </Breadcrumbs.Item>
         </Breadcrumbs>
         <div className="flex w-full flex-wrap items-start gap-4">
           <Avatar size="x-large" image={doctor?.avatar_url || undefined}>
@@ -255,15 +257,18 @@ export default function AdminDoctorDetailsPage() {
             <div className="flex w-full flex-wrap items-start gap-6">
               <div className="flex grow shrink-0 basis-0 flex-col items-start gap-1">
                 <span className="text-body-bold font-body-bold text-default-font">
-                  Phone Number
+                  {t('profile.phoneNumber')}
                 </span>
-                <span className="text-caption font-caption text-subtext-color">
+                <span
+                  dir="ltr"
+                  className="text-caption font-caption text-subtext-color"
+                >
                   {doctor?.phone || '—'}
                 </span>
               </div>
               <div className="flex grow shrink-0 basis-0 flex-col items-start gap-1">
                 <span className="text-body-bold font-body-bold text-default-font">
-                  Email
+                  {t('profile.email')}
                 </span>
                 <span className="text-caption font-caption text-subtext-color">
                   {doctor?.email || '—'}
@@ -271,7 +276,7 @@ export default function AdminDoctorDetailsPage() {
               </div>
               <div className="flex grow shrink-0 basis-0 flex-col items-start gap-1">
                 <span className="text-body-bold font-body-bold text-default-font">
-                  Clinic Name
+                  {t('profile.clinicName')}
                 </span>
                 <span className="text-caption font-caption text-subtext-color">
                   {doctor?.clinic || '—'}
@@ -279,7 +284,7 @@ export default function AdminDoctorDetailsPage() {
               </div>
               <div className="flex grow shrink-0 basis-0 flex-col items-start gap-1">
                 <span className="text-body-bold font-body-bold text-default-font">
-                  Clinic Address
+                  {t('profile.clinicAddress')}
                 </span>
                 <span className="text-caption font-caption text-subtext-color">
                   {doctor?.address || '—'}
@@ -297,7 +302,7 @@ export default function AdminDoctorDetailsPage() {
             <div className="flex items-center gap-2">
               <IconWithBackground />
               <span className="text-heading-3 font-heading-3 text-default-font">
-                Total Patients
+                {t('adminDoctorDetails.totalPatients')}
               </span>
             </div>
             <span className="text-heading-1 font-heading-1 text-default-font">
@@ -308,7 +313,7 @@ export default function AdminDoctorDetailsPage() {
             <div className="flex items-center gap-2">
               <IconWithBackground variant="success" />
               <span className="text-heading-3 font-heading-3 text-default-font">
-                Active Cases
+                {t('adminDoctorDetails.activeCases')}
               </span>
             </div>
             <span className="text-heading-1 font-heading-1 text-default-font">
@@ -321,7 +326,7 @@ export default function AdminDoctorDetailsPage() {
                 variant={totalDueAmount > 0 ? 'warning' : 'success'}
               />
               <span className="text-heading-3 font-heading-3 text-default-font">
-                Due Payments
+                {t('billingStats.duePayments')}
               </span>
             </div>
             <span
@@ -337,7 +342,7 @@ export default function AdminDoctorDetailsPage() {
         <div className="flex w-full flex-col items-start gap-4">
           <div className="flex w-full items-center justify-between">
             <span className="text-heading-2 font-heading-2 text-default-font">
-              All Cases
+              {t('cases.title')}
             </span>
             <div className="flex items-center gap-4">
               {totalDueAmount > 0 && (
@@ -346,7 +351,7 @@ export default function AdminDoctorDetailsPage() {
                   icon={<FeatherDollarSign />}
                   className="w-auto"
                 >
-                  Collect Payment
+                  {t('billing.receivePayment')}
                 </Button>
               )}
               {/*totalDueAmount > 0 && (
@@ -361,7 +366,7 @@ export default function AdminDoctorDetailsPage() {
               )*/}
               <TextField variant="filled" label="" helpText="">
                 <TextField.Input
-                  placeholder="Search cases..."
+                  placeholder={t('dashboard.searchCases')}
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
@@ -371,13 +376,23 @@ export default function AdminDoctorDetailsPage() {
           <Table
             header={
               <Table.HeaderRow>
-                <Table.HeaderCell>Patient Name</Table.HeaderCell>
-                <Table.HeaderCell>Date</Table.HeaderCell>
-                <Table.HeaderCell>Case Status</Table.HeaderCell>
-                <Table.HeaderCell>Payment Status</Table.HeaderCell>
-                <Table.HeaderCell>Total Cost</Table.HeaderCell>
-                <Table.HeaderCell>Paid Amount</Table.HeaderCell>
-                <Table.HeaderCell>Remaining</Table.HeaderCell>
+                <Table.HeaderCell>{t('cases.patientName')}</Table.HeaderCell>
+                <Table.HeaderCell>
+                  {t('transactions.table.date')}
+                </Table.HeaderCell>
+                <Table.HeaderCell>{t('cases.status')}</Table.HeaderCell>
+                <Table.HeaderCell>
+                  {t('adminDoctorDetails.paymentStatus')}
+                </Table.HeaderCell>
+                <Table.HeaderCell>
+                  {t('casePage.treatmentPlan.totalCost')}
+                </Table.HeaderCell>
+                <Table.HeaderCell>
+                  {t('adminDoctorDetails.paidAmount')}
+                </Table.HeaderCell>
+                <Table.HeaderCell>
+                  {t('adminDoctorDetails.remainingAmount')}
+                </Table.HeaderCell>
               </Table.HeaderRow>
             }
           >
@@ -385,7 +400,7 @@ export default function AdminDoctorDetailsPage() {
               <Table.Row>
                 <Table.Cell colSpan={7}>
                   <span className="whitespace-nowrap text-body font-body text-neutral-500 py-4">
-                    {loadingPaymentData ? <Loader /> : 'No cases found.'}
+                    {loadingPaymentData ? <Loader /> : t('cases.noCases')}
                   </span>
                 </Table.Cell>
               </Table.Row>

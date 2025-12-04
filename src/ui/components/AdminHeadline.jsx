@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { Button } from './Button';
 import { FeatherPlus } from '@subframe/core';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminHeadline({
   children,
@@ -8,6 +9,7 @@ export default function AdminHeadline({
   createUser,
   onCreateUser,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex w-full items-center justify-between">
       <span className="text-heading-1 font-heading-1 text-default-font">
@@ -16,7 +18,7 @@ export default function AdminHeadline({
       {submit && (
         <Link to="/admin/cases/new">
           <Button size="large" icon={<FeatherPlus />} className="h-9">
-            Submit New Case
+            {t('caseSubmit.submitCaseButton')}
           </Button>
         </Link>
       )}
@@ -28,7 +30,7 @@ export default function AdminHeadline({
           onClick={onCreateUser}
           className="h-9"
         >
-          Create User
+          {t('signUpRequestPage.createUserButton')}
         </Button>
       )}
     </div>

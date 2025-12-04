@@ -28,8 +28,13 @@ function DoctorBillingPage() {
     //refetchBillingData,
   } = useDoctorBillingData();
 
-  // Filter cases based on search term
-  const filteredCases = cases.filter(
+  // Filter out cases with not_applicable payment status (non-billable cases)
+  const billableCases = cases.filter(
+    (case_item) => case_item.paymentStatus?.toLowerCase() !== 'not_applicable'
+  );
+
+  // Filter billable cases based on search term
+  const filteredCases = billableCases.filter(
     (case_item) =>
       case_item.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_item.case_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -138,7 +138,7 @@ const PrintableContent = React.forwardRef(
         {isAdmin && (
           <div className="mb-6 page-break-inside-avoid">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              Dental Chart
+              {t('dentalChart.title')}
             </h2>
             <div className="border border-gray-300 rounded-lg p-4 bg-white overflow-hidden">
               <div>
@@ -154,8 +154,9 @@ const PrintableContent = React.forwardRef(
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
           <p>
-            This document was generated on {new Date().toLocaleString()} | 3DA
-            Clear Aligners
+            {t('adminTreatmentPlan.print.footer', {
+              date: new Date().toLocaleString(),
+            })}
           </p>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { useTranslation } from 'react-i18next';
 import { TextField } from '../components/TextField';
 import { Table } from '../components/Table';
 import { useLoaderData, useNavigate, useNavigation } from 'react-router';
@@ -14,6 +14,7 @@ import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
 import DoctorBillingStats from '../components/billing/DoctorBillingStats';
 
 function UserDashboard() {
+  const { t } = useTranslation();
   const {
     totalCases,
     recentCases,
@@ -37,7 +38,9 @@ function UserDashboard() {
     <>
       {casesError && <Error error={casesError} />}
 
-      <Headline>Hello, Dr. {profile.full_name}</Headline>
+      <Headline>
+        {t('dashboard.hello')} {profile.full_name}
+      </Headline>
 
       {/* Stats Overview */}
       {billingLoading ? (
@@ -57,7 +60,7 @@ function UserDashboard() {
       {/* Recent Cases Section */}
       <div className="flex w-full items-center justify-between gap-4">
         <span className="text-heading-2 font-heading-2 text-default-font">
-          Recent Cases
+          {t('dashboard.recentCases')}
         </span>
         <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
           <TextField
@@ -66,7 +69,10 @@ function UserDashboard() {
             helpText=""
             icon={<FeatherSearch />}
           >
-            <TextField.Input placeholder="Search cases..." value="" />
+            <TextField.Input
+              placeholder={t('dashboard.searchCases')}
+              value=""
+            />
           </TextField>
         </div>
       </div>
@@ -74,10 +80,10 @@ function UserDashboard() {
       <Table
         header={
           <Table.HeaderRow>
-            <Table.HeaderCell>Patient Name</Table.HeaderCell>
-            <Table.HeaderCell>Status</Table.HeaderCell>
-            <Table.HeaderCell>Submission Date</Table.HeaderCell>
-            <Table.HeaderCell>Case ID</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.patientName')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.status')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.submissionDate')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.caseId')}</Table.HeaderCell>
           </Table.HeaderRow>
         }
       >
@@ -93,7 +99,9 @@ function UserDashboard() {
           <Table.Row>
             <Table.Cell colSpan={4}>
               <div className="text-center py-8">
-                <span className="text-neutral-500">No recent cases.</span>
+                <span className="text-neutral-500">
+                  {t('dashboard.noCases')}
+                </span>
               </div>
             </Table.Cell>
           </Table.Row>

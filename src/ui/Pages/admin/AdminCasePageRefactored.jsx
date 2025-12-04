@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLoaderData, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { Button } from '../../components/Button';
 import { Alert } from '../../components/Alert';
@@ -39,11 +40,12 @@ import supabase from '../../../helper/supabaseClient';
 import { checkCaseTreatmentImages } from '../../../helper/caseHasView';
 
 const AdminCasePageRefactored = () => {
+  const { t } = useTranslation();
   const { caseData, error } = useLoaderData();
   const navigate = useNavigate();
   const [caseHasViewer, setCaseHasViewer] = useState(false);
 
-  // Initialize IPR data from caseData - this is the key fix!
+  // Initialize IPR data from caseData
   const [iprData, setIprData] = useState(caseData?.ipr_data || {});
 
   // Custom hooks
@@ -95,7 +97,7 @@ const AdminCasePageRefactored = () => {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Update iprData when caseData changes (important for when data is refetched)
+  // Update iprData when caseData changes
   useEffect(() => {
     if (caseData?.ipr_data) {
       setIprData(caseData.ipr_data);
@@ -123,7 +125,7 @@ const AdminCasePageRefactored = () => {
     markNotificationsRead();
   }, [caseData?.id]);
 
-  // Check if the case has treatment sequence viewer available or not
+  // Check if the case has treatment sequence viewer available
   useEffect(() => {
     const checkImages = async () => {
       try {
@@ -139,63 +141,11 @@ const AdminCasePageRefactored = () => {
     }
   }, [caseData.id]);
 
-  const alertContent = {
-    submitted: {
-      title: 'Review and Accept/Decline Case',
-      description:
-        'Review the submitted case and decide whether to accept or decline it.',
-    },
-    accepted: {
-      title: 'Case accepted - Create treatment plan',
-      description:
-        'Set aligners count and duration, then send to doctor for approval.',
-    },
-    awaiting_user_approval: {
-      title: 'Treatment plan is sent to doctor for approval',
-      description:
-        'Waiting for the doctor approval to proceed with the production process.',
-    },
-    approved: {
-      title: 'Doctor approved the treatment plan',
-      description:
-        'Proceed with manufacturing. Update the case status as production progresses.',
-    },
-    in_production: {
-      title: 'Aligners are in production',
-      description:
-        'Update to Ready for Delivery when manufacturing is complete.',
-    },
-    ready_for_delivery: {
-      title: 'Aligners are ready for delivery',
-      description: 'Mark as Delivered once the clinic receives their aligners.',
-    },
-    delivered: {
-      title: 'Aligners delivered to clinic',
-      description: 'Mark the case as Completed when treatment concludes.',
-    },
-    completed: {
-      title: 'The case is complete',
-      description: 'The doctor had finished the case',
-    },
-    rejected: {
-      title: 'Case has been declined',
-      description:
-        'This case was declined and is no longer active. You can undo this action if needed.',
-      variant: 'destructive',
-    },
-    user_rejected: {
-      title: 'Treatment plan was declined',
-      description:
-        "This case's Treatment plan was declined by the doctor and the case is no longer active.",
-      variant: 'destructive',
-    },
-  };
-
   if (error) {
     return <Error error={error} />;
   }
   if (!caseData) {
-    return <p className="text-neutral-500">Case not found.</p>;
+    return <p className="text-neutral-500">{t('casePage.caseNotFound')}</p>;
   }
 
   const handleDeleteCase = async () => {
@@ -206,16 +156,14 @@ const AdminCasePageRefactored = () => {
         .eq('id', caseData.id);
       if (deleteError) throw deleteError;
       setIsDeleteDialogOpen(false);
+      toast.success(t('adminCasePage.toast.caseDeleted'));
       navigate('/admin/cases');
     } catch (e) {
-      toast.error(e.message || 'Failed to delete case');
+      toast.error(e.message || t('adminCasePage.toast.deleteFailed'));
     }
   };
 
-  const currentAlert = alertContent[currentStatus] || alertContent.submitted;
-
   const handleViewerClick = () => {
-    // Open the viewer in a new tab with the case ID
     const viewerUrl = `/case-viewer/${caseData.id}`;
     window.open(viewerUrl, '_blank');
   };
@@ -231,25 +179,22 @@ const AdminCasePageRefactored = () => {
 
       if (error) throw error;
 
-      // Update local state immediately
       setIprData(data);
-
-      // Also update the caseData object so it persists
       caseData.ipr_data = data;
 
-      toast.success('IPR data saved successfully');
+      toast.success(t('adminCasePage.toast.iprSaved'));
     } catch (error) {
       console.error('Error saving IPR data:', error);
-      toast.error('Failed to save IPR data');
+      toast.error(t('adminCasePage.toast.iprFailed'));
     }
   };
 
   const approvePlan = async () => {
     try {
       await updateCase({ status: 'approved' });
-      toast.success('Plan approved successfully');
+      toast.success(t('casePage.toast.planApproved'));
     } catch (e) {
-      toast.error(e.message || 'Failed to approve plan');
+      toast.error(e.message || t('casePage.toast.approveFailed'));
     }
   };
 
@@ -258,20 +203,24 @@ const AdminCasePageRefactored = () => {
       <div className="flex w-full flex-col items-start gap-2">
         <Breadcrumbs>
           <Link to="/admin/cases">
-            <Breadcrumbs.Item>Cases</Breadcrumbs.Item>
+            <Breadcrumbs.Item>{t('navigation.cases')}</Breadcrumbs.Item>
           </Link>
           <Breadcrumbs.Divider />
-          <Breadcrumbs.Item active={true}>Case Details</Breadcrumbs.Item>
+          <Breadcrumbs.Item active={true}>
+            {t('casePage.caseDetails')}
+          </Breadcrumbs.Item>
         </Breadcrumbs>
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="text-heading-2 font-heading-2 text-default-font">
-              Case-{caseData.id}
+              {t('casePage.caseNumber', { id: caseData.id })}
             </span>
             <CaseStatusBadge status={currentStatus} />
             {caseData.parent_case_id && (
               <Badge variant="brand" icon={<FeatherRefreshCw />}>
-                Refinement #{caseData.refinement_number || 1}
+                {t('casePage.refinementBadge', {
+                  number: caseData.refinement_number || 1,
+                })}
               </Badge>
             )}
           </div>
@@ -283,7 +232,7 @@ const AdminCasePageRefactored = () => {
                 asChild
               >
                 <Link to={`/admin/cases/${caseData.parent_case_id}`}>
-                  View Original Case
+                  {t('casePage.viewOriginalCase')}
                 </Link>
               </Button>
             )}
@@ -293,11 +242,13 @@ const AdminCasePageRefactored = () => {
               onClick={() => downloadAllFiles(caseData)}
               disabled={downloadingFiles.size > 0}
             >
-              {downloadingFiles.size > 0 ? 'Downloading...' : 'Download Files'}
+              {downloadingFiles.size > 0
+                ? t('casePage.downloading')
+                : t('casePage.downloadFiles')}
             </Button>
             {caseHasViewer && (
               <Button onClick={handleViewerClick} icon={<FeatherEye />}>
-                Open 3DA Viewer
+                {t('casePage.openViewer')}
               </Button>
             )}
           </div>
@@ -310,12 +261,11 @@ const AdminCasePageRefactored = () => {
           <Dialog.Content className="p-6 max-w-[480px]">
             <div className="flex items-start gap-3">
               <span className="text-heading-3 font-heading-3 text-default-font">
-                Delete Case
+                {t('casePage.deleteCase')}
               </span>
             </div>
             <div className="mt-2 text-body font-body text-subtext-color">
-              This action cannot be undone. Are you sure you want to permanently
-              delete this case?
+              {t('casePage.deleteCaseConfirm')}
             </div>
             <div className="mt-4 flex items-center justify-end gap-2">
               <Button
@@ -323,7 +273,7 @@ const AdminCasePageRefactored = () => {
                 onClick={() => setIsDeleteDialogOpen(false)}
                 disabled={saving}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="destructive-primary"
@@ -331,7 +281,7 @@ const AdminCasePageRefactored = () => {
                 disabled={saving}
                 icon={<FeatherAlertTriangle />}
               >
-                Delete
+                {t('common.delete')}
               </Button>
             </div>
           </Dialog.Content>
@@ -343,16 +293,18 @@ const AdminCasePageRefactored = () => {
         <Alert
           variant="destructive"
           icon={<FeatherAlertTriangle />}
-          title="Case Declined"
+          title={t('adminCasePage.caseDeclined')}
           description={
             <div className="space-y-2">
               <p>
-                <strong>Reason:</strong> {caseData.decline_reason}
+                <strong>{t('casePage.reason')}:</strong>{' '}
+                {caseData.decline_reason}
               </p>
               {caseData.declined_at && (
                 <p className="text-sm opacity-75">
-                  Declined on{' '}
-                  {new Date(caseData.declined_at).toLocaleDateString()} at{' '}
+                  {t('casePage.declinedOn')}{' '}
+                  {new Date(caseData.declined_at).toLocaleDateString()}{' '}
+                  {t('casePage.at')}{' '}
                   {new Date(caseData.declined_at).toLocaleTimeString()}
                 </p>
               )}
@@ -366,7 +318,9 @@ const AdminCasePageRefactored = () => {
               onClick={handleUndoDecline}
               disabled={isUndoingDecline}
             >
-              {isUndoingDecline ? 'Undoing...' : 'Undo Decline'}
+              {isUndoingDecline
+                ? t('casePage.undoing')
+                : t('casePage.undoDecline')}
             </Button>
           }
         />
@@ -375,10 +329,10 @@ const AdminCasePageRefactored = () => {
       {/* Standard status alert for non-rejected cases */}
       {currentStatus !== 'rejected' && currentStatus !== 'user_rejected' && (
         <Alert
-          variant={currentAlert.variant || 'brand'}
+          variant="brand"
           icon={<FeatherBell />}
-          title={currentAlert.title}
-          description={currentAlert.description}
+          title={t(`casePage.alerts.${currentStatus}.title`)}
+          description={t(`casePage.alerts.${currentStatus}.description`)}
           actions={null}
         />
       )}
@@ -388,8 +342,8 @@ const AdminCasePageRefactored = () => {
         <Alert
           variant="destructive"
           icon={<FeatherAlertTriangle />}
-          title={currentAlert.title}
-          description={currentAlert.description}
+          title={t('casePage.alerts.user_rejected.title')}
+          description={t('casePage.alerts.user_rejected.description')}
           actions={null}
         />
       )}
@@ -405,8 +359,8 @@ const AdminCasePageRefactored = () => {
                 <FeatherAlertTriangle className="w-5 h-5 text-red-600" />
                 <span className="text-heading-3 font-heading-3 text-red-900">
                   {currentStatus === 'user_rejected'
-                    ? 'Doctor Decline Reason'
-                    : 'Admin Decline Reason'}
+                    ? t('adminCasePage.doctorDeclineReason')
+                    : t('adminCasePage.adminDeclineReason')}
                 </span>
               </div>
               <div className="w-full bg-white border border-red-200 rounded-md p-4 shadow-sm">
@@ -416,8 +370,9 @@ const AdminCasePageRefactored = () => {
               </div>
               {caseData.declined_at && (
                 <div className="text-caption font-caption text-red-700">
-                  Declined on{' '}
-                  {new Date(caseData.declined_at).toLocaleDateString()} at{' '}
+                  {t('casePage.declinedOn')}{' '}
+                  {new Date(caseData.declined_at).toLocaleDateString()}{' '}
+                  {t('casePage.at')}{' '}
                   {new Date(caseData.declined_at).toLocaleTimeString()}
                 </div>
               )}
@@ -442,7 +397,7 @@ const AdminCasePageRefactored = () => {
         {/* Dental Chart */}
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
-            Dental Chart
+            {t('casePage.dentalChart')}
           </span>
           <div className="flex w-full justify-center">
             <DentalChart
@@ -523,7 +478,7 @@ const AdminCasePageRefactored = () => {
               disabled={saving}
               className="w-auto"
             >
-              Approve Plan
+              {t('adminCasePage.approvePlan')}
             </Button>
           )}
           <Button
@@ -532,7 +487,7 @@ const AdminCasePageRefactored = () => {
             onClick={() => setIsDeleteDialogOpen(true)}
             className="w-auto"
           >
-            Delete Case
+            {t('casePage.deleteCase')}
           </Button>
         </div>
       </div>

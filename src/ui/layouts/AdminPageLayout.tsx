@@ -16,6 +16,7 @@ import supabase from '../../helper/supabaseClient';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import { Badge } from '../components/Badge';
+import { useTranslation } from 'react-i18next';
 
 interface DefaultPageLayoutRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -38,6 +39,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
   }: DefaultPageLayoutRootProps,
   ref
 ) {
+  const { t } = useTranslation();
   const location = useLocation();
   const { hash, pathname, search } = location;
   const navigate = useNavigate();
@@ -263,7 +265,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                       navigate('/admin/settings');
                     }}
                   >
-                    Settings
+                    {t('navigation.settings')}
                   </SidebarWithLargeItems.NavItem>
                   <SidebarWithLargeItems.NavItem
                     icon={<SubframeCore.FeatherLogOut />}
@@ -272,7 +274,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                       navigate('/'); // or a login route
                     }}
                   >
-                    Sign Out
+                    {t('navigation.signOut')}
                   </SidebarWithLargeItems.NavItem>
                 </DropdownMenu>
               </SubframeCore.DropdownMenu.Content>
@@ -285,7 +287,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
             icon={<FeatherHome />}
             selected={pathname === '/admin/dashboard'}
           >
-            Home
+            {t('navigation.home')}
           </SidebarWithLargeItems.NavItem>
         </Link>
         <Link to="/admin/doctors">
@@ -293,7 +295,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
             icon={<FeatherUsers />}
             selected={pathname.startsWith('/admin/doctors')}
           >
-            Doctors
+            {t('navigation.doctors')}
           </SidebarWithLargeItems.NavItem>
         </Link>
         <Link to="/admin/cases">
@@ -311,7 +313,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
               ) : null
             }
           >
-            Cases
+            {t('navigation.cases')}
           </SidebarWithLargeItems.NavItem>
         </Link>
         <Link to="/admin/signup-requests">
@@ -329,7 +331,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
               ) : null
             }
           >
-            Requests
+            {t('navigation.signUpRequests')}
           </SidebarWithLargeItems.NavItem>
         </Link>
         <Link to="/admin/billing">
@@ -337,7 +339,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
             selected={pathname.startsWith('/admin/billing')}
             icon={<FeatherBarChart2 />}
           >
-            Billing
+            {t('navigation.billing')}
           </SidebarWithLargeItems.NavItem>
         </Link>
       </SidebarWithLargeItems>

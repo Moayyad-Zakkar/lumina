@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
@@ -24,40 +25,43 @@ import { capitalizeFirstSafe } from '../../../helper/formatText';
 
 const DOCTORS_PER_PAGE = 10;
 
-const SORT_OPTIONS = [
+const getSortOptions = (t) => [
   {
     value: 'name_asc',
-    label: 'Name A-Z',
+    // Reuse doctor A-Z label from cases filters
+    label: t('cases.filters.doctorAZ'),
     column: 'full_name',
     ascending: true,
   },
   {
     value: 'name_desc',
-    label: 'Name Z-A',
+    // Reuse doctor Z-A label from cases filters
+    label: t('cases.filters.doctorZA'),
     column: 'full_name',
     ascending: false,
   },
   {
     value: 'clinic_asc',
-    label: 'Clinic A-Z',
+
+    label: t('cases.filters.clinicAZ'),
     column: 'clinic',
     ascending: true,
   },
   {
     value: 'clinic_desc',
-    label: 'Clinic Z-A',
+    label: t('cases.filters.clinicZA'),
     column: 'clinic',
     ascending: false,
   },
   {
     value: 'cases_desc',
-    label: 'Most Cases First',
+    label: t('cases.filters.mostCasesFirst'),
     column: 'cases_count',
     ascending: false,
   },
   {
     value: 'cases_asc',
-    label: 'Fewest Cases First',
+    label: t('cases.filters.fewestCasesFirst'),
     column: 'cases_count',
     ascending: true,
   },
@@ -83,6 +87,9 @@ const AdminDoctorsPage = () => {
   // Refs for dropdown handling
   const clinicDropdownRef = useRef(null);
   const sortPanelRef = useRef(null);
+
+  const { t } = useTranslation();
+  const sortOptions = useMemo(() => getSortOptions(t), [t]);
 
   const navigate = useNavigate();
 
@@ -171,7 +178,7 @@ const AdminDoctorsPage = () => {
       setTotalDoctors(total || 0);
 
       // Apply sorting
-      const sortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
+      const sortOption = sortOptions.find((opt) => opt.value === sortBy);
       const sortColumn = sortOption?.column || 'full_name';
       const sortAscending = sortOption?.ascending !== false;
 
@@ -265,14 +272,14 @@ const AdminDoctorsPage = () => {
   const hasActiveFilters = selectedClinic || search || sortBy !== 'name_asc';
 
   const getClinicLabel = () => {
-    if (!selectedClinic) return 'Clinic';
+    if (!selectedClinic) return t('cases.filters.clinic');
     return selectedClinic;
   };
 
   return (
     <>
       {error && <Error error={error} />}
-      <AdminHeadline>Doctors</AdminHeadline>
+      <AdminHeadline>{t('navigation.doctors')}</AdminHeadline>
 
       <div className="flex w-full justify-between items-center gap-4">
         <div className="flex items-center gap-2 flex-1">
@@ -286,7 +293,7 @@ const AdminDoctorsPage = () => {
               icon={<FeatherSearch />}
             >
               <TextField.Input
-                placeholder="Search doctor..."
+                placeholder={t('billing.searchDoctors')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
@@ -317,21 +324,26 @@ const AdminDoctorsPage = () => {
             </Button>
 
             {showClinicDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[160px] max-h-64 overflow-y-auto">
+              <div
+                className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[160px] max-h-64 overflow-y-auto"
+                dir="rtl" // Add dir="rtl" for proper flow context
+              >
                 <div className="py-1">
                   <button
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
+                    // FIX: Changed text-left to text-right
+                    className="w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => {
                       setSelectedClinic('');
                       setShowClinicDropdown(false);
                     }}
                   >
-                    All Clinics
+                    {t('cases.filters.allClinics')}
                   </button>
                   {clinicOptions.map((option) => (
                     <button
                       key={option.value}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 ${
+                      // FIX: Changed text-left to text-right
+                      className={`w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 ${
                         selectedClinic === option.value
                           ? 'bg-neutral-100 text-neutral-900'
                           : 'text-neutral-700'
@@ -349,7 +361,7 @@ const AdminDoctorsPage = () => {
             )}
           </div>
 
-          {/* Cases Filter - Commented out as requested */}
+          {/* Cases Filter */}
           {/*
           <div className="flex-shrink-0">
             <Button
@@ -371,7 +383,7 @@ const AdminDoctorsPage = () => {
               onClick={clearFilters}
               icon={<FeatherX />}
             >
-              Clear
+              {t('common.clear')}
             </Button>
           )}
         </div>
@@ -397,25 +409,32 @@ const AdminDoctorsPage = () => {
             />
 
             {showSortPanel && (
-              <div className="absolute top-full right-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[200px]">
+              <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[200px]">
                 <div className="p-4">
-                  <h3 className="text-sm font-medium text-neutral-900 mb-3">
-                    Sort By
+                  <h3 className="text-sm font-medium text-neutral-900 mb-3 text-right">
+                    {t('cases.filters.sortBy')}
                   </h3>
                   <div className="space-y-2">
-                    {SORT_OPTIONS.map((option) => (
-                      <label key={option.value} className="flex items-center">
+                    {sortOptions.map((option) => (
+                      <label
+                        key={option.value}
+                        // Alignment is fixed here: justify-start pushes content to the right in RTL.
+                        className="flex items-center justify-start"
+                        dir="rtl"
+                      >
+                        {/* Text is visually on the left (order-2) */}
+                        <span className="text-sm text-neutral-700 order-2">
+                          {option.label}
+                        </span>
                         <input
                           type="radio"
                           name="sort"
                           value={option.value}
                           checked={sortBy === option.value}
                           onChange={(e) => setSortBy(e.target.value)}
-                          className="mr-2"
+                          // Radio is visually on the right (order-1). ml-2 provides correct spacing.
+                          className="ml-2 order-1"
                         />
-                        <span className="text-sm text-neutral-700">
-                          {option.label}
-                        </span>
                       </label>
                     ))}
                   </div>
@@ -429,10 +448,12 @@ const AdminDoctorsPage = () => {
       {/* Active Filters Display */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs text-neutral-600">Active filters:</span>
+          <span className="text-xs text-neutral-600">
+            {t('cases.filters.activeFilters')}
+          </span>
           {selectedClinic && (
             <Badge variant="neutral" className="text-xs">
-              Clinic: {selectedClinic}
+              {t('cases.clinic')}: {selectedClinic}
               <button
                 onClick={() => setSelectedClinic('')}
                 className="ml-1 hover:text-neutral-800"
@@ -443,7 +464,7 @@ const AdminDoctorsPage = () => {
           )}
           {search && (
             <Badge variant="neutral" className="text-xs">
-              Search: "{search}"
+              {t('common.search')}: "{search}"
               <button
                 onClick={() => {
                   setSearch('');
@@ -457,7 +478,8 @@ const AdminDoctorsPage = () => {
           )}
           {sortBy !== 'name_asc' && (
             <Badge variant="neutral" className="text-xs">
-              Sort: {SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label}
+              {t('cases.filters.sortBy')}:{' '}
+              {sortOptions.find((opt) => opt.value === sortBy)?.label}
             </Badge>
           )}
         </div>
@@ -466,10 +488,10 @@ const AdminDoctorsPage = () => {
       <Table
         header={
           <Table.HeaderRow>
-            <Table.HeaderCell>Doctor</Table.HeaderCell>
-            <Table.HeaderCell>Phone</Table.HeaderCell>
-            <Table.HeaderCell>Clinic</Table.HeaderCell>
-            <Table.HeaderCell>Cases</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.doctor')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.phone')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.clinic')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.cases')}</Table.HeaderCell>
           </Table.HeaderRow>
         }
       >
@@ -487,8 +509,8 @@ const AdminDoctorsPage = () => {
               <div className="text-center py-8">
                 <span className="text-neutral-500">
                   {hasActiveFilters
-                    ? 'No doctors match your filters.'
-                    : 'No doctors found.'}
+                    ? t('cases.noMatchingCases')
+                    : t('cases.noCases')}
                 </span>
               </div>
             </Table.Cell>
@@ -518,7 +540,10 @@ const AdminDoctorsPage = () => {
                 </div>
               </Table.Cell>
               <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
+                <span
+                  dir="ltr"
+                  className="whitespace-nowrap text-body font-body text-neutral-500"
+                >
                   {doc.phone || '-'}
                 </span>
               </Table.Cell>
@@ -540,14 +565,13 @@ const AdminDoctorsPage = () => {
       <div className="flex w-full items-center justify-between">
         <span className="text-body font-body text-subtext-color">
           {totalDoctors === 0
-            ? 'No doctors to show'
-            : `Showing ${Math.min(
+            ? t('casesPage.noCasesToShow')
+            : `${t('cases.showing')} ${Math.min(
                 (page - 1) * DOCTORS_PER_PAGE + 1,
                 totalDoctors
-              )} - ${Math.min(
-                page * DOCTORS_PER_PAGE,
-                totalDoctors
-              )} of ${totalDoctors} doctors`}
+              )} - ${Math.min(page * DOCTORS_PER_PAGE, totalDoctors)} ${t(
+                'cases.of'
+              )} ${totalDoctors} ${t('navigation.doctors')}`}
         </span>
         <div className="flex items-center gap-2">
           {page > 1 && (
@@ -556,7 +580,7 @@ const AdminDoctorsPage = () => {
               onClick={() => setPage(page - 1)}
               disabled={loading || refreshing}
             >
-              Previous
+              {t('common.previous')}
             </Button>
           )}
           {page * DOCTORS_PER_PAGE < totalDoctors && (
@@ -565,7 +589,7 @@ const AdminDoctorsPage = () => {
               onClick={() => setPage(page + 1)}
               disabled={loading || refreshing}
             >
-              Next
+              {t('common.next')}
             </Button>
           )}
         </div>

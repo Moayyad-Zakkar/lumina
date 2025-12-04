@@ -1,26 +1,7 @@
-// src/ui/components/DentalChart.jsx - With built-in scaling support
+// src/ui/components/DentalChart.jsx - With built-in scaling support and i18next
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toothPaths } from '../../assets/toothPaths';
-
-// Define tooth statuses with colors and descriptions
-const TOOTH_STATUSES = {
-  movable: {
-    color: '#00adef', // 3da blue
-    description: 'Can be moved orthodontically',
-  },
-  unmovable: {
-    color: '#F44336', // red
-    description: 'Dental implant, bridge pontic, or ankylosed teeth',
-  },
-  missing: {
-    color: '#9E9E9E', // gray
-    description: 'Missing or to be extracted',
-  },
-  note: {
-    color: '#fa9600', // orange
-    description: 'A note about this tooth in the notes field',
-  },
-};
 
 // Reusable Tooth component
 const Tooth = ({
@@ -30,9 +11,8 @@ const Tooth = ({
   onClick,
   isUpperJaw,
   readOnly = false,
+  statusColor,
 }) => {
-  const color = TOOTH_STATUSES[status]?.color;
-
   return (
     <div
       onClick={!readOnly ? onClick : undefined}
@@ -55,7 +35,7 @@ const Tooth = ({
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 21.1 56.7" // Slightly larger viewBox to ensure all teeth fit
           className="w-full h-full"
-          fill={color}
+          fill={statusColor}
           style={{
             maxWidth: '48px',
             maxHeight: '72px',
@@ -90,6 +70,28 @@ const DentalChart = ({
   scale = 1, // New prop for scaling
   showLegend = true, // New prop to optionally hide legend
 }) => {
+  const { t } = useTranslation();
+
+  // Define tooth statuses with colors and descriptions (using translations)
+  const TOOTH_STATUSES = {
+    movable: {
+      color: '#00adef', // 3da blue
+      description: t('dentalChart.statuses.movable'),
+    },
+    unmovable: {
+      color: '#F44336', // red
+      description: t('dentalChart.statuses.unmovable'),
+    },
+    missing: {
+      color: '#9E9E9E', // gray
+      description: t('dentalChart.statuses.missing'),
+    },
+    note: {
+      color: '#fa9600', // orange
+      description: t('dentalChart.statuses.note'),
+    },
+  };
+
   const [toothStatus, setToothStatus] = useState(() =>
     Object.keys(initialStatus).length > 0
       ? initialStatus
@@ -123,6 +125,7 @@ const DentalChart = ({
           const num = i + 1;
           const paths = toothPaths[`tooth${num}`] || [];
           const status = toothStatus[num];
+          const statusColor = TOOTH_STATUSES[status]?.color;
 
           return (
             <Tooth
@@ -133,6 +136,7 @@ const DentalChart = ({
               onClick={() => cycleStatus(num)}
               isUpperJaw={true}
               readOnly={readOnly}
+              statusColor={statusColor}
             />
           );
         })}
@@ -144,6 +148,7 @@ const DentalChart = ({
           const num = 32 - i;
           const paths = toothPaths[`tooth${num}`] || [];
           const status = toothStatus[num];
+          const statusColor = TOOTH_STATUSES[status]?.color;
 
           return (
             <Tooth
@@ -154,6 +159,7 @@ const DentalChart = ({
               onClick={() => cycleStatus(num)}
               isUpperJaw={false}
               readOnly={readOnly}
+              statusColor={statusColor}
             />
           );
         })}
@@ -171,7 +177,7 @@ const DentalChart = ({
                 />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                   <span className="capitalize font-medium text-sm">
-                    {status}:
+                    {t(`dentalChart.statusLabels.${status}`)}:
                   </span>
                   <span className="text-sm text-gray-600">{description}</span>
                 </div>

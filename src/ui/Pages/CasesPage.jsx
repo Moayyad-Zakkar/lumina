@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
 import { FeatherArrowDownUp, FeatherSearch } from '@subframe/core';
@@ -20,68 +21,73 @@ import CaseStatusBadge from '../components/CaseStatusBadge';
 
 const CASES_PER_PAGE = 10;
 
-// Available filter options
-const STATUS_OPTIONS = [
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'accepted', label: 'Accepted by Admin' },
-  { value: 'rejected', label: 'Rejected by Admin' },
-  { value: 'awaiting_user_approval', label: 'Awaiting Approval' },
-  { value: 'user_rejected', label: 'Rejected by Doctor' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'in_production', label: 'In Production' },
-  { value: 'ready_for_delivery', label: 'Ready for Delivery' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'completed', label: 'Completed' },
-];
-
-const DATE_RANGE_OPTIONS = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This Week' },
-  { value: 'month', label: 'This Month' },
-  { value: 'quarter', label: 'This Quarter' },
-  { value: 'year', label: 'This Year' },
-];
-
-const SORT_OPTIONS = [
+const getSortOptions = (t) => [
   {
     value: 'created_at_desc',
-    label: 'Newest First',
+    label: t('cases.filters.newestFirst'),
     column: 'created_at',
     ascending: false,
   },
   {
     value: 'created_at_asc',
-    label: 'Oldest First',
+    label: t('cases.filters.oldestFirst'),
     column: 'created_at',
     ascending: true,
   },
   {
     value: 'name_asc',
-    label: 'Name A-Z',
+    label: t('cases.filters.patientAZ'),
     column: 'first_name',
     ascending: true,
   },
   {
     value: 'name_desc',
-    label: 'Name Z-A',
+    label: t('cases.filters.patientZA'),
     column: 'first_name',
     ascending: false,
   },
   {
     value: 'status_asc',
-    label: 'Status A-Z',
+    label: t('cases.filters.statusAZ'),
     column: 'status',
     ascending: true,
   },
   {
     value: 'status_desc',
-    label: 'Status Z-A',
+    label: t('cases.filters.statusZA'),
     column: 'status',
     ascending: false,
   },
 ];
 
 const CasesPage = () => {
+  const { t } = useTranslation();
+
+  // Filter options using translations
+  const STATUS_OPTIONS = [
+    { value: 'submitted', label: t('cases.filters.submitted') },
+    { value: 'accepted', label: t('caseStatusBadge.accepted') },
+    { value: 'rejected', label: t('cases.filters.rejected') },
+    {
+      value: 'awaiting_user_approval',
+      label: t('cases.filters.awaitingApproval'),
+    },
+    { value: 'user_rejected', label: t('cases.filters.rejectedByDoctor') },
+    { value: 'approved', label: t('cases.filters.approved') },
+    { value: 'in_production', label: t('cases.filters.inProduction') },
+    { value: 'ready_for_delivery', label: t('cases.filters.readyForDelivery') },
+    { value: 'delivered', label: t('cases.filters.delivered') },
+    { value: 'completed', label: t('cases.filters.completed') },
+  ];
+
+  const DATE_RANGE_OPTIONS = [
+    { value: 'today', label: t('cases.filters.today') },
+    { value: 'week', label: t('cases.filters.thisWeek') },
+    { value: 'month', label: t('cases.filters.thisMonth') },
+    { value: 'quarter', label: t('cases.filters.thisQuarter') },
+    { value: 'year', label: t('cases.filters.thisYear') },
+  ];
+
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -146,6 +152,7 @@ const CasesPage = () => {
     const quarterEnd = new Date(today.getFullYear(), quarter * 3 + 3, 1);
     const yearStart = new Date(today.getFullYear(), 0, 1);
     const yearEnd = new Date(today.getFullYear() + 1, 0, 1);
+
     switch (range) {
       case 'today':
         return {
@@ -154,7 +161,6 @@ const CasesPage = () => {
         };
       case 'week':
         weekStart.setDate(today.getDate() - today.getDay());
-
         weekEnd.setDate(weekStart.getDate() + 7);
         return { start: weekStart, end: weekEnd };
       case 'month':
@@ -168,7 +174,6 @@ const CasesPage = () => {
     }
   };
 
-  // Fixed fetchCases function with useCallback to prevent infinite loops
   const fetchCases = useCallback(
     async (isRefresh = false) => {
       try {
@@ -186,12 +191,12 @@ const CasesPage = () => {
           throw new Error('User not authenticated');
         }
 
-        // Apply sorting
-        const sortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
+        const sortOption = getSortOptions(t).find(
+          (opt) => opt.value === sortBy
+        );
         const sortColumn = sortOption?.column || 'created_at';
         const sortAscending = sortOption?.ascending || false;
 
-        // Fetch paginated cases with count in a single query
         const from = (page - 1) * CASES_PER_PAGE;
         const to = from + CASES_PER_PAGE - 1;
 
@@ -201,19 +206,16 @@ const CasesPage = () => {
           .order(sortColumn, { ascending: sortAscending })
           .range(from, to);
 
-        // Apply search filter
         if (search.length >= 3) {
           query = query.or(
             `first_name.ilike.%${search}%,last_name.ilike.%${search}%`
           );
         }
 
-        // Apply status filter
         if (selectedStatus) {
           query = query.eq('status', selectedStatus);
         }
 
-        // Apply date range filter
         if (selectedDateRange) {
           const dateRange = getDateRange(selectedDateRange);
           if (dateRange) {
@@ -226,13 +228,6 @@ const CasesPage = () => {
         const { data, error, count } = await query;
 
         if (error) {
-          console.error('Supabase error details:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint,
-            full: error,
-          });
           throw error;
         }
 
@@ -249,19 +244,17 @@ const CasesPage = () => {
         setRefreshing(false);
       }
     },
-    [page, search, selectedStatus, selectedDateRange, sortBy]
+    [page, search, selectedStatus, selectedDateRange, sortBy, t]
   );
 
-  // Main effect - now fetchCases won't change unless dependencies change
   useEffect(() => {
     fetchCases();
   }, [fetchCases]);
 
-  // Handle search input and debounce
   useEffect(() => {
     const handler = setTimeout(() => {
       if (searchInput.trim() !== search) {
-        setPage(1); // Reset to first page on new search
+        setPage(1);
         setSearch(searchInput.trim());
       }
     }, 300);
@@ -281,7 +274,6 @@ const CasesPage = () => {
     setPage(1);
   };
 
-  // Helper functions for filter changes that reset page
   const handleStatusChange = (status) => {
     setSelectedStatus(status);
     setPage(1);
@@ -306,29 +298,28 @@ const CasesPage = () => {
     sortBy !== 'created_at_desc';
 
   const getStatusLabel = () => {
-    if (!selectedStatus) return 'Status';
+    if (!selectedStatus) return t('cases.filters.status');
     const option = STATUS_OPTIONS.find((opt) => opt.value === selectedStatus);
     return option?.label || selectedStatus;
   };
 
   const getDateLabel = () => {
-    if (!selectedDateRange) return 'Date';
+    if (!selectedDateRange) return t('cases.filters.date');
     const option = DATE_RANGE_OPTIONS.find(
       (opt) => opt.value === selectedDateRange
     );
     return option?.label || selectedDateRange;
   };
 
-  // Show error at the top, but keep the rest of the page visible
   return (
     <>
       {error && <Error error={error} />}
-      <Headline>My Cases</Headline>
+      <Headline>{t('cases.title')}</Headline>
 
       <div className="flex w-full justify-between items-center gap-4">
         {/* Left Side: Search + Filters */}
         <div className="flex items-center gap-2 flex-1">
-          {/* Search Bar with bounded width */}
+          {/* Search Bar */}
           <div className="flex-grow max-w-[300px] min-w-[200px]">
             <TextField
               className="w-full"
@@ -338,7 +329,7 @@ const CasesPage = () => {
               icon={<FeatherSearch />}
             >
               <TextField.Input
-                placeholder="Search cases..."
+                placeholder={t('cases.searchPatientOrDoctor')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
@@ -375,7 +366,7 @@ const CasesPage = () => {
                     className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => handleStatusChange('')}
                   >
-                    All Statuses
+                    {t('cases.filters.allStatuses')}
                   </button>
                   {STATUS_OPTIONS.map((option) => (
                     <button
@@ -421,7 +412,7 @@ const CasesPage = () => {
                     className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => handleDateRangeChange('')}
                   >
-                    All Dates
+                    {t('cases.filters.allDates')}
                   </button>
                   {DATE_RANGE_OPTIONS.map((option) => (
                     <button
@@ -450,7 +441,7 @@ const CasesPage = () => {
               onClick={clearFilters}
               icon={<FeatherX />}
             >
-              Clear
+              {t('cases.filters.clearFilters')}
             </Button>
           )}
         </div>
@@ -476,10 +467,10 @@ const CasesPage = () => {
               <div className="absolute top-full right-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[200px]">
                 <div className="p-4">
                   <h3 className="text-sm font-medium text-neutral-900 mb-3">
-                    Sort By
+                    {t('cases.filters.sortBy')}
                   </h3>
                   <div className="space-y-2">
-                    {SORT_OPTIONS.map((option) => (
+                    {getSortOptions(t).map((option) => (
                       <label key={option.value} className="flex items-center">
                         <input
                           type="radio"
@@ -505,10 +496,12 @@ const CasesPage = () => {
       {/* Active Filters Display */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs text-neutral-600">Active filters:</span>
+          <span className="text-xs text-neutral-600">
+            {t('cases.filters.activeFilters')}
+          </span>
           {selectedStatus && (
             <Badge variant="neutral" className="text-xs">
-              Status: {getStatusLabel()}
+              {t('cases.filters.status')}: {getStatusLabel()}
               <button
                 onClick={() => {
                   setSelectedStatus('');
@@ -522,7 +515,7 @@ const CasesPage = () => {
           )}
           {selectedDateRange && (
             <Badge variant="neutral" className="text-xs">
-              Date: {getDateLabel()}
+              {t('cases.filters.date')}: {getDateLabel()}
               <button
                 onClick={() => {
                   setSelectedDateRange('');
@@ -536,7 +529,7 @@ const CasesPage = () => {
           )}
           {search && (
             <Badge variant="neutral" className="text-xs">
-              Search: "{search}"
+              {t('common.search')}: "{search}"
               <button
                 onClick={() => {
                   setSearch('');
@@ -551,7 +544,8 @@ const CasesPage = () => {
           )}
           {sortBy !== 'created_at_desc' && (
             <Badge variant="neutral" className="text-xs">
-              Sort: {SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label}
+              {t('cases.filters.sortBy')}:{' '}
+              {getSortOptions(t).find((opt) => opt.value === sortBy)?.label}
             </Badge>
           )}
         </div>
@@ -560,10 +554,10 @@ const CasesPage = () => {
       <Table
         header={
           <Table.HeaderRow>
-            <Table.HeaderCell>Patient Name</Table.HeaderCell>
-            <Table.HeaderCell>Status</Table.HeaderCell>
-            <Table.HeaderCell>Submission Date</Table.HeaderCell>
-            <Table.HeaderCell>Case ID</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.patientName')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.status')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.submissionDate')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.caseId')}</Table.HeaderCell>
           </Table.HeaderRow>
         }
       >
@@ -581,8 +575,8 @@ const CasesPage = () => {
               <div className="text-center py-8">
                 <span className="text-neutral-500">
                   {hasActiveFilters
-                    ? 'No cases match your filters.'
-                    : 'No cases found.'}
+                    ? t('cases.noMatchingCases')
+                    : t('cases.noCases')}
                 </span>
               </div>
             </Table.Cell>
@@ -625,14 +619,18 @@ const CasesPage = () => {
       <div className="flex w-full items-center justify-between">
         <span className="text-body font-body text-subtext-color">
           {totalCases === 0
-            ? 'No cases to show'
-            : `Showing ${Math.min(
-                (page - 1) * CASES_PER_PAGE + 1,
-                totalCases
-              )} - ${Math.min(
-                page * CASES_PER_PAGE,
-                totalCases
-              )} of ${totalCases} cases`}
+            ? t('casesPage.noCasesToShow')
+            : t('cases.showing') +
+              ' ' +
+              Math.min((page - 1) * CASES_PER_PAGE + 1, totalCases) +
+              ' - ' +
+              Math.min(page * CASES_PER_PAGE, totalCases) +
+              ' ' +
+              t('cases.of') +
+              ' ' +
+              totalCases +
+              ' ' +
+              t('cases.cases')}
         </span>
         <div className="flex items-center gap-2">
           {page > 1 && (
@@ -641,7 +639,7 @@ const CasesPage = () => {
               onClick={() => setPage(page - 1)}
               disabled={loading || refreshing}
             >
-              Previous
+              {t('common.previous')}
             </Button>
           )}
           {page * CASES_PER_PAGE < totalCases && (
@@ -650,7 +648,7 @@ const CasesPage = () => {
               onClick={() => setPage(page + 1)}
               disabled={loading || refreshing}
             >
-              Next
+              {t('common.next')}
             </Button>
           )}
         </div>

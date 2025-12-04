@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { Loader } from '../../components/Loader';
@@ -16,6 +17,7 @@ import { isSuperAdmin } from '../../../helper/auth';
 import { useUserRole } from '../../../helper/useUserRole';
 
 function AdminBillingPage() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showExpensesDialog, setShowExpensesDialog] = useState(false);
@@ -68,11 +70,11 @@ function AdminBillingPage() {
     <>
       {error && <Error error={error} />}
 
-      <AdminHeadline submit={false}>Billing Management</AdminHeadline>
+      <AdminHeadline submit={false}>{t('billing.title')}</AdminHeadline>
 
       <div className="flex w-full items-center justify-between gap-4">
         <p className="text-body font-body text-subtext-color">
-          Manage payments and track billing information
+          {t('billing.subtitle')}
         </p>
 
         {/* Only super admin can see transaction log */}
@@ -83,7 +85,7 @@ function AdminBillingPage() {
               icon={<FeatherLogs />}
               className="w-auto"
             >
-              Transaction Log
+              {t('billing.transactionLog')}
             </Button>
           </Link>
         )}
@@ -105,7 +107,7 @@ function AdminBillingPage() {
 
           <div className="flex w-full items-center gap-2">
             <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">
-              Doctors Billing
+              {t('billing.doctorsBilling')}
             </span>
             <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
               <TextField
@@ -115,7 +117,7 @@ function AdminBillingPage() {
                 icon={<FeatherSearch />}
               >
                 <TextField.Input
-                  placeholder="Search doctors..."
+                  placeholder={t('billing.searchDoctors')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />

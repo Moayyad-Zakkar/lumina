@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../Button';
 
 const ManufacturingProgress = ({
@@ -6,6 +7,8 @@ const ManufacturingProgress = ({
   isDisabled,
   handleStatusTransition,
 }) => {
+  const { t } = useTranslation();
+
   // Only show for approved cases and beyond
   if (
     ![
@@ -27,7 +30,7 @@ const ManufacturingProgress = ({
             disabled={isDisabled}
             onClick={() => handleStatusTransition('in_production')}
           >
-            Start Production
+            {t('manufacturingProgress.buttons.startProduction')}
           </Button>
         );
       case 'in_production':
@@ -36,7 +39,7 @@ const ManufacturingProgress = ({
             disabled={isDisabled}
             onClick={() => handleStatusTransition('ready_for_delivery')}
           >
-            Mark Ready for Delivery
+            {t('manufacturingProgress.buttons.markReady')}
           </Button>
         );
       case 'ready_for_delivery':
@@ -45,7 +48,7 @@ const ManufacturingProgress = ({
             disabled={isDisabled}
             onClick={() => handleStatusTransition('delivered')}
           >
-            Mark Delivered
+            {t('manufacturingProgress.buttons.markDelivered')}
           </Button>
         );
       default:
@@ -56,24 +59,24 @@ const ManufacturingProgress = ({
   const getStatusMessage = () => {
     switch (currentStatus) {
       case 'approved':
-        return 'Treatment plan approved. Ready to begin production.';
+        return t('manufacturingProgress.messages.approved');
       case 'in_production':
-        return 'Aligners are currently being manufactured.';
+        return t('manufacturingProgress.messages.inProduction');
       case 'ready_for_delivery':
-        return 'Manufacturing complete. Aligners are ready to be shipped.';
+        return t('manufacturingProgress.messages.readyForDelivery');
       case 'delivered':
-        return 'The aligners have been delivered to the doctor. The doctor can mark the case as completed when finished.';
+        return t('manufacturingProgress.messages.delivered');
       case 'completed':
-        return 'Case completed successfully.';
+        return t('manufacturingProgress.messages.completed');
       default:
-        return 'Update the case status as you progress through manufacturing and delivery.';
+        return t('manufacturingProgress.messages.default');
     }
   };
 
   return (
     <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
       <span className="text-heading-3 font-heading-3 text-default-font">
-        Manufacturing Progress
+        {t('manufacturingProgress.title')}
       </span>
       <div className="flex w-full items-center justify-between">
         <span className="text-body font-body text-subtext-color">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../Button';
 import {
   FeatherArrowDown,
@@ -38,94 +39,101 @@ const BillingStats = ({
   );
 };
 
-const EarningsCard = ({ totalEarnings }) => (
-  <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
-    <div className="flex w-full flex-col items-start gap-2">
-      <span className="text-body font-body text-subtext-color">Net Income</span>
-      <div className="flex items-end gap-2">
-        <span className="text-heading-1 font-heading-1 text-success-600">
-          $
-          {totalEarnings.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </span>
-        <span className="text-body font-body text-subtext-color pb-1">
-          all time
-        </span>
-      </div>
-    </div>
-  </div>
-);
+const EarningsCard = ({ totalEarnings }) => {
+  const { t } = useTranslation();
 
-const DuePaymentsCard = ({ totalDue }) => (
-  <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
-    <div className="flex w-full flex-col items-start gap-2">
-      <span className="text-body font-body text-subtext-color">
-        Due Payments
-      </span>
-      <div className="flex items-end gap-2">
-        <span className="text-heading-1 font-heading-1 text-error-600">
-          $
-          {totalDue.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
+  return (
+    <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
+      <div className="flex w-full flex-col items-start gap-2">
+        <span className="text-body font-body text-subtext-color">
+          {t('billingStats.netIncome')}
         </span>
-        <span className="text-body font-body text-subtext-color pb-1">
-          outstanding
-        </span>
+        <div className="flex items-end gap-2">
+          <span className="text-heading-1 font-heading-1 text-success-600">
+            $
+            {totalEarnings.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+          <span className="text-body font-body text-subtext-color pb-1">
+            {t('billingStats.allTime')}
+          </span>
+        </div>
       </div>
     </div>
-    {/*
-    <div className="h-10 w-full flex-none"></div>
-    <Button
-    
-      
-      variant="destructive-primary"
-      icon={<FeatherArrowUp />}
-      onClick={onMakePayment}
-    >
-      Make Payment
-    </Button>*/}
-  </div>
-);
+  );
+};
 
-const ExpensesCard = ({ totalExpenses }) => (
-  <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
-    <div className="flex w-full flex-col items-start gap-2">
-      <span className="text-body font-body text-subtext-color">
-        Total Expenses
-      </span>
-      <div className="flex items-end gap-2">
-        <span className="text-heading-1 font-heading-1 text-warning-600">
-          $
-          {totalExpenses.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
+const DuePaymentsCard = ({ totalDue }) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
+      <div className="flex w-full flex-col items-start gap-2">
+        <span className="text-body font-body text-subtext-color">
+          {t('billingStats.duePayments')}
         </span>
-        <span className="text-body font-body text-subtext-color pb-1">
-          all time
-        </span>
+        <div className="flex items-end gap-2">
+          <span className="text-heading-1 font-heading-1 text-error-600">
+            $
+            {totalDue.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+          <span className="text-body font-body text-subtext-color pb-1">
+            {t('billingStats.outstanding')}
+          </span>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+const ExpensesCard = ({ totalExpenses }) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex min-w-[240px] grow shrink-0 basis-0 flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-8 py-8 shadow-sm">
+      <div className="flex w-full flex-col items-start gap-2">
+        <span className="text-body font-body text-subtext-color">
+          {t('billingStats.totalExpenses')}
+        </span>
+        <div className="flex items-end gap-2">
+          <span className="text-heading-1 font-heading-1 text-warning-600">
+            $
+            {totalExpenses.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+          <span className="text-body font-body text-subtext-color pb-1">
+            {t('billingStats.allTime')}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PaymentButton = ({ onReceivePayment }) => {
+  const { t } = useTranslation();
+
   return (
     <Button
       className="h-10 w-auto flex-none"
       icon={<FeatherArrowDown />}
       onClick={onReceivePayment}
     >
-      Receive Payment
+      {t('billingStats.receivePayment')}
     </Button>
   );
 };
 
 const ExpenseButton = ({ onMakePayment }) => {
+  const { t } = useTranslation();
+
   return (
     <Button
       className="h-10 w-auto flex-none"
@@ -133,7 +141,7 @@ const ExpenseButton = ({ onMakePayment }) => {
       icon={<FeatherTrendingDown />}
       onClick={onMakePayment}
     >
-      Record Expense
+      {t('billingStats.recordExpense')}
     </Button>
   );
 };

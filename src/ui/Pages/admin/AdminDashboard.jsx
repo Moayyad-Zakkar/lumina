@@ -1,4 +1,5 @@
 import { useLoaderData, useNavigate, useNavigation } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import CaseStatusBadge from '../../components/CaseStatusBadge';
 import { Table } from '../../components/Table';
 import AdminHeadline from '../../components/AdminHeadline';
@@ -14,6 +15,7 @@ import { isSuperAdmin } from '../../../helper/auth';
 import Error from '../../components/Error';
 
 function AdminDashboard() {
+  const { t } = useTranslation();
   const {
     totalCases,
     recentCases,
@@ -40,13 +42,13 @@ function AdminDashboard() {
     <>
       {casesError && <Error error={casesError} />}
 
-      <AdminHeadline submit={true}>Dashboard</AdminHeadline>
+      <AdminHeadline submit={true}>{t('dashboard.title')}</AdminHeadline>
 
       {/* Stats Overview */}
       <div className="flex w-full flex-wrap items-start gap-4">
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
-            TOTAL CASES
+            {t('dashboard.totalCases')}
           </span>
           <span className="text-heading-2 font-heading-2 text-default-font">
             {totalCases === null ? (
@@ -60,7 +62,7 @@ function AdminDashboard() {
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
-            PENDING REVIEW
+            {t('dashboard.pendingReview')}
           </span>
           <span className="text-heading-2 font-heading-2 text-warning-700">
             {submittedCases === null ? (
@@ -74,7 +76,7 @@ function AdminDashboard() {
         </div>
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
           <span className="text-caption-bold font-caption-bold text-subtext-color">
-            COMPLETED
+            {t('dashboard.completedBy3DA')}
           </span>
           <span className="text-heading-2 font-heading-2 text-success-700">
             {completedCases === null ? (
@@ -91,7 +93,7 @@ function AdminDashboard() {
       {/* Recent Cases Section */}
       <div className="flex w-full items-center justify-between gap-4">
         <span className="text-heading-2 font-heading-2 text-default-font">
-          Recent Cases
+          {t('dashboard.recentCases')}
         </span>
         <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
           <TextField
@@ -100,7 +102,10 @@ function AdminDashboard() {
             helpText=""
             icon={<FeatherSearch />}
           >
-            <TextField.Input placeholder="Search cases..." value="" />
+            <TextField.Input
+              placeholder={t('dashboard.searchCases')}
+              value=""
+            />
           </TextField>
         </div>
       </div>
@@ -108,13 +113,13 @@ function AdminDashboard() {
       <Table
         header={
           <Table.HeaderRow>
-            <Table.HeaderCell>Patient</Table.HeaderCell>
-            <Table.HeaderCell>Doctor</Table.HeaderCell>
-            <Table.HeaderCell>Clinic</Table.HeaderCell>
-            <Table.HeaderCell>Phone</Table.HeaderCell>
-            <Table.HeaderCell>Status</Table.HeaderCell>
-            <Table.HeaderCell>Submitted</Table.HeaderCell>
-            <Table.HeaderCell>Case ID</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.patient')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.doctor')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.clinic')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.phone')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.status')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.submissionDate')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.caseId')}</Table.HeaderCell>
           </Table.HeaderRow>
         }
       >
@@ -130,7 +135,9 @@ function AdminDashboard() {
           <Table.Row>
             <Table.Cell colSpan={7}>
               <div className="text-center py-8">
-                <span className="text-neutral-500">No recent cases.</span>
+                <span className="text-neutral-500">
+                  {t('dashboard.noCases')}
+                </span>
               </div>
             </Table.Cell>
           </Table.Row>
@@ -207,7 +214,7 @@ function AdminDashboard() {
       {isSuperAdminUser && (
         <>
           <span className="text-heading-2 font-heading-2 text-default-font">
-            Payment Overview
+            {t('dashboard.paymentOverview')}
           </span>
 
           {billingLoading ? (

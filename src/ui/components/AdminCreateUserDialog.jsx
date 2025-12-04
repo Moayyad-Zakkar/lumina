@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FeatherX } from '@subframe/core';
 
 const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     full_name: '',
     clinic: '',
@@ -42,11 +44,11 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
     try {
       // Validate required fields
       if (!formData.full_name || !formData.email || !formData.clinic) {
-        throw new Error('Please fill in all required fields');
+        throw new Error(t('settings.errors.fillAllFields'));
       }
 
       if (!formData.password || formData.password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
+        throw new Error(t('settings.errors.passwordTooShort'));
       }
 
       // Call the onSubmit prop (this will handle user creation)
@@ -80,7 +82,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
       <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-xl mx-4 max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
-            Create New User Account
+            {t('signUpRequests.createUser')}
           </h2>
           <button
             onClick={onClose}
@@ -96,11 +98,10 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
               <div className="flex">
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-green-800">
-                    User account created successfully!
+                    {t('signUpRequests.userCreatedSuccess')}
                   </h3>
                   <p className="mt-2 text-sm text-green-700">
-                    The user can now sign in with the email and password you
-                    provided.
+                    {t('signUpRequests.passwordHint')}
                   </p>
                 </div>
               </div>
@@ -125,7 +126,8 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="full_name"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Full Name <span className="text-red-500">*</span>
+                {t('signUpRequests.fullName')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -144,7 +146,8 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Email Address <span className="text-red-500">*</span>
+                {t('signUpRequests.email')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -163,7 +166,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Password <span className="text-red-500">*</span>
+                {t('auth.password')} <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -175,7 +178,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                    placeholder="Enter password (min 6 characters)"
+                    placeholder={t('signUpRequests.passwordPlaceholder')}
                   />
                 </div>
                 <button
@@ -183,19 +186,18 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm"
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {showPassword ? t('common.hide') : t('common.show')}
                 </button>
                 <button
                   type="button"
                   onClick={generatePassword}
                   className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-200 text-sm whitespace-nowrap"
                 >
-                  Generate
+                  {t('common.generate')}
                 </button>
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                Make sure to save this password and share it securely with the
-                user.
+                {t('signUpRequests.passwordHint')}
               </p>
             </div>
 
@@ -204,7 +206,8 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="clinic"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Clinic Name <span className="text-red-500">*</span>
+                {t('signUpRequests.clinicName')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -223,7 +226,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Phone Number
+                {t('signUpRequests.phoneNumber')}
               </label>
               <input
                 type="tel"
@@ -241,7 +244,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="address"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Clinic Address
+                {t('signUpRequests.clinicAddress')}
               </label>
               <textarea
                 id="address"
@@ -260,7 +263,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 onClick={onClose}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -268,7 +271,9 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 disabled={loading}
                 className="flex-1 px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 font-medium disabled:bg-sky-400"
               >
-                {loading ? 'Creating Account...' : 'Create User Account'}
+                {loading
+                  ? t('signUpRequests.creatingAccount')
+                  : t('signUpRequests.createUser')}
               </button>
             </div>
           </div>

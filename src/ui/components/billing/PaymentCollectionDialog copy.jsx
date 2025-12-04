@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// Use the new DialogWrapper instead of Dialog
-import DialogWrapper from '../DialogWrapper'; // Assuming DialogWrapper is in the same directory or adjust path
-import { TextField } from '../TextField';
+import { TextField } from '..//TextField';
+import { Dialog } from '../Dialog';
 import { Button } from '../Button';
-import { FeatherDollarSign, FeatherCheck } from '@subframe/core';
-// Removed: FeatherX, IconButton
-
+import { FeatherDollarSign, FeatherCheck, FeatherX } from '@subframe/core';
 import {
   useDoctorCases,
   usePaymentProcessor,
 } from '../../../hooks/useBillingData';
+import { IconButton } from '../IconButton';
 
 const PaymentCollectionDialog = ({
   isOpen,
@@ -20,7 +18,6 @@ const PaymentCollectionDialog = ({
   initialDoctor = null,
   refetchBillingData,
 }) => {
-  const { t } = useTranslation();
   const [selectedDoctor, setSelectedDoctor] = useState(initialDoctor);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
@@ -91,70 +88,84 @@ const PaymentCollectionDialog = ({
   };
 
   const handleClose = () => {
-    // Optionally reset state on close if not covered by useEffect
-    // setSelectedDoctor(null);
-    // setSelectedCases(new Set());
-    // setPaymentAmount('');
-    // setPaymentNotes('');
+    setSelectedDoctor(null);
+    setSelectedCases(new Set());
+    setPaymentAmount('');
+    setPaymentNotes('');
     onClose();
   };
 
   return (
-    <DialogWrapper
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={t('paymentCollectionDialog.title')}
-      description={t('paymentCollectionDialog.subtitle')}
-      icon={<FeatherDollarSign />}
-      loading={processingPayment}
-      // Increased max width to accommodate the cases section comfortably
-      maxWidth="max-w-4xl"
-    >
-      <div className="space-y-6 w-full pt-4">
-        {' '}
-        {/* Added padding top after header */}
-        <DoctorSelection
-          doctors={doctors}
-          selectedDoctor={selectedDoctor}
-          onDoctorChange={handleDoctorChange}
-        />
-        <PaymentAmountInput
-          paymentAmount={paymentAmount}
-          setPaymentAmount={setPaymentAmount}
-        />
-        <PaymentNotesInput
-          paymentNotes={paymentNotes}
-          setPaymentNotes={setPaymentNotes}
-        />
-        {selectedDoctor && (
-          <CasesSection
-            doctorCases={doctorCases}
-            loadingCases={loadingCases}
-            selectedCases={selectedCases}
-            handleCaseSelection={handleCaseSelection}
-            paymentAmount={paymentAmount}
-            calculateSelectedCasesTotal={calculateSelectedCasesTotal}
-            calculateRemainingAmount={calculateRemainingAmount}
-            getUnselectedCases={getUnselectedCases}
-          />
-        )}
-      </div>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <Dialog.Content className="p-6 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader onClose={handleClose} />
 
-      {/* Actions are now a child, not a Dialog.Action */}
-      <DialogActions
-        onClose={handleClose}
-        onSubmit={handleSubmit}
-        processingPayment={processingPayment}
-        paymentAmount={paymentAmount}
-        selectedDoctor={selectedDoctor}
-      />
-    </DialogWrapper>
+        <div className="space-y-6 w-full">
+          <DoctorSelection
+            doctors={doctors}
+            selectedDoctor={selectedDoctor}
+            onDoctorChange={handleDoctorChange}
+          />
+
+          <PaymentAmountInput
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+          />
+
+          <PaymentNotesInput
+            paymentNotes={paymentNotes}
+            setPaymentNotes={setPaymentNotes}
+          />
+
+          {selectedDoctor && (
+            <CasesSection
+              selectedDoctor={selectedDoctor}
+              doctorCases={doctorCases}
+              loadingCases={loadingCases}
+              selectedCases={selectedCases}
+              handleCaseSelection={handleCaseSelection}
+              paymentAmount={paymentAmount}
+              calculateSelectedCasesTotal={calculateSelectedCasesTotal}
+              calculateRemainingAmount={calculateRemainingAmount}
+              getUnselectedCases={getUnselectedCases}
+            />
+          )}
+        </div>
+
+        <DialogActions
+          onClose={handleClose}
+          onSubmit={handleSubmit}
+          processingPayment={processingPayment}
+          paymentAmount={paymentAmount}
+          selectedDoctor={selectedDoctor}
+        />
+      </Dialog.Content>
+    </Dialog>
   );
 };
 
-// Removed DialogHeader - its logic is now inside DialogWrapper
+const DialogHeader = ({ onClose }) => {
+  const { t } = useTranslation();
 
-// --- DoctorSelection, PaymentAmountInput, PaymentNotesInput are unchanged ---
+  return (
+    <>
+      <div className="flex items-start gap-6 mb-6">
+        <>
+          <FeatherDollarSign className="h-6 w-6 text-brand-600 mt-1" />
+          <div>
+            <h2 className="text-heading-3 font-heading-3 text-default-font">
+              {t('paymentCollectionDialog.title')}
+            </h2>
+            <p className="text-body font-body text-subtext-color mt-1">
+              {t('paymentCollectionDialog.subtitle')}
+            </p>
+          </div>
+        </>
+        <IconButton icon={<FeatherX />} onClick={onClose} />
+      </div>
+    </>
+  );
+};
 
 const DoctorSelection = ({ doctors, selectedDoctor, onDoctorChange }) => {
   const { t } = useTranslation();
@@ -226,8 +237,6 @@ const PaymentNotesInput = ({ paymentNotes, setPaymentNotes }) => {
     </div>
   );
 };
-
-// --- CasesSection and its children are unchanged except for removing DialogHeader ---
 
 const CasesSection = ({
   //selectedDoctor,
@@ -482,10 +491,8 @@ const DialogActions = ({
 }) => {
   const { t } = useTranslation();
 
-  // Changed styling to fit within the new DialogWrapper structure,
-  // without the need for an external border-t.
   return (
-    <div className="flex items-center justify-end gap-3 pt-6 border-t border-neutral-border w-full mt-6">
+    <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-neutral-border w-full">
       <Button
         variant="neutral-secondary"
         onClick={onClose}

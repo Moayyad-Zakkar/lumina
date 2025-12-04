@@ -1,6 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useNavigate } from 'react-router';
-
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { IconButton } from '../../components/IconButton';
@@ -29,73 +35,75 @@ import AdminHeadline from '../../components/AdminHeadline';
 
 const CASES_PER_PAGE = 10;
 
-// Available filter options
-const STATUS_OPTIONS = [
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'awaiting_user_approval', label: 'Awaiting Approval' },
-  { value: 'user_rejected', label: 'Rejected by Doctor' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'in_production', label: 'In Production' },
-  { value: 'ready_for_delivery', label: 'Ready for Delivery' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'completed', label: 'Completed' },
+const getStatusOptions = (t) => [
+  { value: 'submitted', label: t('cases.filters.submitted') },
+  { value: 'rejected', label: t('cases.filters.rejected') },
+  {
+    value: 'awaiting_user_approval',
+    label: t('cases.filters.awaitingApproval'),
+  },
+  { value: 'user_rejected', label: t('cases.filters.rejectedByDoctor') },
+  { value: 'approved', label: t('cases.filters.approved') },
+  { value: 'in_production', label: t('cases.filters.inProduction') },
+  { value: 'ready_for_delivery', label: t('cases.filters.readyForDelivery') },
+  { value: 'delivered', label: t('cases.filters.delivered') },
+  { value: 'completed', label: t('cases.filters.completed') },
 ];
 
-const DATE_RANGE_OPTIONS = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This Week' },
-  { value: 'month', label: 'This Month' },
-  { value: 'quarter', label: 'This Quarter' },
-  { value: 'year', label: 'This Year' },
+const getDateRangeOptions = (t) => [
+  { value: 'today', label: t('cases.filters.today') },
+  { value: 'week', label: t('cases.filters.thisWeek') },
+  { value: 'month', label: t('cases.filters.thisMonth') },
+  { value: 'quarter', label: t('cases.filters.thisQuarter') },
+  { value: 'year', label: t('cases.filters.thisYear') },
 ];
 
-const SORT_OPTIONS = [
+const getSortOptions = (t) => [
   {
     value: 'created_at_desc',
-    label: 'Newest First',
+    label: t('cases.filters.newestFirst'),
     column: 'created_at',
     ascending: false,
   },
   {
     value: 'created_at_asc',
-    label: 'Oldest First',
+    label: t('cases.filters.oldestFirst'),
     column: 'created_at',
     ascending: true,
   },
   {
     value: 'patient_name_asc',
-    label: 'Patient A-Z',
+    label: t('cases.filters.patientAZ'),
     column: 'first_name',
     ascending: true,
   },
   {
     value: 'patient_name_desc',
-    label: 'Patient Z-A',
+    label: t('cases.filters.patientZA'),
     column: 'first_name',
     ascending: false,
   },
   {
     value: 'doctor_name_asc',
-    label: 'Doctor A-Z',
+    label: t('cases.filters.doctorAZ'),
     column: 'profiles(full_name)',
     ascending: true,
   },
   {
     value: 'doctor_name_desc',
-    label: 'Doctor Z-A',
+    label: t('cases.filters.doctorZA'),
     column: 'profiles(full_name)',
     ascending: false,
   },
   {
     value: 'status_asc',
-    label: 'Status A-Z',
+    label: t('cases.filters.statusAZ'),
     column: 'status',
     ascending: true,
   },
   {
     value: 'status_desc',
-    label: 'Status Z-A',
+    label: t('cases.filters.statusZA'),
     column: 'status',
     ascending: false,
   },
@@ -111,7 +119,10 @@ const AdminCasesPage = () => {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [alignerMaterialOptions, setAlignerMaterialOptions] = useState([]);
-
+  const { t } = useTranslation();
+  const statusOptions = useMemo(() => getStatusOptions(t), [t]);
+  const dateRangeOptions = useMemo(() => getDateRangeOptions(t), [t]);
+  const sortOptions = useMemo(() => getSortOptions(t), [t]);
   // Filter states
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedAlignerMaterial, setSelectedAlignerMaterial] = useState('');
@@ -227,16 +238,69 @@ const AdminCasesPage = () => {
     }
   };
 
-  const fetchCases = async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
+  const fetchCases = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
 
-      let baseQuery = supabase.from('cases').select(
-        `
+        let baseQuery = supabase.from('cases').select(
+          `
+            *,
+            profiles (
+              id,
+              full_name,
+              phone,
+              clinic,
+              avatar_url
+            )
+          `,
+          { count: 'exact' }
+        );
+
+        // Apply search filter
+        if (search.length >= 3) {
+          baseQuery = baseQuery.or(
+            `first_name.ilike.%${search}%,last_name.ilike.%${search}%,profiles.full_name.ilike.%${search}%`
+          );
+        }
+
+        // Apply status filter
+        if (selectedStatus) {
+          baseQuery = baseQuery.eq('status', selectedStatus);
+        }
+
+        // Apply aligner material filter (string comparison)
+        if (selectedAlignerMaterial) {
+          baseQuery = baseQuery.eq('aligner_material', selectedAlignerMaterial);
+        }
+
+        // Apply date range filter
+        if (selectedDateRange) {
+          const dateRange = getDateRange(selectedDateRange);
+          if (dateRange) {
+            baseQuery = baseQuery
+              .gte('created_at', dateRange.start.toISOString())
+              .lt('created_at', dateRange.end.toISOString());
+          }
+        }
+
+        // Get total count
+        const { count: total, error: countError } = await baseQuery;
+        if (countError) throw countError;
+        setTotalCases(total || 0);
+
+        // Apply sorting
+        const sortOption = sortOptions.find((opt) => opt.value === sortBy);
+        const sortColumn = sortOption?.column || 'created_at';
+        const sortAscending = sortOption?.ascending || false;
+
+        // For doctor name sorting, we need to handle it differently
+        let sortedQuery = baseQuery.select(
+          `
           *,
           profiles (
             id,
@@ -245,122 +309,73 @@ const AdminCasesPage = () => {
             clinic,
             avatar_url
           )
-        `,
-        { count: 'exact' }
-      );
-
-      // Apply search filter
-      if (search.length >= 3) {
-        baseQuery = baseQuery.or(
-          `first_name.ilike.%${search}%,last_name.ilike.%${search}%,profiles.full_name.ilike.%${search}%`
-        );
-      }
-
-      // Apply status filter
-      if (selectedStatus) {
-        baseQuery = baseQuery.eq('status', selectedStatus);
-      }
-
-      // Apply aligner material filter (string comparison)
-      if (selectedAlignerMaterial) {
-        baseQuery = baseQuery.eq('aligner_material', selectedAlignerMaterial);
-      }
-
-      // Apply date range filter
-      if (selectedDateRange) {
-        const dateRange = getDateRange(selectedDateRange);
-        if (dateRange) {
-          baseQuery = baseQuery
-            .gte('created_at', dateRange.start.toISOString())
-            .lt('created_at', dateRange.end.toISOString());
-        }
-      }
-
-      // Get total count
-      const { count: total, error: countError } = await baseQuery;
-      if (countError) throw countError;
-      setTotalCases(total || 0);
-
-      // Apply sorting
-      const sortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
-      const sortColumn = sortOption?.column || 'created_at';
-      const sortAscending = sortOption?.ascending || false;
-
-      // For doctor name sorting, we need to handle it differently
-      let sortedQuery = baseQuery.select(
         `
-        *,
-        profiles (
-          id,
-          full_name,
-          phone,
-          clinic,
-          avatar_url
-        )
-      `
-      );
+        );
 
-      if (sortColumn.includes('profiles')) {
-        // For profile-related sorting, we'll sort on the client side after fetching
-        sortedQuery = sortedQuery.order('created_at', { ascending: false });
-      } else {
-        sortedQuery = sortedQuery.order(sortColumn, {
-          ascending: sortAscending,
-        });
+        if (sortColumn.includes('profiles')) {
+          // For profile-related sorting, we'll sort on the client side after fetching
+          sortedQuery = sortedQuery.order('created_at', { ascending: false });
+        } else {
+          sortedQuery = sortedQuery.order(sortColumn, {
+            ascending: sortAscending,
+          });
+        }
+
+        // Fetch paginated cases
+        const from = (page - 1) * CASES_PER_PAGE;
+        const to = from + CASES_PER_PAGE - 1;
+        const { data, error } = await sortedQuery.range(from, to);
+
+        if (error) throw error;
+
+        let processedData = (data || []).map((c) => ({
+          ...c,
+          first_name: capitalizeFirst(c.first_name),
+          last_name: capitalizeFirst(c.last_name),
+          profiles: c.profiles
+            ? {
+                ...c.profiles,
+                full_name: capitalizeFirst(c.profiles.full_name),
+              }
+            : c.profiles,
+        }));
+
+        // Client-side sorting for profile-related fields
+        if (sortColumn.includes('profiles')) {
+          processedData.sort((a, b) => {
+            const aValue = a.profiles?.full_name || '';
+            const bValue = b.profiles?.full_name || '';
+            const comparison = aValue.localeCompare(bValue);
+            return sortAscending ? comparison : -comparison;
+          });
+        }
+
+        setCases(processedData);
+
+        // Clear any previous errors on successful fetch
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-
-      // Fetch paginated cases
-      const from = (page - 1) * CASES_PER_PAGE;
-      const to = from + CASES_PER_PAGE - 1;
-      const { data, error } = await sortedQuery.range(from, to);
-
-      if (error) throw error;
-
-      let processedData = (data || []).map((c) => ({
-        ...c,
-        first_name: capitalizeFirst(c.first_name),
-        last_name: capitalizeFirst(c.last_name),
-        profiles: c.profiles
-          ? {
-              ...c.profiles,
-              full_name: capitalizeFirst(c.profiles.full_name),
-            }
-          : c.profiles,
-      }));
-
-      // Client-side sorting for profile-related fields
-      if (sortColumn.includes('profiles')) {
-        processedData.sort((a, b) => {
-          const aValue = a.profiles?.full_name || '';
-          const bValue = b.profiles?.full_name || '';
-          const comparison = aValue.localeCompare(bValue);
-          return sortAscending ? comparison : -comparison;
-        });
-      }
-
-      setCases(processedData);
-
-      // Clear any previous errors on successful fetch
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching cases:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    },
+    [
+      page,
+      search,
+      selectedStatus,
+      selectedAlignerMaterial,
+      selectedDateRange,
+      sortBy,
+      sortOptions,
+    ]
+  );
 
   useEffect(() => {
     fetchCases();
-  }, [
-    page,
-    search,
-    selectedStatus,
-    selectedAlignerMaterial,
-    selectedDateRange,
-    sortBy,
-  ]);
+  }, [fetchCases]);
 
   // Handle search input and debounce
   useEffect(() => {
@@ -398,13 +413,13 @@ const AdminCasesPage = () => {
     sortBy !== 'created_at_desc';
 
   const getStatusLabel = () => {
-    if (!selectedStatus) return 'Status';
-    const option = STATUS_OPTIONS.find((opt) => opt.value === selectedStatus);
+    if (!selectedStatus) return t('cases.filters.status');
+    const option = statusOptions.find((opt) => opt.value === selectedStatus);
     return option?.label || selectedStatus;
   };
 
   const getAlignerMaterialLabel = () => {
-    if (!selectedAlignerMaterial) return 'Material';
+    if (!selectedAlignerMaterial) return t('cases.filters.material');
     const material = alignerMaterialOptions.find(
       (m) => m.value === selectedAlignerMaterial
     );
@@ -412,8 +427,8 @@ const AdminCasesPage = () => {
   };
 
   const getDateLabel = () => {
-    if (!selectedDateRange) return 'Date';
-    const option = DATE_RANGE_OPTIONS.find(
+    if (!selectedDateRange) return t('cases.filters.date');
+    const option = dateRangeOptions.find(
       (opt) => opt.value === selectedDateRange
     );
     return option?.label || selectedDateRange;
@@ -422,7 +437,7 @@ const AdminCasesPage = () => {
   return (
     <>
       {error && <Error error={error} />}
-      <AdminHeadline submit={true}>All Cases</AdminHeadline>
+      <AdminHeadline submit={true}>{t('navigation.allCases')}</AdminHeadline>
 
       <div className="flex w-full justify-between items-center gap-4">
         {/* Left Side: Search + Filters */}
@@ -437,7 +452,7 @@ const AdminCasesPage = () => {
               icon={<FeatherSearch />}
             >
               <TextField.Input
-                placeholder="Search patient or doctor..."
+                placeholder={t('cases.searchPatientOrDoctor')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
@@ -469,21 +484,26 @@ const AdminCasesPage = () => {
             </Button>
 
             {showStatusDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[160px]">
+              <div
+                className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[160px]"
+                dir="rtl" // Add dir="rtl" for proper flow context
+              >
                 <div className="py-1">
                   <button
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
+                    // FIX: Changed text-left to text-right
+                    className="w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => {
                       setSelectedStatus('');
                       setShowStatusDropdown(false);
                     }}
                   >
-                    All Statuses
+                    {t('cases.filters.allStatuses')}
                   </button>
-                  {STATUS_OPTIONS.map((option) => (
+                  {statusOptions.map((option) => (
                     <button
                       key={option.value}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 ${
+                      // FIX: Changed text-left to text-right
+                      className={`w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 ${
                         selectedStatus === option.value
                           ? 'bg-neutral-100 text-neutral-900'
                           : 'text-neutral-700'
@@ -531,21 +551,26 @@ const AdminCasesPage = () => {
             </Button>
 
             {showAlignerMaterialDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[140px] max-h-[300px] overflow-y-auto">
+              <div
+                className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[140px] max-h-[300px] overflow-y-auto"
+                dir="rtl" // Add dir="rtl" for proper flow context
+              >
                 <div className="py-1">
                   <button
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
+                    // FIX: Changed text-left to text-right
+                    className="w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => {
                       setSelectedAlignerMaterial('');
                       setShowAlignerMaterialDropdown(false);
                     }}
                   >
-                    All Materials
+                    {t('cases.filters.allMaterials')}
                   </button>
                   {alignerMaterialOptions.map((material) => (
                     <button
                       key={material.value}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 ${
+                      // FIX: Changed text-left to text-right
+                      className={`w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 ${
                         selectedAlignerMaterial === material.value
                           ? 'bg-neutral-100 text-neutral-900'
                           : 'text-neutral-700'
@@ -580,25 +605,29 @@ const AdminCasesPage = () => {
                 setShowAlignerMaterialDropdown(false);
               }}
             >
-              {getDateLabel()}
+                            {getDateLabel()}           {' '}
             </Button>
 
             {showDateDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[140px]">
+              <div
+                className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[140px]"
+                dir="rtl" // Add dir="rtl" for proper flow context
+              >
                 <div className="py-1">
-                  <button
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
+                  <button // FIX: Changed text-left to text-right
+                    className="w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => {
                       setSelectedDateRange('');
                       setShowDateDropdown(false);
                     }}
                   >
-                    All Dates
+                    {t('cases.filters.allDates')}
                   </button>
-                  {DATE_RANGE_OPTIONS.map((option) => (
+
+                  {dateRangeOptions.map((option) => (
                     <button
-                      key={option.value}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 ${
+                      key={option.value} // FIX: Changed text-left to text-right
+                      className={`w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 ${
                         selectedDateRange === option.value
                           ? 'bg-neutral-100 text-neutral-900'
                           : 'text-neutral-700'
@@ -625,7 +654,7 @@ const AdminCasesPage = () => {
               onClick={clearFilters}
               icon={<FeatherX />}
             >
-              Clear
+              {t('cases.filters.clearFilters')}
             </Button>
           )}
         </div>
@@ -648,25 +677,35 @@ const AdminCasesPage = () => {
             />
 
             {showFilterPanel && (
-              <div className="absolute top-full right-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[200px]">
+              <div
+                className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[200px]"
+                dir="rtl" // Sets the overall directionality for padding/flow
+              >
                 <div className="p-4">
-                  <h3 className="text-sm font-medium text-neutral-900 mb-3">
-                    Sort By
+                  <h3 className="text-sm font-medium text-neutral-900 mb-3 text-right">
+                    {t('cases.filters.sortBy')}
                   </h3>
                   <div className="space-y-2">
-                    {SORT_OPTIONS.map((option) => (
-                      <label key={option.value} className="flex items-center">
+                    {sortOptions.map((option) => (
+                      <label
+                        key={option.value}
+                        // FIX: justify-start pushes content to the right edge in RTL.
+                        className="flex items-center justify-start"
+                      >
+                        {/* Text is visually on the left (order-2) */}
+                        <span className="text-sm text-neutral-700 order-2">
+                          {option.label}
+                        </span>
                         <input
                           type="radio"
                           name="sort"
                           value={option.value}
                           checked={sortBy === option.value}
                           onChange={(e) => setSortBy(e.target.value)}
-                          className="mr-2"
+                          // FIX: order-1 places the radio button on the far right.
+                          // FIX: ml-2 creates space between the button and the text.
+                          className="ml-2 order-1"
                         />
-                        <span className="text-sm text-neutral-700">
-                          {option.label}
-                        </span>
                       </label>
                     ))}
                   </div>
@@ -680,10 +719,12 @@ const AdminCasesPage = () => {
       {/* Active Filters Display */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs text-neutral-600">Active filters:</span>
+          <span className="text-xs text-neutral-600">
+            {t('cases.filters.activeFilters')}
+          </span>
           {selectedStatus && (
             <Badge variant="neutral" className="text-xs">
-              Status: {getStatusLabel()}
+              {t('cases.filters.status')}: {getStatusLabel()}
               <button
                 onClick={() => setSelectedStatus('')}
                 className="ml-1 hover:text-neutral-800"
@@ -694,7 +735,7 @@ const AdminCasesPage = () => {
           )}
           {selectedAlignerMaterial && (
             <Badge variant="neutral" className="text-xs">
-              Material: {getAlignerMaterialLabel()}
+              {t('cases.filters.material')}: {getAlignerMaterialLabel()}
               <button
                 onClick={() => setSelectedAlignerMaterial('')}
                 className="ml-1 hover:text-neutral-800"
@@ -705,7 +746,7 @@ const AdminCasesPage = () => {
           )}
           {selectedDateRange && (
             <Badge variant="neutral" className="text-xs">
-              Date: {getDateLabel()}
+              {t('cases.filters.date')}: {getDateLabel()}
               <button
                 onClick={() => setSelectedDateRange('')}
                 className="ml-1 hover:text-neutral-800"
@@ -716,7 +757,7 @@ const AdminCasesPage = () => {
           )}
           {search && (
             <Badge variant="neutral" className="text-xs">
-              Search: "{search}"
+              {t('common.search')}: "{search}"
               <button
                 onClick={() => {
                   setSearch('');
@@ -730,7 +771,8 @@ const AdminCasesPage = () => {
           )}
           {sortBy !== 'created_at_desc' && (
             <Badge variant="neutral" className="text-xs">
-              Sort: {SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label}
+              {t('cases.filters.sortBy')}:{' '}
+              {sortOptions.find((opt) => opt.value === sortBy)?.label}
             </Badge>
           )}
         </div>
@@ -739,14 +781,14 @@ const AdminCasesPage = () => {
       <Table
         header={
           <Table.HeaderRow>
-            <Table.HeaderCell>Patient</Table.HeaderCell>
-            <Table.HeaderCell>Doctor</Table.HeaderCell>
-            <Table.HeaderCell>Clinic</Table.HeaderCell>
-            <Table.HeaderCell>Material</Table.HeaderCell>
-            <Table.HeaderCell>Phone</Table.HeaderCell>
-            <Table.HeaderCell>Status</Table.HeaderCell>
-            <Table.HeaderCell>Submitted</Table.HeaderCell>
-            <Table.HeaderCell>Case ID</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.patient')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.doctor')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.clinic')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.filters.material')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.phone')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.status')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.submitted')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('cases.caseId')}</Table.HeaderCell>
           </Table.HeaderRow>
         }
       >
@@ -764,8 +806,8 @@ const AdminCasesPage = () => {
               <div className="text-center py-8">
                 <span className="text-neutral-500">
                   {hasActiveFilters
-                    ? 'No cases match your filters.'
-                    : 'No cases found.'}
+                    ? t('cases.noMatchingCases')
+                    : t('cases.noCases')}
                 </span>
               </div>
             </Table.Cell>
@@ -844,14 +886,13 @@ const AdminCasesPage = () => {
       <div className="flex w-full items-center justify-between">
         <span className="text-body font-body text-subtext-color">
           {totalCases === 0
-            ? 'No cases to show'
-            : `Showing ${Math.min(
+            ? t('casesPage.noCasesToShow')
+            : `${t('cases.showing')} ${Math.min(
                 (page - 1) * CASES_PER_PAGE + 1,
                 totalCases
-              )} - ${Math.min(
-                page * CASES_PER_PAGE,
-                totalCases
-              )} of ${totalCases} cases`}
+              )} - ${Math.min(page * CASES_PER_PAGE, totalCases)} ${t(
+                'cases.of'
+              )} ${totalCases} ${t('cases.cases')}`}
         </span>
         <div className="flex items-center gap-2">
           {page > 1 && (
@@ -860,7 +901,7 @@ const AdminCasesPage = () => {
               onClick={() => setPage(page - 1)}
               disabled={loading || refreshing}
             >
-              Previous
+              {t('common.previous')}
             </Button>
           )}
           {page * CASES_PER_PAGE < totalCases && (
@@ -869,7 +910,7 @@ const AdminCasesPage = () => {
               onClick={() => setPage(page + 1)}
               disabled={loading || refreshing}
             >
-              Next
+              {t('common.next')}
             </Button>
           )}
         </div>

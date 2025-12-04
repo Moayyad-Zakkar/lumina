@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import supabase, { supabaseAdmin } from '../../../helper/supabaseClient';
 import {
   FeatherCheckCircle,
@@ -16,6 +17,7 @@ import { IconButton } from '../../components/IconButton';
 import Error from '../../components/Error';
 
 const AdminSignUpRequests = () => {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,7 +63,7 @@ const AdminSignUpRequests = () => {
 
   const handleApprove = async () => {
     if (!password || password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('signUpRequests.passwordRequired'));
       return;
     }
 
@@ -106,7 +108,11 @@ const AdminSignUpRequests = () => {
       }
 
       alert(
-        `User account created successfully!\nEmail: ${selectedRequest.email}\nPassword: ${password}`
+        `${t('signUpRequests.userCreatedSuccess')}\n${t(
+          'signUpRequests.email'
+        )}: ${selectedRequest.email}\n${t(
+          'signUpRequests.password'
+        )}: ${password}`
       );
 
       setShowApprovalModal(false);
@@ -122,7 +128,7 @@ const AdminSignUpRequests = () => {
   };
 
   const handleReject = async (requestId) => {
-    if (!confirm('Are you sure you want to reject this request?')) return;
+    if (!confirm(t('signUpRequests.confirmReject'))) return;
 
     setProcessingId(requestId);
     try {
@@ -177,7 +183,11 @@ const AdminSignUpRequests = () => {
 
       console.log('User created successfully:', authData.user);
       alert(
-        `User account created successfully!\nEmail: ${formData.email}\nPassword: ${formData.password}`
+        `${t('signUpRequests.userCreatedSuccess')}\n${t(
+          'signUpRequests.email'
+        )}: ${formData.email}\n${t('signUpRequests.password')}: ${
+          formData.password
+        }`
       );
     } catch (error) {
       console.error('Error creating user:', error);
@@ -191,16 +201,19 @@ const AdminSignUpRequests = () => {
         bg: 'bg-yellow-100',
         text: 'text-yellow-800',
         icon: FeatherClock,
+        label: t('signUpRequests.statusPending'),
       },
       approved: {
         bg: 'bg-green-100',
         text: 'text-green-800',
         icon: FeatherCheckCircle,
+        label: t('signUpRequests.statusApproved'),
       },
       rejected: {
         bg: 'bg-red-100',
         text: 'text-red-800',
         icon: FeatherXCircle,
+        label: t('signUpRequests.statusRejected'),
       },
     };
 
@@ -212,7 +225,7 @@ const AdminSignUpRequests = () => {
         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}
       >
         <Icon className="w-3 h-3" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {badge.label}
       </span>
     );
   };
@@ -226,12 +239,12 @@ const AdminSignUpRequests = () => {
         createUser={true}
         onCreateUser={() => setShowCreateDialog(true)}
       >
-        Sign Up Requests
+        {t('signUpRequests.title')}
       </AdminHeadline>
 
       <div className="flex w-full justify-between items-center gap-4">
         <p className="text-body font-body text-subtext-color">
-          Review and approve new user registrations
+          {t('signUpRequests.subtitle')}
         </p>
 
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -248,13 +261,13 @@ const AdminSignUpRequests = () => {
       <Table
         header={
           <Table.HeaderRow>
-            <Table.HeaderCell>Name</Table.HeaderCell>
-            <Table.HeaderCell>Email</Table.HeaderCell>
-            <Table.HeaderCell>Clinic</Table.HeaderCell>
-            <Table.HeaderCell>Phone</Table.HeaderCell>
-            <Table.HeaderCell>Status</Table.HeaderCell>
-            <Table.HeaderCell>Date</Table.HeaderCell>
-            <Table.HeaderCell>Actions</Table.HeaderCell>
+            <Table.HeaderCell>{t('signUpRequests.name')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('signUpRequests.email')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('signUpRequests.clinic')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('signUpRequests.phone')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('signUpRequests.status')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('signUpRequests.date')}</Table.HeaderCell>
+            <Table.HeaderCell>{t('common.actions')}</Table.HeaderCell>
           </Table.HeaderRow>
         }
       >
@@ -271,7 +284,7 @@ const AdminSignUpRequests = () => {
             <Table.Cell colSpan={7}>
               <div className="text-center py-8">
                 <span className="text-neutral-500">
-                  No sign-up requests found
+                  {t('signUpRequests.noRequests')}
                 </span>
               </div>
             </Table.Cell>
@@ -313,7 +326,7 @@ const AdminSignUpRequests = () => {
                       setShowApprovalModal(true);
                     }}
                     className="text-sky-600 hover:text-sky-900"
-                    title="View Details"
+                    title={t('common.viewDetails')}
                   >
                     <FeatherEye className="w-5 h-5" />
                   </button>
@@ -326,6 +339,7 @@ const AdminSignUpRequests = () => {
                         }}
                         disabled={processingId === request.id}
                         className="text-success-600 hover:text-success-900 disabled:opacity-50"
+                        title={t('common.approve')}
                       >
                         <FeatherCheckCircle className="w-5 h-5" />
                       </button>
@@ -333,6 +347,7 @@ const AdminSignUpRequests = () => {
                         onClick={() => handleReject(request.id)}
                         disabled={processingId === request.id}
                         className="text-error-600 hover:text-error-900 disabled:opacity-50"
+                        title={t('common.reject')}
                       >
                         <FeatherXCircle className="w-5 h-5" />
                       </button>
@@ -351,7 +366,7 @@ const AdminSignUpRequests = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b">
               <h3 className="text-xl font-bold text-gray-900">
-                Review Sign-Up Request
+                {t('signUpRequests.reviewRequest')}
               </h3>
             </div>
 
@@ -359,7 +374,7 @@ const AdminSignUpRequests = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Full Name
+                    {t('signUpRequests.fullName')}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedRequest.full_name}
@@ -367,7 +382,7 @@ const AdminSignUpRequests = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Email
+                    {t('signUpRequests.email')}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedRequest.email}
@@ -375,7 +390,7 @@ const AdminSignUpRequests = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Clinic Name
+                    {t('signUpRequests.clinicName')}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedRequest.clinic}
@@ -383,7 +398,7 @@ const AdminSignUpRequests = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Phone Number
+                    {t('signUpRequests.phoneNumber')}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedRequest.phone || 'N/A'}
@@ -394,7 +409,7 @@ const AdminSignUpRequests = () => {
               {selectedRequest.address && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Clinic Address
+                    {t('signUpRequests.clinicAddress')}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedRequest.address}
@@ -408,7 +423,8 @@ const AdminSignUpRequests = () => {
                     htmlFor="password"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Set Password <span className="text-red-500">*</span>
+                    {t('signUpRequests.setPassword')}{' '}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -416,10 +432,10 @@ const AdminSignUpRequests = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                    placeholder="Enter password for user"
+                    placeholder={t('signUpRequests.passwordPlaceholder')}
                   />
                   <p className="mt-1 text-xs text-gray-500">
-                    Minimum 6 characters. Make sure to save this password.
+                    {t('signUpRequests.passwordHint')}
                   </p>
                 </div>
               )}
@@ -435,7 +451,7 @@ const AdminSignUpRequests = () => {
                   setError(null);
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               {selectedRequest.status === 'pending' && (
                 <Button
@@ -444,8 +460,8 @@ const AdminSignUpRequests = () => {
                   disabled={processingId === selectedRequest.id}
                 >
                   {processingId === selectedRequest.id
-                    ? 'Creating Account...'
-                    : 'Approve & Create Account'}
+                    ? t('signUpRequests.creatingAccount')
+                    : t('signUpRequests.approveAndCreate')}
                 </Button>
               )}
             </div>

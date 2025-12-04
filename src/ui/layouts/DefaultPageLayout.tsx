@@ -22,6 +22,7 @@ import { Toaster } from 'react-hot-toast';
 import { Link, useLocation, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { Badge } from '../components/Badge';
+import { useTranslation } from 'react-i18next';
 
 interface DefaultPageLayoutRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -45,6 +46,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
   ref
 ) {
   const location = useLocation();
+  const { t } = useTranslation();
   const [BadgeCount, setBadgeCount] = useState(initialBadgeCount ?? 0);
   const [badgeLoading, setBadgeLoading] = useState(true);
 
@@ -215,7 +217,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                       navigate('/app/profile');
                     }}
                   >
-                    Profile
+                    {t('navigation.profile')}
                   </SidebarWithLargeItems.NavItem>
                   <SidebarWithLargeItems.NavItem
                     icon={<FeatherSettings />}
@@ -223,7 +225,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                       navigate('/app/settings');
                     }}
                   >
-                    Settings
+                    {t('navigation.settings')}
                   </SidebarWithLargeItems.NavItem>
                   <SidebarWithLargeItems.NavItem
                     icon={<SubframeCore.FeatherLogOut />}
@@ -232,7 +234,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                       navigate('/'); // or a login route
                     }}
                   >
-                    Sign Out
+                    {t('navigation.signOut')}
                   </SidebarWithLargeItems.NavItem>
                 </DropdownMenu>
               </SubframeCore.DropdownMenu.Content>
@@ -245,7 +247,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
             icon={<FeatherHome />}
             selected={pathname === '/app/dashboard'}
           >
-            Home
+            {t('navigation.home')}
           </SidebarWithLargeItems.NavItem>
         </Link>
         {/*<Link to="/app/notifications">
@@ -271,15 +273,15 @@ const DefaultPageLayoutRoot = React.forwardRef<
               ) : null
             }
           >
-            Cases
+            {t('navigation.cases')}
           </SidebarWithLargeItems.NavItem>
         </Link>
         <Link to="/app/billing">
-          <SidebarWithLargeItems.NavItem 
-          
-          selected={pathname.startsWith('/app/billing')}
-          icon={<FeatherBarChart2 />}>
-            Billing
+          <SidebarWithLargeItems.NavItem
+            selected={pathname.startsWith('/app/billing')}
+            icon={<FeatherBarChart2 />}
+          >
+            {t('navigation.billing')}
           </SidebarWithLargeItems.NavItem>
         </Link>
       </SidebarWithLargeItems>

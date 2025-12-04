@@ -48,6 +48,12 @@ export const useCaseStatus = (initialStatus) => {
           description: t('caseStatus.rejected.description'),
           variant: 'destructive',
         };
+      case 'user_rejected':
+        return {
+          title: t('caseStatus.user_rejected.title'),
+          description: t('caseStatus.user_rejected.description'),
+          variant: 'destructive',
+        };
       default:
         return {
           title: t('caseStatus.default.title'),

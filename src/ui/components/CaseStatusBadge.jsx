@@ -1,20 +1,5 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from './Badge';
-
-const statusDisplayText = {
-  submitted: 'Submitted',
-  accepted: 'Accepted by admin',
-  under_review: 'Under Review',
-  rejected: 'Rejected by Admin',
-  awaiting_patient_approval: 'Awaiting Approval',
-  patient_rejected: 'Rejected by Patient',
-  awaiting_user_approval: 'Awaiting Approval',
-  user_rejected: 'Rejected by Doctor',
-  approved: 'Approved by Doctor',
-  in_production: 'In Production',
-  ready_for_delivery: 'Ready for Delivery',
-  delivered: 'Delivered',
-  completed: 'Completed',
-};
 
 const statusBadgeVariant = {
   completed: 'success',
@@ -29,9 +14,29 @@ const statusBadgeVariant = {
 };
 
 export default function CaseStatusBadge({ status }) {
+  const { t } = useTranslation();
+
+  const getStatusText = (status) => {
+    const statusMap = {
+      submitted: t('caseStatusBadge.submitted'),
+      accepted: t('caseStatusBadge.accepted'),
+      under_review: t('caseStatusBadge.underReview'),
+      rejected: t('caseStatusBadge.rejected'),
+      awaiting_patient_approval: t('caseStatusBadge.awaitingApproval'),
+      patient_rejected: t('caseStatusBadge.patientRejected'),
+      awaiting_user_approval: t('caseStatusBadge.awaitingApproval'),
+      user_rejected: t('caseStatusBadge.userRejected'),
+      approved: t('caseStatusBadge.approved'),
+      in_production: t('caseStatusBadge.inProduction'),
+      ready_for_delivery: t('caseStatusBadge.readyForDelivery'),
+      delivered: t('caseStatusBadge.delivered'),
+      completed: t('caseStatusBadge.completed'),
+    };
+
+    return statusMap[status] || status;
+  };
+
   return (
-    <Badge variant={statusBadgeVariant[status]}>
-      {statusDisplayText[status] || status}
-    </Badge>
+    <Badge variant={statusBadgeVariant[status]}>{getStatusText(status)}</Badge>
   );
 }

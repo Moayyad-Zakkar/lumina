@@ -19,10 +19,15 @@
     "reject": "رفض",
     "creating": "جاري الإنشاء...",
     "updating": "جاري التحديث...",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "generate": "توليد",
+    "hide": "إخفاء",
+    "show": "عرض"
   },
   "navigation": {
-    "dashboard": "لوحة التحكم",
+    "dashboard": "الرئيسية",
+    "home": "الرئيسية",
+    "doctors": "الأطباء",
     "cases": "الحالات",
     "billing": "المعاملات المالية",
     "settings": "الإعدادات",
@@ -30,16 +35,17 @@
     "allCases": "جميع الحالات",
     "signUpRequests": "طلبات التسجيل",
     "transactionLog": "سجل المعاملات",
-    "paymentsHistory": "سجل الدفعات"
+    "paymentsHistory": "سجل الدفعات",
+    "profile": "الملف الشخصي"
   },
   "dashboard": {
-    "title": "لوحة التحكم",
+    "title": "الرئيسية",
     "hello": "مرحباً، د.",
     "totalCases": "إجمالي الحالات",
     "pendingReview": "قيد المراجعة",
-    "completedBy3DA": "مكتملة بواسطة 3DA",
-    "recentCases": "الحالات الأخيرة",
-    "paymentOverview": "نظرة عامة على المدفوعات",
+    "completedBy3DA": "حالات مكتملة",
+    "recentCases": "آخر الحالات",
+    "paymentOverview": "نظرة عامة على المعاملات المالية",
     "noCases": "لا توجد حالات حديثة.",
     "searchCases": "البحث في الحالات..."
   },
@@ -65,17 +71,19 @@
       "allStatuses": "جميع الحالات",
       "date": "التاريخ",
       "allDates": "جميع التواريخ",
+      "clinic": "العيادة",
+      "allClinics": "جميع العيادات",
       "sortBy": "ترتيب حسب",
       "activeFilters": "الفلاتر النشطة:",
       "clearFilters": "مسح",
       "submitted": "حالة جديدة",
-      "rejected": "مرفوض",
+      "rejected": "مرفوضة",
       "awaitingApproval": "بانتظار الموافقة",
-      "rejectedByDoctor": "مرفوض من قبل الطبيب",
+      "rejectedByDoctor": "مرفوضة من قبل الطبيب",
       "approved": "متفق عليها",
       "inProduction": "قيد التصنيع",
       "readyForDelivery": "جاهز للتسليم",
-      "delivered": "تم التسليم",
+      "delivered": "مُسلّمة",
       "completed": "مكتملة",
       "today": "اليوم",
       "thisWeek": "هذا الأسبوع",
@@ -88,13 +96,19 @@
       "patientZA": "المريض ي-أ",
       "doctorAZ": "الطبيب أ-ي",
       "doctorZA": "الطبيب ي-أ",
+      "clinicAZ": "العيادة أ-ي",
+      "clinicZA": "العيادة ي-أ",
       "statusAZ": "الحالة أ-ي",
-      "statusZA": "الحالة ي-أ"
+      "statusZA": "الحالة ي-أ",
+      "material": "نوع الراصفة",
+      "allMaterials": "جميع أنواع الراصفات",
+      "mostCasesFirst": "عدد الحالات الأكثر",
+      "fewestCasesFirst": "عدد الحالات الأقل"
     }
   },
   "billing": {
     "title": "إدارة المعاملات المالية",
-    "myBilling": "فواتيري",
+    "myBilling": "المعاملات المالية",
     "subtitle": "إدارة الدفعات ومعلومات الفواتير",
     "userSubtitle": "عرض حالاتك وتتبع معلومات الفواتير",
     "totalEarnings": "إجمالي الأرباح",
@@ -125,7 +139,7 @@
       "paymentStatus": {
         "unpaid": "غير مدفوع",
         "paid": "مدفوع",
-        "na": "غير قابل للتطبيق",
+        "na": "لا مستحقات",
         "due": "مستحق",
         "overdue": "متأخر",
         "pending": "معلق",
@@ -134,9 +148,28 @@
       }
     }
   },
+  "billingTable": {
+    "header": {
+      "doctor": "الطبيب",
+      "cases": "الحالات",
+      "dueAmount": "المبلغ المستحق",
+      "status": "الحالة",
+      "lastPayment": "آخر دفعة"
+    },
+    "noDoctorsFound": "لم يتم العثور على أطباء.",
+    "unknownDoctor": "طبيب غير معروف",
+    "totalCases": "إجمالي",
+    "unpaidCases": "غير مدفوع",
+    "status": {
+      "due": "مستحق",
+      "current": "جاري"
+    },
+    "neverPaid": "أبدًا",
+    "collectPaymentButton": "استلام دفعة"
+  },
   "signUpRequests": {
     "title": "طلبات التسجيل",
-    "subtitle": "المراجعة والموافقة على تسجيلات المستخدمين الجدد",
+    "subtitle": "مراجعة طلبات تسجيل المستخدمين الجدد والموافقة عليها",
     "name": "الاسم",
     "email": "البريد الإلكتروني",
     "clinic": "العيادة",
@@ -158,7 +191,7 @@
     "createUser": "إنشاء مستخدم",
     "userCreatedSuccess": "تم إنشاء حساب المستخدم بنجاح!",
     "confirmReject": "هل أنت متأكد من رفض هذا الطلب؟",
-    "statusPending": "معلق",
+    "statusPending": "بانتظار الموافقة",
     "statusApproved": "موافق عليه",
     "statusRejected": "مرفوض"
   },
@@ -588,7 +621,7 @@
     "alerts": {
       "submitted": {
         "title": "راجع الحالة وأرسل موافقتك عليها",
-        "description": " راجع بيانات الحالة وقم بقبول الحالة الجديدة أو أرفض الحالة."
+        "description": " راجع بيانات الحالة وقم بقبول الحالة الجديدة أو ارفض الحالة."
       },
       "accepted": {
         "title": "تم قبول الحالة - أنشئ خطة المعالجة",
@@ -612,11 +645,11 @@
       },
       "delivered": {
         "title": "تم تسليم الراصفات للعيادة",
-        "description": "سيقوم الطبيب بوسم الحالة كـ 'مكتملة' عند انتهاء العلاج."
+        "description": "سيقوم الطبيب بوسم الحالة كـ 'مُكتمِلة' عند انتهاء العلاج."
       },
       "completed": {
-        "title": "تم اكتمال الحالة",
-        "description": "قام الطبيب بإنهاء الحالة."
+        "title": "تم إكمال الحالة",
+        "description": "قام الطبيب بإنهاء المعالجة."
       },
       "rejected": {
         "title": "تم رفض الحالة",
@@ -629,9 +662,10 @@
     }
   },
   "caseSubmit": {
-    "title": "تسجيل حالة جديدة",
+    "title": "إرسال حالة جديدة",
     "newCase": "حالة جديدة",
     "submitCase": "إرسال الحالة",
+    "submitCaseButton": "إرسال حالة جديدة",
     "submitting": "جاري الإرسال...",
     "unknownDoctor": "طبيب غير معروف",
     "unknownPatient": "مريض غير معروف",
@@ -739,7 +773,7 @@
     },
     "readyForDelivery": {
       "title": "الراصفات جاهزة للتسليم",
-      "description": "راصفاتك جاهزة. سيتصل بك 3DA لترتيب الاستلام أو التوصيل."
+      "description": "راصفاتك جاهزة. سيتصل بك فريقنا لترتيب الاستلام أو التوصيل."
     },
     "delivered": {
       "title": "تم تسليم الراصفات",
@@ -747,15 +781,180 @@
     },
     "completed": {
       "title": "اكتملت المعالجة",
-      "description": "اكتملت المعالجة. شكراً لاختيارنا!"
+      "description": "اكتملت المعالجة. شكرًا لاختيارك مختبراتنا!"
     },
     "rejected": {
       "title": "تم رفض الحالة",
       "description": "تم رفض هذه الحالة ولم تعد نشطة. يمكنك التراجع عن هذا الإجراء إذا لزم الأمر."
     },
+    "user_rejected": {
+      "title": "تم رفض خطة المعالجة",
+      "description": "تم رفض خطة المعالجة الخاصة بهذه الحالة من قبل الطبيب، ولم تعد الحالة نشطة."
+    },
     "default": {
       "title": "تحديثات الحالة",
       "description": "سنقوم بإخطارك هنا عند وجود تحديثات على خطة المعالجة الخاصة بك."
     }
+  },
+  "billingStats": {
+    "netIncome": "صافي الدخل",
+    "duePayments": "المستحقات",
+    "totalExpenses": "إجمالي النفقات",
+    "allTime": "كل الوقت",
+    "outstanding": "متأخرة",
+    "receivePayment": "استلام دفعة",
+    "recordExpense": "تسجيل نفقة"
+  },
+  "doctorBillingStats": {
+    "amountDue": "المبلغ المستحق",
+    "totalPaid": "إجمالي المدفوعات",
+    "pendingCases": "الحالات المعلقة",
+    "cases": "حالات",
+    "inProgress": "قيد التنفيذ",
+    "finished": "منتهية"
+  },
+  "caseStatusBadge": {
+    "submitted": "حالة جديدة",
+    "accepted": "مقبولة",
+    "underReview": "قيد المراجعة",
+    "rejected": "مرفوضة",
+    "awaitingApproval": "بانتظار الموافقة",
+    "patientRejected": "مرفوضة من المريض",
+    "userRejected": "مرفوضة من قبل الطبيب",
+    "approved": "متفق عليها",
+    "inProduction": "قيد التصنيع",
+    "readyForDelivery": "جاهزة للتسليم",
+    "delivered": "مُسلّمة",
+    "completed": "مكتملة"
+  },
+  "signUpRequestPage": {
+    "createUserButton": "تسجيل مستخدم جديد"
+  },
+  "dentalChart": {
+    "title": "مخطط الأسنان",
+    "statuses": {
+      "movable": "يمكن تحريكه تقويميًّا",
+      "unmovable": "زرعة سنية، جسر ثابت، أو أسنان ملتصقة",
+      "missing": "مفقود أو مقرر خلعه",
+      "note": "ملاحظة حول هذا السن في حقل الملاحظات"
+    },
+    "statusLabels": {
+      "movable": "قابل للتحريك تقويميًّا",
+      "unmovable": "غير قابل للتحريك تقويميًّا",
+      "missing": "مفقود",
+      "note": "ملاحظة"
+    }
+  },
+  "adminTreatmentPlan": {
+    "printButton": "طباعة خطة المعالجة",
+    "estimatedDurationLabel": "المدة المقدرة (أشهر)",
+    "actionButtons": "أزرار الإجراءات",
+    "addViewer": "إضافة عارض خطة المعالجة",
+    "addIPRChart": "إضافة مخطط السحل الملاصق",
+    "editIPRChart": "تعديل مخطط السحل الملاصق",
+    "iprChart": "مخطط السحل الملاصق",
+    "available": "متوفر",
+    "viewChart": "عرض المخطط",
+    "openViewer": "فتح مستعرض الحالات",
+    "copyLink": "نسخ الرابط",
+    "copied": "تم النسخ!",
+    "declineCase": "رفض الحالة",
+    "sendForApproval": "إرسال للطبيب للموافقة",
+    "editPlan": "تعديل تفاصيل الخطة",
+    "printDialogTitle": "طباعة خطة المعالجة",
+    "statusMessages": {
+      "editing": "اختر رفض الحالة أو ضبط تفاصيل خطة المعالجة وإرسالها للطبيب للموافقة.",
+      "awaitingApproval": "تفاصيل خطة المعالجة في انتظار موافقة الطبيب.",
+      "approved": "تمت الموافقة على خطة المعالجة من قبل الطبيب. تابع عملية التصنيع.",
+      "rejected": "تم رفض الحالة ولم تعد نشطة.",
+      "inProduction": "قيد التصنيع",
+      "readyForDelivery": "جاهزة للتسليم",
+      "delivered": "تم تسليم راصفات الحالة، سيحدث الطبيب الحالة إلى 'مكتملة' عندما يكمل المعالجة.",
+      "userRejected": "تم رفض خطة معالجة الحالة من قبل الطبيب وهي غير نشطة."
+    },
+    "print": {
+      "treatmentPlanDetails": "تفاصيل خطة المعالجة",
+      "footer": "تم إنشاء هذا المستند في {{date}} | Lumina Clear Aligners"
+    }
+  },
+  "adminNotes": {
+    "title": "ملاحظات المسؤول",
+    "editNote": "تعديل الملاحظة",
+    "addNote": "إضافة ملاحظة",
+    "additionalNotes": "ملاحظات إضافية",
+    "placeholder": "أدخل أي تعليمات خاصة، تعليقات داخلية، إلخ...",
+    "helpText": "أضف أي معلومات إضافية أو ملاحظات داخلية عن هذه الحالة.",
+    "saving": "جاري الحفظ...",
+    "saveNote": "حفظ الملاحظة",
+    "noNotes": "لم تتم إضافة ملاحظات مخبرية بعد.",
+    "toast": {
+      "saved": "تم حفظ ملاحظة المسؤول",
+      "saveFailed": "فشل في حفظ الملاحظة"
+    }
+  },
+  "adminDoctorDetails": {
+    "breadcrumbTitle": "تفاصيل الطبيب",
+    "totalPatients": "إجمالي المرضى",
+    "activeCases": "الحالات النشطة",
+    "paymentStatus": "حالة الدفع",
+    "paidAmount": "المبلغ المدفوع",
+    "remainingAmount": "المبلغ المتبقي",
+    "partialPayment": "{{percent}}% مدفوع"
+  },
+  "paymentCollectionDialog": {
+    "title": "استلام دفعة",
+    "subtitle": "أدخل تفاصيل الدفعة واختر الحالات لتوزيع الدفعة عليها.",
+    "doctorLabel": "الطبيب",
+    "doctorPlaceholder": "اختر طبيبًا...",
+    "paymentAmountLabel": "مبلغ الدفعة (دولار أمريكي)",
+    "paymentAmountPlaceholder": "0.00",
+    "notesLabel": "ملاحظات (اختياري)",
+    "notesPlaceholder": "أضف أي ملاحظات حول هذه الدفعة...",
+    "unpaidCasesTitle": "الحالات غير المسددة",
+    "selectedSummary": "{{selected}} من {{total}} محددة",
+    "loadingCases": "جارٍ تحميل الحالات...",
+    "noUnpaidCases": "لا توجد حالات غير مسددة لهذا الطبيب.",
+    "statusLabel": "الحالة",
+    "createdLabel": "تاريخ الإنشاء",
+    "remainingShort": "متبقي",
+    "paidOfTotal": "{{paid}} مدفوع من {{total}}",
+    "selectedCasesTotal": "مجموع الحالات المحددة:",
+    "paymentAmount": "مبلغ الدفعة:",
+    "remainingAmount": "المبلغ المتبقي:",
+    "remainingSplitNote": "سيتم توزيع المبلغ المتبقي على {{count}} حالة غير محددة",
+    "cancel": "إلغاء",
+    "processPayment": "تنفيذ الدفعة",
+    "processing": "جارٍ التنفيذ..."
+  },
+  "manufacturingProgress": {
+    "title": "تقدم عملية التصنيع",
+    "buttons": {
+      "startProduction": "بدء الإنتاج",
+      "markReady": "تحديد كجاهزة للتسليم",
+      "markDelivered": "تحديد كمُسلّمة"
+    },
+    "messages": {
+      "approved": "تمت الموافقة على خطة المعالجة. جاهز لبدء عملية التصنيع.",
+      "inProduction": "الراصفات قيد التصنيع حاليًّا.",
+      "readyForDelivery": "اكتمل التصنيع. الراصفات جاهزة للتسليم.",
+      "delivered": "تم تسليم الراصفات إلى الطبيب. يمكن للطبيب تحديد الحالة كمكتملة عند إكماله المعالجة.",
+      "completed": "اكتملت الحالة بنجاح.",
+      "default": "حدّث الحالة مع تقدمك في عملية التصنيع والتسليم."
+    }
+  },
+  "adminCasePage": {
+    "caseDeclined": "تم رفض الحالة",
+    "doctorDeclineReason": "سبب رفض الطبيب",
+    "adminDeclineReason": "سبب رفض المسؤول",
+    "approvePlan": "الموافقة على الخطة",
+    "toast": {
+      "caseDeleted": "تم حذف الحالة بنجاح",
+      "deleteFailed": "فشل في حذف الحالة",
+      "iprSaved": "تم حفظ بيانات السحل الملاصق بنجاح",
+      "iprFailed": "فشل في حفظ بيانات السحل الملاصق"
+    }
+  },
+  "casesPage": {
+    "noCasesToShow": "لا توجد حالات لعرضها"
   }
 }

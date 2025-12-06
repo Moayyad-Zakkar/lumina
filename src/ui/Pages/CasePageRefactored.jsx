@@ -40,6 +40,7 @@ import ApprovalConfirmDialog from '../components/case/ApprovalConfirmDialog';
 import DeclineCaseDialog from '../components/case/DeclineCaseDialog';
 import CaseSatisfactionDisplay from '../components/case/CaseSatisfactionDisplay';
 import RequestEditDialog from '../components/case/RequestEditDialog';
+import TreatmentDetails from '../components/case/TreatmentDetails';
 
 const CasePageRefactored = () => {
   const { t } = useTranslation();
@@ -295,12 +296,11 @@ const CasePageRefactored = () => {
 
       <div className="flex w-full flex-col items-start gap-6">
         <CaseInformation caseData={caseData} isAdmin={false} />
-
         {/* Satisfaction Display */}
         {status === 'completed' && caseData.satisfaction_rating && (
           <CaseSatisfactionDisplay caseData={caseData} />
         )}
-
+        <TreatmentDetails caseData={caseData} />
         {/* Decline Reason Section */}
         {(status === 'user_rejected' || status === 'rejected') &&
           caseData.decline_reason && (

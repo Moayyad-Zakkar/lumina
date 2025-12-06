@@ -39,6 +39,7 @@ import {
 import supabase from '../../../helper/supabaseClient';
 import { checkCaseTreatmentImages } from '../../../helper/caseHasView';
 import TreatmentDetails from '../../components/case/TreatmentDetails';
+import CaseSatisfactionDisplay from '../../components/case/CaseSatisfactionDisplay';
 
 const AdminCasePageRefactored = () => {
   const { t } = useTranslation();
@@ -351,6 +352,12 @@ const AdminCasePageRefactored = () => {
 
       <div className="flex w-full flex-col items-start gap-6">
         <CaseInformation caseData={caseData} isAdmin={true} />
+
+        {/* Satisfaction Display */}
+        {currentStatus === 'completed' && caseData.satisfaction_rating && (
+          <CaseSatisfactionDisplay caseData={caseData} />
+        )}
+
         <TreatmentDetails caseData={caseData} />
         {/* Decline Reason Section */}
         {(currentStatus === 'user_rejected' || currentStatus === 'rejected') &&

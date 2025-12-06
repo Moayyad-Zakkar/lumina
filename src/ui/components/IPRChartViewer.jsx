@@ -125,7 +125,6 @@ const IPRChartViewer = ({
 
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
-
   // Get single IPR value (for end teeth)
   const getSingleIPR = (toothNum, side) => {
     const toothData = iprData[toothNum];
@@ -218,10 +217,10 @@ const IPRChartViewer = ({
               </div>
               <div className="flex flex-col">
                 <h2 className="text-heading-3 font-heading-3 text-default-font">
-                  IPR Chart
+                  {t('adminTreatmentPlan.iprChart')}
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Interproximal reduction values in millimeters
+                  {t('iprChart.description')}
                 </p>
               </div>
             </div>
@@ -320,12 +319,13 @@ const IPRChartViewer = ({
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-2 text-sm text-gray-600 bg-orange-50 px-4 py-2 rounded">
+            <div
+              className={`flex items-center gap-2 text-sm text-gray-600 bg-orange-50 px-4 py-2 rounded ${
+                isRTL ? 'flex-row-reverse' : ''
+              }`}
+            >
               <div className="w-3 h-3 bg-orange-600 rounded"></div>
-              <span>
-                Orange values indicate IPR (Interproximal Reduction) in
-                millimeters
-              </span>
+              <span>{t('iprChart.legend')}</span>
             </div>
             {/*
             <div className="flex flex-col gap-2 p-4 bg-orange-50 rounded-lg border border-orange-200">
@@ -573,11 +573,13 @@ export const PrintableIPRChart = ({ toothStatus, iprData }) => {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-2 text-sm text-gray-600 bg-orange-50 px-4 py-2 rounded">
+      <div
+        className={`flex items-center gap-2 text-sm text-gray-600 bg-orange-50 px-4 py-2 rounded ${
+          isRTL ? 'flex-row-reverse' : ''
+        }`}
+      >
         <div className="w-3 h-3 bg-orange-600 rounded"></div>
-        <span>
-          Orange values indicate IPR (Interproximal Reduction) in millimeters
-        </span>
+        <span>{t('iprChart.legend')}</span>
       </div>
     </div>
   );

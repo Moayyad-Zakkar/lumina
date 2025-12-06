@@ -981,6 +981,8 @@
   "iprChart": {
     "upperJaw": "Upper Jaw (Maxilla)",
     "lowerJaw": "Lower Jaw (Mandible)",
+    "description": "Interproximal reduction values in millimeters",
+    "legend": "Orange values indicate IPR (Interproximal Reduction) in millimeters",
     "instructions": {
       "title": "Instructions:",
       "enterValues": "Enter mesial (M) and distal (D) IPR values in millimeters for each tooth",

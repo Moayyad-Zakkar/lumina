@@ -2,8 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '../Alert';
 
-// Added isRequired prop, defaulting to true
-const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
+const FileUploadSection = ({ formData, handleChange }) => {
   const { t } = useTranslation();
 
   return (
@@ -11,13 +10,6 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
       <span className="text-heading-3 font-heading-3 text-default-font">
         {t('caseSubmit.fileUpload.requiredScans')}
       </span>
-
-      {!isRequired && (
-        <Alert
-          title={t('adminCaseSubmit.title')}
-          description={t('adminCaseSubmit.alerts.fileUploadOptional')}
-        />
-      )}
 
       {/* Upload Method Selection */}
       <div className="w-full border-b border-neutral-border pb-4">
@@ -63,7 +55,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               className="block text-sm font-medium text-gray-700"
             >
               {t('caseSubmit.fileUpload.upperJawLabel')}{' '}
-              {isRequired && <span className="text-red-500">*</span>}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -71,8 +63,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               name="upperJawScan"
               accept=".stl,.obj,.ply"
               onChange={handleChange}
-              // Conditionally apply required attribute
-              required={isRequired && formData.uploadMethod === 'individual'}
+              required={formData.uploadMethod === 'individual'}
               className="mt-1 block w-full text-sm text-gray-500
               file:mr-4 file:rounded-md file:border-0
               file:text-sm file:font-medium
@@ -87,7 +78,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               className="block text-sm font-medium text-gray-700"
             >
               {t('caseSubmit.fileUpload.lowerJawLabel')}{' '}
-              {isRequired && <span className="text-red-500">*</span>}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -95,7 +86,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               name="lowerJawScan"
               accept=".stl,.obj,.ply"
               onChange={handleChange}
-              required={isRequired && formData.uploadMethod === 'individual'}
+              required={formData.uploadMethod === 'individual'}
               className="mt-1 block w-full text-sm text-gray-500
               file:mr-4 file:rounded-md file:border-0
               file:text-sm file:font-medium
@@ -110,7 +101,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               className="block text-sm font-medium text-gray-700"
             >
               {t('caseSubmit.fileUpload.biteScanLabel')}{' '}
-              {isRequired && <span className="text-red-500">*</span>}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -118,7 +109,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               name="biteScan"
               accept=".stl,.obj,.ply"
               onChange={handleChange}
-              required={isRequired && formData.uploadMethod === 'individual'}
+              required={formData.uploadMethod === 'individual'}
               className="mt-1 block w-full text-sm text-gray-500
               file:mr-4 file:rounded-md file:border-0
               file:text-sm file:font-medium
@@ -142,7 +133,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               className="block text-sm font-medium text-gray-700"
             >
               {t('caseSubmit.fileUpload.compressedLabel')}{' '}
-              {isRequired && <span className="text-red-500">*</span>}
+              <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -150,7 +141,7 @@ const FileUploadSection = ({ formData, handleChange, isRequired = true }) => {
               name="compressedScans"
               accept=".zip,.rar,.7z"
               onChange={handleChange}
-              required={isRequired && formData.uploadMethod === 'compressed'}
+              required={formData.uploadMethod === 'compressed'}
               className="mt-1 block w-full text-sm text-gray-500
               file:mr-4 file:rounded-md file:border-0
               file:text-sm file:font-medium

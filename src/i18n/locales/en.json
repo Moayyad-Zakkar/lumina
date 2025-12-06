@@ -383,7 +383,22 @@
       "submitted": "Case submitted successfully!"
     }
   },
-
+  "adminCaseSubmit": {
+    "title": "Submit New Case (Admin)",
+    "selectDoctor": {
+      "label": "Select Doctor",
+      "helpText": "Search and select the doctor for this case",
+      "placeholder": "Search by doctor name or email...",
+      "noResults": "No doctors found"
+    },
+    "alerts": {
+      "fileUploadOptional": "Admin Note: File uploads are optional. You can submit the case without files and add them later.",
+      "success": "Case submitted successfully for the selected doctor!"
+    },
+    "errors": {
+      "doctorRequired": "Please select a doctor for this case"
+    }
+  },
   "caseStatus": {
     "submitted": {
       "title": "Waiting for admin acceptance",
@@ -437,13 +452,29 @@
   },
 
   "casePage": {
+    "treatmentOptionsTitle": "Treatment & Diagnosis Details",
+    "treatmentOptions": "Treatment Options",
+    "midlineAnalysis": "Midline Analysis",
+    "occlusalRelationship": "Occlusal Relationship",
+    "mm": "mm",
     "caseDetails": "Case Details",
     "downloadFiles": "Download Files",
     "downloading": "Downloading...",
     "openViewer": "Open Case Viewer",
     "viewOriginalCase": "View Original Case",
     "refinementCase": "Refinement",
-    "deleteCase": "Delete Case",
+
+    "caseAcceptanceCard": {
+      "title": "Case Review",
+      "description": "Review the submitted case and decide whether to accept or decline it. If accepted, you can proceed to create the treatment plan.",
+      "acceptCase": "Accept Case",
+      "declineCase": "Decline Case",
+      "caseStudyFee": "Case Study Fee",
+      "caseStudyFeeSet": "Case study fee has been set. You can now proceed to create the treatment plan.",
+      "caseAcceptedAlert": "This case has been accepted. The case study fee has been set and the case is ready for treatment planning.",
+      "caseAcceptedAlertTitle": "Case Accepted"
+    },
+
     "deleteCaseConfirm": "This action cannot be undone. Are you sure you want to permanently delete this case?",
     "caseDeclined": "Case Declined",
     "reason": "Reason",
@@ -870,8 +901,8 @@
       "approved": "Plan approved by doctor. Proceed with manufacturing.",
       "rejected": "Case has been declined and is inactive.",
       "inProduction": "Manufacturing in progress.",
-      "readyForDelivery": "Ready for delivery to patient.",
-      "delivered": "Delivered to patient. The Doctor will mark completed when treatment ends.",
+      "readyForDelivery": "Ready for delivery to the doctor.",
+      "delivered": "The aligners have been delivered to the doctor. The doctor can mark the case as completed when finished.",
       "userRejected": "Case treatment plan has been declined by the doctor and is inactive."
     },
     "print": {
@@ -946,5 +977,18 @@
   },
   "casesPage": {
     "noCasesToShow": "No cases to show"
+  },
+  "iprChart": {
+    "upperJaw": "Upper Jaw (Maxilla)",
+    "lowerJaw": "Lower Jaw (Mandible)",
+    "instructions": {
+      "title": "Instructions:",
+      "enterValues": "Enter mesial (M) and distal (D) IPR values in millimeters for each tooth",
+      "enterMillimeters": "Enter values in millimeters (e.g., 0.2, 0.5)",
+      "leaveEmpty": "Leave fields empty for surfaces with no IPR",
+      "combineValues": "The viewer will combine adjacent values (e.g., mesial of #8 + mesial of #9)",
+      "clickSave": "Click Save to store the IPR chart with the treatment plan"
+    },
+    "saveButton": "Save IPR Chart"
   }
 }

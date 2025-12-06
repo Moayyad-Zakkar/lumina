@@ -1,22 +1,25 @@
-import { useState } from 'react';
-import { useRef } from 'react';
-import { useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next'; // Import i18next
 import supabase from '../../../helper/supabaseClient';
 import { uploadFile } from '../../../helper/storageUtils';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { TextField } from '../../components/TextField';
 
-import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
-
 import Error from '../../components/Error';
 import SuccessMessage from '../../components/SuccessMessage';
 import DentalChart from '../../components/DentalChart';
 import { FeatherEraser } from '@subframe/core';
-import RadioGroup from '../../components/RadioGroup';
+
+// Import sub-components (Ensure paths are correct relative to this file)
+import PatientInformationForm from '../../components/case/PatientInformationForm';
+import TreatmentOptionsForm from '../../components/case/TreatmentOptionsForm';
+import DiagnosisForm from '../../components/case/DiagnosisForm';
+import FileUploadSection from '../../components/case/FileUploadSection';
 
 const AdminCaseSubmit = () => {
+  const { t } = useTranslation(); // Initialize translation
   const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -35,7 +38,7 @@ const AdminCaseSubmit = () => {
     isUrgent: false,
     urgentDeliveryDate: '',
     alignerMaterial: '',
-    uploadMethod: 'individual', // Default to individual files
+    uploadMethod: 'individual',
     upperJawScan: null,
     lowerJawScan: null,
     biteScan: null,
@@ -61,7 +64,7 @@ const AdminCaseSubmit = () => {
     const fetchData = async () => {
       setLoading(true);
 
-      // Fetch services (aligner materials)
+      // Fetch services
       const { data: servicesData, error: servicesError } = await supabase
         .from('services')
         .select('*')
@@ -75,7 +78,7 @@ const AdminCaseSubmit = () => {
         );
       }
 
-      // Fetch users (doctors)
+      // Fetch users
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
         .select('id, full_name, email')
@@ -141,7 +144,6 @@ const AdminCaseSubmit = () => {
     const { name, value, files, type, checked } = e.target;
 
     if (files) {
-      // Handle file inputs
       setFormData((prevData) => ({
         ...prevData,
         [name]:
@@ -150,35 +152,24 @@ const AdminCaseSubmit = () => {
             : files[0],
       }));
     } else if (type === 'checkbox') {
-      // Handle checkbox inputs
       setFormData((prevData) => ({
         ...prevData,
         [name]: checked,
-        // Clear urgent delivery date if urgent is unchecked
         ...(name === 'isUrgent' && !checked ? { urgentDeliveryDate: '' } : {}),
       }));
     } else {
-      // Handle text inputs and radio buttons
       setFormData((prevData) => ({
         ...prevData,
         [name]: value,
       }));
 
-      // Clear shift value if midline is centered
+      // Logic for clearing dependent fields
       if (name === 'upperMidline' && value === 'centered') {
-        setFormData((prevData) => ({
-          ...prevData,
-          upperMidlineShift: '',
-        }));
+        setFormData((prevData) => ({ ...prevData, upperMidlineShift: '' }));
       }
       if (name === 'lowerMidline' && value === 'centered') {
-        setFormData((prevData) => ({
-          ...prevData,
-          lowerMidlineShift: '',
-        }));
+        setFormData((prevData) => ({ ...prevData, lowerMidlineShift: '' }));
       }
-
-      // Clear individual files when switching to compressed method
       if (name === 'uploadMethod' && value === 'compressed') {
         setFormData((prevData) => ({
           ...prevData,
@@ -187,13 +178,8 @@ const AdminCaseSubmit = () => {
           biteScan: null,
         }));
       }
-
-      // Clear compressed file when switching to individual method
       if (name === 'uploadMethod' && value === 'individual') {
-        setFormData((prevData) => ({
-          ...prevData,
-          compressedScans: null,
-        }));
+        setFormData((prevData) => ({ ...prevData, compressedScans: null }));
       }
     }
   };
@@ -205,59 +191,48 @@ const AdminCaseSubmit = () => {
     setSuccessMessage(null);
 
     try {
-      // Initialize file path variables at the beginning of try block
       let upperJawScanPath = null;
       let lowerJawScanPath = null;
       let biteScanPath = null;
       let compressedScansPath = null;
       let additionalFilesPaths = [];
 
-      // Ensure admin is authenticated
       const {
         data: { user: currentUser },
         error: userError,
       } = await supabase.auth.getUser();
 
       if (userError || !currentUser) {
-        throw new Error('Admin must be authenticated to submit a case');
+        throw new Error(t('caseSubmit.errors.authRequired'));
       }
 
-      // Comprehensive validation
+      // --- ADMIN SPECIFIC VALIDATION ---
+      // Requirement: Only Doctor, First Name, Last Name are required.
       const validateSubmission = () => {
         const errors = [];
 
-        // Check if user is selected
         if (!formData.selectedUserId) {
-          errors.push('Please select a doctor for this case');
+          errors.push(t('adminCaseSubmit.errors.doctorRequired'));
         }
-
-        // Check required personal info
         if (!formData.firstName?.trim()) {
-          errors.push('First name is required');
+          errors.push(t('caseSubmit.errors.firstNameRequired'));
         }
         if (!formData.lastName?.trim()) {
-          errors.push('Last name is required');
+          errors.push(t('caseSubmit.errors.lastNameRequired'));
         }
-
-        // Check urgent delivery date if urgent is checked
+        // Urgent date is logic-dependent, so we keep this check
         if (formData.isUrgent && !formData.urgentDeliveryDate) {
-          errors.push('Delivery date is required for urgent cases');
+          errors.push(t('caseSubmit.errors.deliveryDateRequired'));
         }
-
-        // Check if urgent delivery date is in the future
         if (formData.isUrgent && formData.urgentDeliveryDate) {
           const deliveryDate = new Date(formData.urgentDeliveryDate);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           if (deliveryDate <= today) {
-            errors.push('Delivery date must be in the future');
+            errors.push(t('caseSubmit.errors.deliveryDateFuture'));
           }
         }
-
-        // Optional: Additional validations
-        if (formData.additionalFiles && formData.additionalFiles.length > 5) {
-          errors.push('Maximum of 5 additional files allowed');
-        }
+        // NOTE: File validations and Treatment Options are REMOVED for Admin
 
         return errors;
       };
@@ -267,43 +242,36 @@ const AdminCaseSubmit = () => {
         throw new Error(validationErrors.join(', '));
       }
 
-      // Fetch doctor's profile information for the selected doctor
-
-      const { data: doctorProfileData, error: doctorProfileError } =
-        await supabase
-          .from('profiles')
-          .select('full_name, clinic')
-          .eq('id', formData.selectedUserId)
-          .single();
-
-      if (doctorProfileError) {
-        console.error('❌ Doctor Profile Error:', doctorProfileError);
-      }
+      // Fetch doctor's profile for metadata
+      const { data: doctorProfileData } = await supabase
+        .from('profiles')
+        .select('full_name, clinic')
+        .eq('id', formData.selectedUserId)
+        .single();
 
       const doctorName =
         doctorProfileData?.full_name ||
         formData.selectedUserName ||
-        'Unknown Doctor';
+        t('caseSubmit.unknownDoctor');
       const clinicName = doctorProfileData?.clinic || null;
 
-      // Prepare metadata for all uploads
       const patientName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
       const caseId = `ADMIN-${formData.selectedUserId.substring(
         0,
         8
       )}-${Date.now()}`;
 
-      // File upload function
+      // Reusable upload function
       const uploadFileWithErrorHandling = async (
         file,
         folderPath,
         metadata = {}
       ) => {
-        if (!file) return null;
+        if (!file) return null; // Logic to skip if file not present
 
         try {
-          // Validate file type and size
-          const maxFileSize = 100 * 1024 * 1024; // 100MB
+          // Keep file size/type validation if file exists
+          const maxFileSize = 100 * 1024 * 1024;
           const allowedFileTypes = [
             '.stl',
             '.obj',
@@ -318,33 +286,30 @@ const AdminCaseSubmit = () => {
           ];
 
           if (file.size > maxFileSize) {
-            throw new Error(`File is too large. Maximum file size is 100MB.`);
+            throw new Error(t('caseSubmit.errors.fileTooLarge'));
           }
-
           const fileExt = file.name.split('.').pop().toLowerCase();
           if (!allowedFileTypes.includes(`.${fileExt}`)) {
             throw new Error(
-              `Invalid file type. Allowed types are: ${allowedFileTypes.join(
-                ', '
-              )}`
+              t('caseSubmit.errors.invalidFileType', {
+                types: allowedFileTypes.join(', '),
+              })
             );
           }
 
-          // Use uploadFile from storageUtils - uploads to BOTH Supabase AND Telegram
-          const uploadMetadata = {
+          const result = await uploadFile(file, folderPath, {
             caseId: metadata.caseId || `ADMIN-${Date.now()}`,
-            patientName: metadata.patientName || 'Unknown Patient',
-            doctorName: metadata.doctorName || 'Unknown Doctor',
+            patientName: metadata.patientName || t('caseSubmit.unknownPatient'),
+            doctorName: metadata.doctorName || t('caseSubmit.unknownDoctor'),
             clinicName: metadata.clinicName || null,
             fileType: metadata.fileType || folderPath,
-          };
-
-          const result = await uploadFile(file, folderPath, uploadMetadata);
+          });
 
           if (!result.success) {
-            throw new Error(result.error || 'Upload failed');
+            throw new Error(
+              result.error || t('caseSubmit.errors.uploadFailed')
+            );
           }
-
           return result.filePath;
         } catch (error) {
           console.error(`Upload error for ${folderPath}:`, error);
@@ -352,7 +317,7 @@ const AdminCaseSubmit = () => {
         }
       };
 
-      // Handle different upload methods (optional files)
+      // Uploads (will simply skip if files are null)
       if (formData.uploadMethod === 'individual') {
         const uploadResults = await Promise.all([
           uploadFileWithErrorHandling(
@@ -363,7 +328,7 @@ const AdminCaseSubmit = () => {
               patientName,
               doctorName,
               clinicName,
-              fileType: 'Upper Jaw Scan',
+              fileType: t('caseSubmit.upperJawScan'),
             }
           ),
           uploadFileWithErrorHandling(
@@ -374,7 +339,7 @@ const AdminCaseSubmit = () => {
               patientName,
               doctorName,
               clinicName,
-              fileType: 'Lower Jaw Scan',
+              fileType: t('caseSubmit.lowerJawScan'),
             }
           ),
           uploadFileWithErrorHandling(formData.biteScan, 'bite-scans', {
@@ -382,10 +347,9 @@ const AdminCaseSubmit = () => {
             patientName,
             doctorName,
             clinicName,
-            fileType: 'Bite Scan',
+            fileType: t('caseSubmit.biteScan'),
           }),
         ]);
-
         [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
       } else if (formData.uploadMethod === 'compressed') {
         compressedScansPath = await uploadFileWithErrorHandling(
@@ -396,12 +360,11 @@ const AdminCaseSubmit = () => {
             patientName,
             doctorName,
             clinicName,
-            fileType: 'Compressed Scans Archive',
+            fileType: t('caseSubmit.compressedScans'),
           }
         );
       }
 
-      // Upload additional files (always available)
       if (formData.additionalFiles && formData.additionalFiles.length > 0) {
         additionalFilesPaths = await Promise.all(
           formData.additionalFiles.map((file, index) =>
@@ -410,13 +373,12 @@ const AdminCaseSubmit = () => {
               patientName,
               doctorName,
               clinicName,
-              fileType: `Additional File ${index + 1}`,
+              fileType: t('caseSubmit.additionalFile', { number: index + 1 }),
             })
           )
         );
       }
 
-      // Store file paths and user note in database
       const insertPayload = {
         user_id: formData.selectedUserId,
         first_name: formData.firstName.trim(),
@@ -458,17 +420,16 @@ const AdminCaseSubmit = () => {
         throw insertError;
       }
 
-      setSuccessMessage('Case submitted successfully for the selected doctor!');
+      setSuccessMessage(t('adminCaseSubmit.alerts.success'));
       navigate('/admin/cases');
     } catch (error) {
       console.error('Comprehensive submit error:', error);
-      setError(error.message || 'An unexpected error occurred');
+      setError(error.message || t('caseSubmit.errors.unexpected'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Get minimum date (tomorrow)
   const getMinDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -480,13 +441,15 @@ const AdminCaseSubmit = () => {
       <div className="flex w-full flex-col items-start gap-2">
         <Breadcrumbs>
           <Link to="/admin/cases">
-            <Breadcrumbs.Item>Cases</Breadcrumbs.Item>
+            <Breadcrumbs.Item>{t('navigation.cases')}</Breadcrumbs.Item>
           </Link>
           <Breadcrumbs.Divider />
-          <Breadcrumbs.Item active={true}>New Case</Breadcrumbs.Item>
+          <Breadcrumbs.Item active={true}>
+            {t('caseSubmit.newCase')}
+          </Breadcrumbs.Item>
         </Breadcrumbs>
         <span className="text-heading-2 font-heading-2 text-default-font">
-          Submit New Case (Admin)
+          {t('adminCaseSubmit.title')}
         </span>
       </div>
       <form
@@ -494,70 +457,25 @@ const AdminCaseSubmit = () => {
         className="flex w-full flex-col items-start gap-6"
       >
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
-          {/* Doctor Selection */}
-          {/*
-
-          <div className="w-full">
-            <div className="relative">
-              <TextField
-                className="h-auto w-full flex-none"
-                label="Select Doctor"
-                helpText="Search and select the doctor for this case"
-              >
-                <TextField.Input
-                  placeholder="Search by doctor name or email..."
-                  type="text"
-                  value={userSearchQuery}
-                  onChange={handleUserSearch}
-                  onFocus={() => setShowUserDropdown(true)}
-                  required
-                />
-              </TextField>
-
-              {showUserDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <div
-                        key={user.id}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                        onClick={() => handleUserSelect(user)}
-                      >
-                        <div className="font-medium">{user.full_name}</div>
-                        <div className="text-gray-500">{user.email}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-2 text-sm text-gray-500">
-                      No doctors found
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-*/}
-
+          {/* Doctor Selection (Kept in main file as it is Admin specific) */}
           <div className="w-full">
             <div className="relative" ref={dropdownRef}>
               <TextField
                 className="h-auto w-full flex-none"
-                label="Select Doctor"
-                helpText="Search and select the doctor for this case"
+                label={t('adminCaseSubmit.selectDoctor.label')}
+                helpText={t('adminCaseSubmit.selectDoctor.helpText')}
               >
                 <div className="relative w-full h-full">
                   <TextField.Input
-                    placeholder="Search by doctor name or email..."
+                    placeholder={t('adminCaseSubmit.selectDoctor.placeholder')}
                     type="text"
                     value={userSearchQuery}
                     onChange={handleUserSearch}
                     onFocus={() => setShowUserDropdown(true)}
                     required
-                    className="pr-8" // space for icon
+                    className="pr-8"
                   />
 
-                  {/* Clear button */}
                   {userSearchQuery && (
                     <button
                       type="button"
@@ -573,7 +491,6 @@ const AdminCaseSubmit = () => {
                 </div>
               </TextField>
 
-              {/* Dropdown */}
               {showUserDropdown && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                   {filteredUsers.length > 0 ? (
@@ -589,519 +506,59 @@ const AdminCaseSubmit = () => {
                     ))
                   ) : (
                     <div className="px-4 py-2 text-sm text-gray-500">
-                      No doctors found
+                      {t('adminCaseSubmit.selectDoctor.noResults')}
                     </div>
                   )}
                 </div>
               )}
             </div>
           </div>
-
-          {/* Patient information */}
-
-          <div className="flex w-full items-start gap-4">
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-              <TextField
-                className="h-auto w-full flex-none"
-                label="Patient First Name"
-                helpText=""
-              >
-                <TextField.Input
-                  placeholder="Enter patient's first name"
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </TextField>
-            </div>
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-              <TextField
-                className="h-auto w-full flex-none"
-                label="Patient Last Name"
-                helpText=""
-              >
-                <TextField.Input
-                  placeholder="Enter patient's last name"
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </TextField>
-            </div>
-          </div>
-
-          {/* Urgent Case Section */}
-          <div className="flex w-full flex-col items-start gap-4">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="isUrgent"
-                name="isUrgent"
-                checked={formData.isUrgent}
-                onChange={handleChange}
-                className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-sky-500 focus:ring-2 accent-sky-600"
-              />
-              <label
-                htmlFor="isUrgent"
-                className="text-body-bold font-body-bold text-default-font cursor-pointer"
-              >
-                Urgent Case
-              </label>
-            </div>
-
-            {formData.isUrgent && (
-              <div className="ml-7 w-full max-w-xs">
-                <TextField
-                  className="h-auto w-full flex-none"
-                  label="Required Delivery Date"
-                  helpText="Select the latest acceptable delivery date"
-                >
-                  <TextField.Input
-                    type="date"
-                    id="urgentDeliveryDate"
-                    name="urgentDeliveryDate"
-                    value={formData.urgentDeliveryDate}
-                    onChange={handleChange}
-                    min={getMinDate()}
-                    required={formData.isUrgent}
-                    className="text-body font-body"
-                  />
-                </TextField>
-              </div>
-            )}
-
-            {formData.isUrgent && (
-              <div className="ml-7">
-                <Alert
-                  title="Urgent Case Notice"
-                  description="Urgent cases may incur additional fees and are subject to availability. We'll contact you to confirm the delivery timeline and any extra charges."
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Treatment Arch Selection */}
-          <div className="w-full">
-            <RadioGroup
-              label="Treatment Arch"
-              name="treatmentArch"
-              options={[
-                { label: 'Upper arch', value: 'upper' },
-                { label: 'Lower arch', value: 'lower' },
-                { label: 'Both arches', value: 'both' },
-              ]}
-              selectedValue={formData.treatmentArch}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/*Aligner Material Selection*/}
-          <div className="flex w-full items-start gap-4">
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
-              <RadioGroup
-                label="Preferred Aligner Material"
-                name="alignerMaterial"
-                options={alignerMaterials.map((mat) => ({
-                  label: `${mat.name}.`,
-                  value: mat.name,
-                }))}
-                selectedValue={formData.alignerMaterial}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
         </div>
+
+        {/* Refactored Forms */}
+        <PatientInformationForm
+          formData={formData}
+          handleChange={handleChange}
+          getMinDate={getMinDate}
+        />
+
+        <TreatmentOptionsForm
+          formData={formData}
+          handleChange={handleChange}
+          alignerMaterials={alignerMaterials}
+        />
 
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
-            Dental Chart
+            {t('casePage.dentalChart')}
           </span>
           <div>
             <DentalChart initialStatus={{}} onChange={setToothStatus} />
           </div>
         </div>
 
-        {/* Basic Diagnosis Section */}
-        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
-          <span className="text-heading-3 font-heading-3 text-default-font">
-            Basic Diagnosis
-          </span>
+        <DiagnosisForm formData={formData} handleChange={handleChange} />
 
-          {/* Upper Midline */}
-          <div className="w-full">
-            <div className="flex flex-col gap-4">
-              <RadioGroup
-                label="Upper Midline"
-                name="upperMidline"
-                options={[
-                  { label: 'Centered', value: 'centered' },
-                  { label: 'Shifted right', value: 'shifted_right' },
-                  { label: 'Shifted left', value: 'shifted_left' },
-                ]}
-                selectedValue={formData.upperMidline}
-                onChange={handleChange}
-              />
-              {(formData.upperMidline === 'shifted_right' ||
-                formData.upperMidline === 'shifted_left') && (
-                <div className="ml-6">
-                  <TextField
-                    className="h-auto w-48 flex-none"
-                    label="Shift Amount"
-                    helpText="Enter shift in millimeters"
-                  >
-                    <TextField.Input
-                      placeholder="e.g., 2.5"
-                      type="number"
-                      step="0.1"
-                      id="upperMidlineShift"
-                      name="upperMidlineShift"
-                      value={formData.upperMidlineShift}
-                      onChange={handleChange}
-                    />
-                  </TextField>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Lower Midline */}
-          <div className="w-full">
-            <div className="flex flex-col gap-4">
-              <RadioGroup
-                label="Lower Midline"
-                name="lowerMidline"
-                options={[
-                  { label: 'Centered', value: 'centered' },
-                  { label: 'Shifted right', value: 'shifted_right' },
-                  { label: 'Shifted left', value: 'shifted_left' },
-                ]}
-                selectedValue={formData.lowerMidline}
-                onChange={handleChange}
-              />
-              {(formData.lowerMidline === 'shifted_right' ||
-                formData.lowerMidline === 'shifted_left') && (
-                <div className="ml-6">
-                  <TextField
-                    className="h-auto w-48 flex-none"
-                    label="Shift Amount"
-                    helpText="Enter shift in millimeters"
-                  >
-                    <TextField.Input
-                      placeholder="e.g., 1.8"
-                      type="number"
-                      step="0.1"
-                      id="lowerMidlineShift"
-                      name="lowerMidlineShift"
-                      value={formData.lowerMidlineShift}
-                      onChange={handleChange}
-                    />
-                  </TextField>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Canine Relationship */}
-          <div className="w-full">
-            <span className="text-body-bold font-body-bold text-default-font mb-4 block">
-              Canine Relationship
-            </span>
-            <div className="flex gap-8">
-              <div className="flex flex-col gap-2">
-                <span className="text-body font-body text-default-font">
-                  Right Side
-                </span>
-                <select
-                  name="canineRightClass"
-                  value={formData.canineRightClass}
-                  onChange={handleChange}
-                  className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select class</option>
-                  <option value="class_i">Class I</option>
-                  <option value="class_ii">Class II</option>
-                  <option value="class_iii">Class III</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <span className="text-body font-body text-default-font">
-                  Left Side
-                </span>
-                <select
-                  name="canineLeftClass"
-                  value={formData.canineLeftClass}
-                  onChange={handleChange}
-                  className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select class</option>
-                  <option value="class_i">Class I</option>
-                  <option value="class_ii">Class II</option>
-                  <option value="class_iii">Class III</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Molar Relationship */}
-          <div className="w-full">
-            <span className="text-body-bold font-body-bold text-default-font mb-4 block">
-              Molar Relationship
-            </span>
-            <div className="flex gap-8">
-              <div className="flex flex-col gap-2">
-                <span className="text-body font-body text-default-font">
-                  Right Side
-                </span>
-                <select
-                  name="molarRightClass"
-                  value={formData.molarRightClass}
-                  onChange={handleChange}
-                  className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select class</option>
-                  <option value="class_i">Class I</option>
-                  <option value="class_ii">Class II</option>
-                  <option value="class_iii">Class III</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <span className="text-body font-body text-default-font">
-                  Left Side
-                </span>
-                <select
-                  name="molarLeftClass"
-                  value={formData.molarLeftClass}
-                  onChange={handleChange}
-                  className="px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select class</option>
-                  <option value="class_i">Class I</option>
-                  <option value="class_ii">Class II</option>
-                  <option value="class_iii">Class III</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Notes */}
-          <div className="w-full">
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="userNote"
-                className="text-body-bold font-body-bold text-default-font"
-              >
-                Additional Notes
-              </label>
-              <textarea
-                id="userNote"
-                name="userNote"
-                value={formData.userNote}
-                onChange={handleChange}
-                placeholder="Enter any special instructions, patient history, or additional details..."
-                rows={4}
-                className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[100px] placeholder:text-subtext-color"
-              />
-              <span className="text-caption font-caption text-subtext-color">
-                Add any additional information or special instructions for this
-                case
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
-          <span className="text-heading-3 font-heading-3 text-default-font">
-            Scan Files (Optional)
-          </span>
-
-          <Alert
-            title="Admin Note"
-            description="File uploads are optional when submitting cases as an admin. You can submit the case without any files and add them later if needed."
-          />
-
-          {/* Upload Method Selection */}
-          <div className="w-full border-b border-neutral-border pb-4">
-            <fieldset className="flex flex-col gap-3">
-              <legend className="text-body-bold font-body-bold text-default-font mb-3">
-                Choose Upload Method (Optional)
-              </legend>
-              <label className="flex items-center gap-3 cursor-pointer text-body font-body text-default-font">
-                <input
-                  type="radio"
-                  name="uploadMethod"
-                  value="individual"
-                  checked={formData.uploadMethod === 'individual'}
-                  onChange={handleChange}
-                  className="accent-blue-600 w-4 h-4"
-                />
-                <span>Individual Files (Upload each scan separately)</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer text-body font-body text-default-font">
-                <input
-                  type="radio"
-                  name="uploadMethod"
-                  value="compressed"
-                  checked={formData.uploadMethod === 'compressed'}
-                  onChange={handleChange}
-                  className="accent-blue-600 w-4 h-4"
-                />
-                <span>
-                  Compressed Archive (Upload all scans in one ZIP/RAR file)
-                </span>
-              </label>
-            </fieldset>
-          </div>
-
-          {formData.uploadMethod === 'individual' && (
-            <>
-              <Alert
-                title="Individual Files"
-                description="Upload each scan file separately if available. All files are optional for admin submissions."
-              />
-
-              <div>
-                <label
-                  htmlFor="upperJawScan"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Upper Jaw Scan (Optional)
-                </label>
-                <input
-                  type="file"
-                  id="upperJawScan"
-                  name="upperJawScan"
-                  accept=".stl,.obj,.ply"
-                  onChange={handleChange}
-                  className="mt-1 block w-full text-sm text-gray-500
-                  file:mr-4 file:rounded-md file:border-0
-                  file:text-sm file:font-medium
-                  file:bg-sky-50 file:text-sky-700
-                  hover:file:bg-sky-100"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="lowerJawScan"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Lower Jaw Scan (Optional)
-                </label>
-                <input
-                  type="file"
-                  id="lowerJawScan"
-                  name="lowerJawScan"
-                  accept=".stl,.obj,.ply"
-                  onChange={handleChange}
-                  className="mt-1 block w-full text-sm text-gray-500
-                  file:mr-4 file:rounded-md file:border-0
-                  file:text-sm file:font-medium
-                  file:bg-sky-50 file:text-sky-700
-                  hover:file:bg-sky-100"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="biteScan"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Bite Scan (Optional)
-                </label>
-                <input
-                  type="file"
-                  id="biteScan"
-                  name="biteScan"
-                  accept=".stl,.obj,.ply"
-                  onChange={handleChange}
-                  className="mt-1 block w-full text-sm text-gray-500
-                  file:mr-4 file:rounded-md file:border-0
-                  file:text-sm file:font-medium
-                  file:bg-sky-50 file:text-sky-700
-                  hover:file:bg-sky-100"
-                />
-              </div>
-            </>
-          )}
-
-          {formData.uploadMethod === 'compressed' && (
-            <>
-              <Alert
-                title="Compressed Archive"
-                description="Upload a single ZIP or RAR file containing scan files if available. This is optional for admin submissions."
-              />
-
-              <div>
-                <label
-                  htmlFor="compressedScans"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Compressed Scan Archive (Optional)
-                </label>
-                <input
-                  type="file"
-                  id="compressedScans"
-                  name="compressedScans"
-                  accept=".zip,.rar,.7z"
-                  onChange={handleChange}
-                  className="mt-1 block w-full text-sm text-gray-500
-                  file:mr-4 file:rounded-md file:border-0
-                  file:text-sm file:font-medium
-                  file:bg-sky-50 file:text-sky-700
-                  hover:file:bg-sky-100"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Additional Files - Always Available */}
-          <div className="pt-4 border-t border-neutral-border">
-            <label
-              htmlFor="additionalFiles"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Additional Files (Optional)
-            </label>
-            <input
-              type="file"
-              id="additionalFiles"
-              name="additionalFiles"
-              multiple
-              accept=".stl,.obj,.ply,.pdf,.jpg,.png"
-              onChange={handleChange}
-              className="mt-1 block w-full text-sm text-gray-500
-              file:mr-4 file:rounded-md file:border-0
-              file:text-sm file:font-medium
-              file:bg-sky-50 file:text-sky-700
-              hover:file:bg-sky-100"
-            />
-            {formData.additionalFiles.length > 0 && (
-              <div className="mt-2 text-sm text-gray-500">
-                {formData.additionalFiles.length} file(s) selected
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Note: Passing isRequired={false} to make file uploads optional for Admin */}
+        <FileUploadSection
+          formData={formData}
+          handleChange={handleChange}
+          isRequired={false}
+        />
 
         {error && <Error error={error} />}
         {successMessage && <SuccessMessage successMessage={successMessage} />}
 
         <div className="flex w-full items-center gap-2">
           <Button size="large" type="submit" disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit Case'}
+            {loading ? t('caseSubmit.submitting') : t('caseSubmit.submitCase')}
           </Button>
           <Button
             onClick={() => navigate(-1)}
             variant="neutral-tertiary"
             size="large"
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
       </form>

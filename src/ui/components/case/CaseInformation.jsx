@@ -29,11 +29,43 @@ const PrintField = ({ label, value }) => (
 );
 
 /* -------------------------------------------------------
-   PrintableContent Component (VERY IMPORTANT)
-   Now supports forwardRef + accepts props
+   PrintableContent Component
 ------------------------------------------------------- */
 const PrintableContent = React.forwardRef(
   ({ caseData, isAdmin, isRTL, t }, ref) => {
+    // Helper to translate arch values
+    const getArchLabel = (arch) => {
+      if (!arch) return t('casePage.notSpecified');
+      const archMap = {
+        upper: 'caseSubmit.treatmentOptions.upperArch',
+        lower: 'caseSubmit.treatmentOptions.lowerArch',
+        both: 'caseSubmit.treatmentOptions.bothArches',
+      };
+      return t(archMap[arch] || arch);
+    };
+
+    // Helper to translate midline values
+    const getMidlineLabel = (midline) => {
+      if (!midline) return t('casePage.notSpecified');
+      const midlineMap = {
+        centered: 'caseSubmit.diagnosis.centered',
+        shifted_right: 'caseSubmit.diagnosis.shiftedRight',
+        shifted_left: 'caseSubmit.diagnosis.shiftedLeft',
+      };
+      return t(midlineMap[midline] || midline);
+    };
+
+    // Helper to translate class values
+    const getClassLabel = (classValue) => {
+      if (!classValue) return t('casePage.notSpecified');
+      const classMap = {
+        class_i: 'caseSubmit.diagnosis.classI',
+        class_ii: 'caseSubmit.diagnosis.classII',
+        class_iii: 'caseSubmit.diagnosis.classIII',
+      };
+      return t(classMap[classValue] || classValue);
+    };
+
     return (
       <div
         ref={ref}
@@ -134,7 +166,138 @@ const PrintableContent = React.forwardRef(
           )}
         </div>
 
-        {/* Dental Chart Section - NEW with scaling */}
+        {/* Treatment & Diagnosis Details Section - NEW */}
+        <div className="mb-6 page-break-inside-avoid">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            {t('casePage.treatmentOptionsTitle')}
+          </h2>
+
+          {/* Treatment Options */}
+          <div className="mb-4">
+            <h3 className="text-base font-semibold mb-2 text-gray-700">
+              {t('casePage.treatmentOptions')}
+            </h3>
+            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded">
+              <PrintField
+                label={t('caseSubmit.treatmentOptions.treatmentArch')}
+                value={getArchLabel(caseData.treatment_arch)}
+              />
+              <PrintField
+                label={t('caseSubmit.treatmentOptions.alignerMaterial')}
+                value={caseData.aligner_material || t('casePage.notSpecified')}
+              />
+            </div>
+          </div>
+
+          {/* Midline Analysis */}
+          {(caseData.upper_midline || caseData.lower_midline) && (
+            <div className="mb-4">
+              <h3 className="text-base font-semibold mb-2 text-gray-700">
+                {t('casePage.midlineAnalysis')}
+              </h3>
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded">
+                {caseData.upper_midline && (
+                  <PrintField
+                    label={t('caseSubmit.diagnosis.upperMidline')}
+                    value={`${getMidlineLabel(caseData.upper_midline)}${
+                      caseData.upper_midline_shift
+                        ? ` (${caseData.upper_midline_shift} ${t(
+                            'casePage.mm'
+                          )})`
+                        : ''
+                    }`}
+                  />
+                )}
+                {caseData.lower_midline && (
+                  <PrintField
+                    label={t('caseSubmit.diagnosis.lowerMidline')}
+                    value={`${getMidlineLabel(caseData.lower_midline)}${
+                      caseData.lower_midline_shift
+                        ? ` (${caseData.lower_midline_shift} ${t(
+                            'casePage.mm'
+                          )})`
+                        : ''
+                    }`}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Occlusal Relationship */}
+          {(caseData.canine_right_class ||
+            caseData.canine_left_class ||
+            caseData.molar_right_class ||
+            caseData.molar_left_class) && (
+            <div className="mb-4">
+              <h3 className="text-base font-semibold mb-2 text-gray-700">
+                {t('casePage.occlusalRelationship')}
+              </h3>
+              <div className="bg-gray-50 p-3 rounded">
+                {/* Canine Relationship */}
+                {(caseData.canine_right_class ||
+                  caseData.canine_left_class) && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-gray-600 mb-2">
+                      {t('caseSubmit.diagnosis.canineRelationship')}
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {caseData.canine_right_class && (
+                        <PrintField
+                          label={t('caseSubmit.diagnosis.rightSide')}
+                          value={getClassLabel(caseData.canine_right_class)}
+                        />
+                      )}
+                      {caseData.canine_left_class && (
+                        <PrintField
+                          label={t('caseSubmit.diagnosis.leftSide')}
+                          value={getClassLabel(caseData.canine_left_class)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Molar Relationship */}
+                {(caseData.molar_right_class || caseData.molar_left_class) && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-600 mb-2">
+                      {t('caseSubmit.diagnosis.molarRelationship')}
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {caseData.molar_right_class && (
+                        <PrintField
+                          label={t('caseSubmit.diagnosis.rightSide')}
+                          value={getClassLabel(caseData.molar_right_class)}
+                        />
+                      )}
+                      {caseData.molar_left_class && (
+                        <PrintField
+                          label={t('caseSubmit.diagnosis.leftSide')}
+                          value={getClassLabel(caseData.molar_left_class)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Additional Notes */}
+          {caseData.user_note && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+              <p className="text-sm font-semibold text-gray-700 mb-1">
+                {t('caseSubmit.diagnosis.additionalNotes')}
+              </p>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                {caseData.user_note}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Dental Chart Section */}
         {isAdmin && (
           <div className="mb-6 page-break-inside-avoid">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">

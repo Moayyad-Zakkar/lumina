@@ -10,7 +10,6 @@ import React, { useEffect, useState } from 'react';
 import * as SubframeUtils from '../utils';
 import { SidebarWithLargeItems } from '../components/SidebarWithLargeItems';
 import { FeatherHome } from '@subframe/core';
-import { FeatherBell } from '@subframe/core';
 import { FeatherInbox } from '@subframe/core';
 import { FeatherBarChart2 } from '@subframe/core';
 import { FeatherUser } from '@subframe/core';

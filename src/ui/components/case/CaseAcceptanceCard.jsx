@@ -3,6 +3,7 @@ import { Button } from '../Button';
 import { TextField } from '../TextField';
 import { Alert } from '../Alert';
 import { FeatherCheck, FeatherX, FeatherDollarSign } from '@subframe/core';
+import { useTranslation } from 'react-i18next';
 
 const CaseAcceptanceCard = ({
   currentStatus,
@@ -14,6 +15,7 @@ const CaseAcceptanceCard = ({
 }) => {
   // Show this card for submitted cases (for acceptance) and accepted cases (for display only)
   //if (currentStatus !== 'submitted' && currentStatus !== 'accepted')
+  const { t } = useTranslation();
   if (currentStatus !== 'submitted') return null;
 
   return (
@@ -21,7 +23,9 @@ const CaseAcceptanceCard = ({
       <div className="flex w-full items-center gap-2">
         <FeatherCheck className="h-5 w-5 text-brand-600" />
         <span className="text-heading-3 font-heading-3 text-default-font">
-          {currentStatus === 'submitted' ? 'Case Review' : 'Case Study Fee'}
+          {currentStatus === 'submitted'
+            ? t('casePage.caseAcceptanceCard.title')
+            : t('casePage.caseAcceptanceCard.caseStudyFee')}
         </span>
       </div>
 
@@ -29,13 +33,13 @@ const CaseAcceptanceCard = ({
         <>
           <Alert
             variant="brand"
-            title="Review and Accept/Decline Case"
-            description="Review the submitted case and decide whether to accept or decline it. If accepted, you can proceed to create the treatment plan."
+            title={t('casePage.alerts.submitted.title')}
+            description={t('casePage.caseAcceptanceCard.description')}
           />
 
           <div className="flex w-full flex-col items-start gap-4">
             <div className="w-full max-w-xs">
-              <TextField label="Case Study Fee">
+              <TextField label={t('casePage.caseAcceptanceCard.caseStudyFee')}>
                 <TextField.Input
                   type="number"
                   min={0}
@@ -49,8 +53,7 @@ const CaseAcceptanceCard = ({
 
             <div className="flex w-full items-center justify-between">
               <span className="text-body font-body text-subtext-color">
-                Review the case details and decide whether to accept or decline
-                this case.
+                {t('casePage.alerts.submitted.description')}
               </span>
               <div className="flex items-center gap-2">
                 <Button
@@ -59,14 +62,14 @@ const CaseAcceptanceCard = ({
                   onClick={handleDecline}
                   icon={<FeatherX />}
                 >
-                  Decline Case
+                  {t('casePage.caseAcceptanceCard.declineCase')}
                 </Button>
                 <Button
                   disabled={saving}
                   onClick={acceptCase}
                   icon={<FeatherCheck />}
                 >
-                  Accept Case
+                  {t('casePage.caseAcceptanceCard.acceptCase')}
                 </Button>
               </div>
             </div>
@@ -76,13 +79,16 @@ const CaseAcceptanceCard = ({
         <>
           <Alert
             variant="success"
-            title="Case Accepted"
-            description="This case has been accepted. The case study fee has been set and the case is ready for treatment planning."
+            title={t('casePage.caseAcceptanceCard.caseAcceptedAlertTitle')}
+            description={t('casePage.caseAcceptanceCard.caseAcceptedAlert')}
           />
 
           <div className="flex w-full flex-col items-start gap-4">
             <div className="w-full max-w-xs">
-              <TextField label="Case Study Fee" disabled>
+              <TextField
+                label={t('casePage.caseAcceptanceCard.caseStudyFee')}
+                disabled
+              >
                 <TextField.Input
                   type="number"
                   value={caseStudyFee}
@@ -94,8 +100,7 @@ const CaseAcceptanceCard = ({
 
             <div className="flex w-full items-center justify-between">
               <span className="text-body font-body text-subtext-color">
-                Case study fee has been set. You can now proceed to create the
-                treatment plan.
+                {t('casePage.caseAcceptanceCard.caseStudyFeeSet')}
               </span>
             </div>
           </div>

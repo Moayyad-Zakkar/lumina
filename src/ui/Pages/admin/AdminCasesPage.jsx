@@ -605,16 +605,16 @@ const AdminCasesPage = () => {
                 setShowAlignerMaterialDropdown(false);
               }}
             >
-                            {getDateLabel()}           {' '}
+              {getDateLabel()}
             </Button>
 
             {showDateDropdown && (
               <div
                 className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[140px]"
-                dir="rtl" // Add dir="rtl" for proper flow context
+                dir="rtl"
               >
                 <div className="py-1">
-                  <button // FIX: Changed text-left to text-right
+                  <button
                     className="w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => {
                       setSelectedDateRange('');
@@ -626,7 +626,7 @@ const AdminCasesPage = () => {
 
                   {dateRangeOptions.map((option) => (
                     <button
-                      key={option.value} // FIX: Changed text-left to text-right
+                      key={option.value}
                       className={`w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 ${
                         selectedDateRange === option.value
                           ? 'bg-neutral-100 text-neutral-900'

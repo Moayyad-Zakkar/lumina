@@ -1,6 +1,7 @@
 import React from 'react';
 import { toothPaths } from '../../assets/toothPaths';
 import { FeatherSlice, FeatherX } from '@subframe/core';
+import { useTranslation } from 'react-i18next';
 
 // Reusable Tooth component with IPR values
 const ToothWithIPR = ({
@@ -122,6 +123,9 @@ const IPRChartViewer = ({
     onClose();
   };
 
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
   // Get single IPR value (for end teeth)
   const getSingleIPR = (toothNum, side) => {
     const toothData = iprData[toothNum];
@@ -230,7 +234,10 @@ const IPRChartViewer = ({
           </div>
 
           {/* Content */}
-          <div className="p-6 flex flex-col items-center gap-8">
+          <div
+            className="p-6 flex flex-col items-center gap-8"
+            style={{ direction: 'ltr' }}
+          >
             {/* Upper jaw */}
             <div className="flex relative items-center">
               {[...Array(16)].map((_, i) => {
@@ -341,6 +348,9 @@ const IPRChartViewer = ({
    Printable IPR Chart Component (simplified for printing)
 ------------------------------------------------------- */
 export const PrintableIPRChart = ({ toothStatus, iprData }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
   // Reusable Tooth component for printing
   const ToothWithIPR = ({
     num,
@@ -487,8 +497,12 @@ export const PrintableIPRChart = ({ toothStatus, iprData }) => {
 
   return (
     <div
-      className="flex flex-col items-center gap-8"
-      style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}
+      className={`flex flex-col items-center gap-8`}
+      style={{
+        transform: 'scale(0.85)',
+        transformOrigin: 'top center',
+        direction: 'ltr',
+      }}
     >
       {/* Upper jaw */}
       <div className="flex relative items-center">

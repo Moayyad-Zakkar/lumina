@@ -120,7 +120,7 @@ const DentalChart = ({
   return (
     <div className="flex flex-col items-center gap-8 p-4" style={wrapperStyle}>
       {/* Upper jaw */}
-      <div className="flex" style={{ gap: '4px' }}>
+      <div className="flex" style={{ gap: '4px', direction: 'ltr' }}>
         {[...Array(16)].map((_, i) => {
           const num = i + 1;
           const paths = toothPaths[`tooth${num}`] || [];
@@ -143,7 +143,7 @@ const DentalChart = ({
       </div>
 
       {/* Lower jaw */}
-      <div className="flex" style={{ gap: '4px' }}>
+      <div className="flex" style={{ gap: '4px', direction: 'ltr' }}>
         {[...Array(16)].map((_, i) => {
           const num = 32 - i;
           const paths = toothPaths[`tooth${num}`] || [];

@@ -1,27 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Dialog } from '../Dialog';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import DialogWrapper from '../DialogWrapper'; // Updated import based on your files
 import { Button } from '../Button';
 import { Alert } from '../Alert';
 import {
   FeatherUpload,
-  FeatherX,
   FeatherCheck,
-  FeatherAlertTriangle,
   FeatherImage,
   FeatherTrash2,
+  FeatherX,
+  FeatherFile,
+  FeatherPlus,
 } from '@subframe/core';
 import supabase from '../../../helper/supabaseClient';
 import toast from 'react-hot-toast';
 
-const VIEW_TYPES = [
-  { value: 'front', label: 'Front View' },
-  { value: 'left', label: 'Left View' },
-  { value: 'right', label: 'Right View' },
-  { value: 'upper', label: 'Upper Occlusal' },
-  { value: 'lower', label: 'Lower Occlusal' },
-];
-
 const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('sequence'); // 'sequence' or 'beforeAfter'
   const [uploading, setUploading] = useState(false);
   const [_uploadProgress, setUploadProgress] = useState({});
@@ -30,7 +25,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     beforeAfter: {},
   });
 
-  // Sequence files state: { front: [File, File...], left: [], ... }
+  // State for selected files
   const [sequenceFiles, setSequenceFiles] = useState({
     front: [],
     left: [],
@@ -39,7 +34,6 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     lower: [],
   });
 
-  // Before/After files state: { front: File | null, left: File | null, ... }
   const [beforeAfterFiles, setBeforeAfterFiles] = useState({
     front: null,
     left: null,
@@ -47,6 +41,18 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     upper: null,
     lower: null,
   });
+
+  // Dynamic View Types with Translations
+  const VIEW_TYPES = useMemo(
+    () => [
+      { value: 'front', label: t('treatmentPlanImages.views.front') },
+      { value: 'left', label: t('treatmentPlanImages.views.left') },
+      { value: 'right', label: t('treatmentPlanImages.views.right') },
+      { value: 'upper', label: t('treatmentPlanImages.views.upper') },
+      { value: 'lower', label: t('treatmentPlanImages.views.lower') },
+    ],
+    [t]
+  );
 
   const loadExistingImages = useCallback(async () => {
     try {
@@ -70,7 +76,6 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
           }
           organized.sequence[img.view_type].push(img);
         } else if (img.image_category === 'beforeAfter') {
-          // Store single combined image per view
           organized.beforeAfter[img.view_type] = img;
         }
       });
@@ -81,7 +86,6 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     }
   }, [caseId]);
 
-  // Load existing images
   useEffect(() => {
     if (isOpen && caseId) {
       loadExistingImages();
@@ -118,7 +122,6 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
 
   const deleteExistingImage = async (imageId) => {
     try {
-      // Get image details first to delete from storage
       const { data: img } = await supabase
         .from('treatment_plan_images')
         .select('storage_path')
@@ -138,10 +141,10 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
 
       if (error) throw error;
 
-      toast.success('Image deleted');
+      toast.success(t('treatmentPlanImages.toast.deleted'));
       loadExistingImages();
     } catch (error) {
-      toast.error('Failed to delete image');
+      toast.error(t('treatmentPlanImages.toast.deleteFailed'));
       console.error(error);
     }
   };
@@ -177,14 +180,12 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
             [`sequence-${viewType}-${i}`]: 'uploading',
           }));
 
-          // Upload to storage
           const { error: uploadError } = await supabase.storage
             .from('treatment-plans')
             .upload(storagePath, file, { upsert: true });
 
           if (uploadError) throw uploadError;
 
-          // Insert record
           const { error: dbError } = await supabase
             .from('treatment_plan_images')
             .insert({
@@ -200,15 +201,10 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
             });
 
           if (dbError) throw dbError;
-
-          setUploadProgress((prev) => ({
-            ...prev,
-            [`sequence-${viewType}-${i}`]: 'complete',
-          }));
         }
       }
 
-      // Upload before/after images (single combined image per view)
+      // Upload before/after images
       for (const viewType of Object.keys(beforeAfterFiles)) {
         const file = beforeAfterFiles[viewType];
         if (!file) continue;
@@ -217,19 +213,12 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
         const fileName = `before-after.${fileExt}`;
         const storagePath = `${caseId}/before-after/${viewType}/${fileName}`;
 
-        setUploadProgress((prev) => ({
-          ...prev,
-          [`beforeAfter-${viewType}`]: 'uploading',
-        }));
-
-        // Upload to storage
         const { error: uploadError } = await supabase.storage
           .from('treatment-plans')
           .upload(storagePath, file, { upsert: true });
 
         if (uploadError) throw uploadError;
 
-        // Check if record exists and update or insert
         const { data: existing } = await supabase
           .from('treatment_plan_images')
           .select('id')
@@ -238,45 +227,30 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
           .eq('view_type', viewType)
           .single();
 
+        const payload = {
+          case_id: caseId,
+          image_category: 'beforeAfter',
+          view_type: viewType,
+          image_stage: 'combined',
+          storage_path: storagePath,
+          file_name: fileName,
+          file_size: file.size,
+          mime_type: file.type,
+          uploaded_by: user?.id,
+          uploaded_at: new Date().toISOString(),
+        };
+
         if (existing) {
-          const { error: updateError } = await supabase
+          await supabase
             .from('treatment_plan_images')
-            .update({
-              storage_path: storagePath,
-              file_name: fileName,
-              file_size: file.size,
-              mime_type: file.type,
-              uploaded_by: user?.id,
-              uploaded_at: new Date().toISOString(),
-            })
+            .update(payload)
             .eq('id', existing.id);
-
-          if (updateError) throw updateError;
         } else {
-          const { error: insertError } = await supabase
-            .from('treatment_plan_images')
-            .insert({
-              case_id: caseId,
-              image_category: 'beforeAfter',
-              view_type: viewType,
-              image_stage: 'combined', // Store as 'combined' to indicate single image
-              storage_path: storagePath,
-              file_name: fileName,
-              file_size: file.size,
-              mime_type: file.type,
-              uploaded_by: user?.id,
-            });
-
-          if (insertError) throw insertError;
+          await supabase.from('treatment_plan_images').insert(payload);
         }
-
-        setUploadProgress((prev) => ({
-          ...prev,
-          [`beforeAfter-${viewType}`]: 'complete',
-        }));
       }
 
-      toast.success('Images uploaded successfully');
+      toast.success(t('treatmentPlanImages.toast.uploaded'));
 
       // Reset state
       setSequenceFiles({
@@ -297,7 +271,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
       loadExistingImages();
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload images');
+      toast.error(t('treatmentPlanImages.toast.uploadFailed'));
     } finally {
       setUploading(false);
       setUploadProgress({});
@@ -315,203 +289,243 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <Dialog.Content className="w-[700px] max-w-[90vw] max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between p-6 border-b border-neutral-border w-full">
-          <div>
-            <h2 className="text-heading-2 font-heading-2 text-default-font">
-              Treatment Plan Images
-            </h2>
-            <p className="text-body font-body text-subtext-color mt-1">
-              Upload sequence images and before/after comparisons for this case
-            </p>
-          </div>
-          <Button
-            variant="neutral-tertiary"
-            size="small"
-            icon={<FeatherX />}
-            onClick={onClose}
-          />
+    <DialogWrapper
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('treatmentPlanImages.title')}
+      description={t('treatmentPlanImages.subtitle')}
+      icon={<FeatherImage />}
+      maxWidth="max-w-[800px]" // Made wider for better gallery view
+      loading={uploading}
+    >
+      <div className="w-full flex flex-col gap-6">
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-neutral-border">
+          <button
+            onClick={() => setActiveTab('sequence')}
+            className={`px-4 py-2 text-body font-body transition-colors border-b-2 ${
+              activeTab === 'sequence'
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-subtext-color hover:text-default-font'
+            }`}
+          >
+            {t('treatmentPlanImages.tabs.sequence')}
+          </button>
+          <button
+            onClick={() => setActiveTab('beforeAfter')}
+            className={`px-4 py-2 text-body font-body transition-colors border-b-2 ${
+              activeTab === 'beforeAfter'
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-subtext-color hover:text-default-font'
+            }`}
+          >
+            {t('treatmentPlanImages.tabs.beforeAfter')}
+          </button>
         </div>
 
-        <div className="p-6 w-full">
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 border-b border-neutral-border">
-            <button
-              onClick={() => setActiveTab('sequence')}
-              className={`px-4 py-2 text-body font-body transition-colors border-b-2 ${
-                activeTab === 'sequence'
-                  ? 'border-brand-600 text-brand-600'
-                  : 'border-transparent text-subtext-color hover:text-default-font'
-              }`}
-            >
-              Sequence Images
-            </button>
-            <button
-              onClick={() => setActiveTab('beforeAfter')}
-              className={`px-4 py-2 text-body font-body transition-colors border-b-2 ${
-                activeTab === 'beforeAfter'
-                  ? 'border-brand-600 text-brand-600'
-                  : 'border-transparent text-subtext-color hover:text-default-font'
-              }`}
-            >
-              Before & After
-            </button>
-          </div>
+        {/* SEQUENCE TAB */}
+        {activeTab === 'sequence' && (
+          <div className="space-y-6">
+            <Alert
+              variant="neutral"
+              icon={<FeatherImage />}
+              title={t('treatmentPlanImages.alerts.sequence.title')}
+              description={t('treatmentPlanImages.alerts.sequence.description')}
+            />
 
-          {/* Sequence Images Tab */}
-          {activeTab === 'sequence' && (
-            <div className="space-y-6 w-full">
-              <Alert
-                variant="neutral"
-                icon={<FeatherImage />}
-                title="Upload sequence images"
-                description="Upload multiple images for each view showing the treatment progression steps. Images will be numbered automatically."
-                className="w-full"
-              />
+            {VIEW_TYPES.map((view) => {
+              const existingList = existingImages.sequence[view.value] || [];
+              const pendingList = sequenceFiles[view.value] || [];
 
-              {VIEW_TYPES.map((view) => (
+              return (
                 <div
                   key={view.value}
-                  className="border border-neutral-border rounded-lg p-4"
+                  className="border border-neutral-border rounded-lg bg-white overflow-hidden"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-heading-3 font-heading-3 text-default-font">
+                  <div className="bg-neutral-50 p-3 border-b border-neutral-border flex justify-between items-center">
+                    <h3 className="text-body-bold font-body-bold text-default-font">
                       {view.label}
                     </h3>
-                    <span className="text-sm text-subtext-color">
-                      {existingImages.sequence[view.value]?.length || 0}{' '}
-                      existing
-                    </span>
+                    <div className="text-xs text-subtext-color bg-white px-2 py-1 rounded border border-neutral-border">
+                      {existingList.length + pendingList.length}{' '}
+                      {t('treatmentPlanImages.labels.step')}s
+                    </div>
                   </div>
 
-                  {/* Existing images */}
-                  {existingImages.sequence[view.value]?.length > 0 && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      {existingImages.sequence[view.value].map((img) => (
-                        <div
-                          key={img.id}
-                          className="relative group border border-neutral-border rounded p-2 bg-neutral-50"
-                        >
-                          <div className="text-xs text-subtext-color mb-1">
-                            Step {img.sequence_order}
-                          </div>
-                          <button
-                            onClick={() => deleteExistingImage(img.id)}
-                            className="absolute top-1 right-1 bg-error-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <FeatherTrash2 className="w-3 h-3" />
-                          </button>
+                  <div className="p-4 flex flex-col gap-4">
+                    {/* 1. Existing Steps (Clearer UI) */}
+                    {existingList.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <span className="text-caption font-caption text-subtext-color uppercase tracking-wider">
+                          {t('treatmentPlanImages.labels.existing')}
+                        </span>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                          {existingList.map((img) => (
+                            <div
+                              key={img.id}
+                              className="relative group border border-neutral-border rounded-md p-3 bg-neutral-50 flex flex-col gap-2 items-center justify-center text-center"
+                            >
+                              <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-caption font-bold">
+                                {img.sequence_order}
+                              </div>
+                              <span className="text-caption text-subtext-color truncate w-full">
+                                {img.file_name}
+                              </span>
+                              <button
+                                onClick={() => deleteExistingImage(img.id)}
+                                className="absolute -top-2 -right-2 bg-white border border-error-200 text-error-600 p-1.5 rounded-full shadow-sm hover:bg-error-50 transition-colors opacity-0 group-hover:opacity-100"
+                                title="Delete"
+                              >
+                                <FeatherTrash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    )}
 
-                  {/* New files */}
-                  {sequenceFiles[view.value].length > 0 && (
-                    <div className="mb-3 space-y-1">
-                      {sequenceFiles[view.value].map((file, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between bg-neutral-50 p-2 rounded"
-                        >
-                          <span className="text-sm text-default-font truncate flex-1">
-                            {file.name}
-                          </span>
-                          <Button
-                            variant="neutral-tertiary"
-                            size="small"
-                            icon={<FeatherX />}
-                            onClick={() => removeSequenceFile(view.value, idx)}
-                          />
+                    {/* 2. Pending Uploads */}
+                    {pendingList.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <span className="text-caption font-caption text-brand-600 uppercase tracking-wider">
+                          {t('treatmentPlanImages.labels.newUploads')}
+                        </span>
+                        <div className="grid grid-cols-1 gap-2">
+                          {pendingList.map((file, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between bg-brand-50 border border-brand-100 p-2 rounded-md"
+                            >
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                <FeatherFile className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                                <span className="text-sm text-default-font truncate">
+                                  {file.name}
+                                </span>
+                                <span className="text-xs text-brand-600 whitespace-nowrap">
+                                  ({t('treatmentPlanImages.labels.step')}{' '}
+                                  {existingList.length + idx + 1})
+                                </span>
+                              </div>
+                              <Button
+                                variant="neutral-tertiary"
+                                size="small"
+                                icon={<FeatherX />}
+                                onClick={() =>
+                                  removeSequenceFile(view.value, idx)
+                                }
+                              />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    )}
 
-                  {/* Upload button */}
-                  <div>
-                    <input
-                      type="file"
-                      id={`sequence-${view.value}`}
-                      multiple
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleSequenceFilesChange(view.value, e.target.files)
-                      }
-                      disabled={uploading}
-                    />
-                    <Button
-                      variant="neutral-secondary"
-                      icon={<FeatherUpload />}
-                      disabled={uploading}
-                      onClick={() =>
-                        document
-                          .getElementById(`sequence-${view.value}`)
-                          .click()
-                      }
-                    >
-                      Add Images
-                    </Button>
+                    {/* 3. Empty State / Upload Button */}
+                    <div className="mt-2">
+                      <input
+                        type="file"
+                        id={`sequence-${view.value}`}
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleSequenceFilesChange(view.value, e.target.files)
+                        }
+                        disabled={uploading}
+                      />
+                      <Button
+                        variant="neutral-secondary"
+                        size="small"
+                        icon={<FeatherPlus />}
+                        disabled={uploading}
+                        className="w-full justify-center border-dashed"
+                        onClick={() =>
+                          document
+                            .getElementById(`sequence-${view.value}`)
+                            .click()
+                        }
+                      >
+                        {t('treatmentPlanImages.buttons.addImages')}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
+        )}
 
-          {/* Before/After Tab */}
-          {activeTab === 'beforeAfter' && (
-            <div className="space-y-6 w-full">
-              <Alert
-                variant="neutral"
-                icon={<FeatherImage />}
-                title="Upload before & after images"
-                description="Upload a single combined image showing both before and after for each view."
-                className="w-full"
-              />
+        {/* BEFORE & AFTER TAB */}
+        {activeTab === 'beforeAfter' && (
+          <div className="space-y-6">
+            <Alert
+              variant="neutral"
+              icon={<FeatherImage />}
+              title={t('treatmentPlanImages.alerts.beforeAfter.title')}
+              description={t(
+                'treatmentPlanImages.alerts.beforeAfter.description'
+              )}
+            />
 
-              {VIEW_TYPES.map((view) => (
-                <div
-                  key={view.value}
-                  className="border border-neutral-border rounded-lg p-4"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-heading-3 font-heading-3 text-default-font">
-                      {view.label}
-                    </h3>
-                    {existingImages.beforeAfter[view.value] && (
-                      <span className="text-sm text-subtext-color">
-                        Image exists
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Existing image */}
+            {VIEW_TYPES.map((view) => (
+              <div
+                key={view.value}
+                className="border border-neutral-border rounded-lg bg-white overflow-hidden"
+              >
+                <div className="bg-neutral-50 p-3 border-b border-neutral-border flex justify-between items-center">
+                  <h3 className="text-body-bold font-body-bold text-default-font">
+                    {view.label}
+                  </h3>
                   {existingImages.beforeAfter[view.value] && (
-                    <div className="mb-3 relative group border border-neutral-border rounded p-2 bg-neutral-50">
-                      <div className="text-xs text-subtext-color mb-1">
-                        Current before/after image
+                    <span className="text-xs text-success-700 bg-success-50 px-2 py-1 rounded border border-success-200 flex items-center gap-1">
+                      <FeatherCheck className="w-3 h-3" />
+                      {t('treatmentPlanImages.labels.imageExists')}
+                    </span>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  {/* Current Image */}
+                  {existingImages.beforeAfter[view.value] && (
+                    <div className="mb-4 flex items-center justify-between p-3 bg-neutral-50 rounded-md border border-neutral-border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-neutral-200 rounded flex items-center justify-center">
+                          <FeatherImage className="w-4 h-4 text-subtext-color" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-default-font">
+                            {t('treatmentPlanImages.labels.currentImage')}
+                          </span>
+                          <span className="text-xs text-subtext-color">
+                            {existingImages.beforeAfter[view.value].file_name}
+                          </span>
+                        </div>
                       </div>
-                      <button
+                      <Button
+                        variant="destructive-tertiary"
+                        size="small"
+                        icon={<FeatherTrash2 />}
                         onClick={() =>
                           deleteExistingImage(
                             existingImages.beforeAfter[view.value].id
                           )
                         }
-                        className="absolute top-1 right-1 bg-error-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <FeatherTrash2 className="w-3 h-3" />
-                      </button>
+                      />
                     </div>
                   )}
 
-                  {/* New file */}
-                  {beforeAfterFiles[view.value] ? (
-                    <div className="mb-3 flex items-center justify-between bg-neutral-50 p-2 rounded">
-                      <span className="text-sm text-default-font truncate flex-1">
-                        {beforeAfterFiles[view.value].name}
-                      </span>
+                  {/* Pending Upload */}
+                  {beforeAfterFiles[view.value] && (
+                    <div className="mb-4 flex items-center justify-between bg-brand-50 border border-brand-100 p-3 rounded-md">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FeatherFile className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                        <span className="text-sm text-default-font truncate">
+                          {beforeAfterFiles[view.value].name}
+                        </span>
+                        <span className="text-xs text-brand-600 bg-white px-1 rounded">
+                          New
+                        </span>
+                      </div>
                       <Button
                         variant="neutral-tertiary"
                         size="small"
@@ -519,65 +533,63 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                         onClick={() => removeBeforeAfterFile(view.value)}
                       />
                     </div>
-                  ) : null}
+                  )}
 
-                  {/* Upload button */}
-                  <div>
-                    <input
-                      type="file"
-                      id={`beforeAfter-${view.value}`}
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleBeforeAfterFileChange(
-                          view.value,
-                          e.target.files[0]
-                        )
-                      }
-                      disabled={uploading}
-                    />
-                    <Button
-                      variant="neutral-secondary"
-                      icon={<FeatherUpload />}
-                      disabled={uploading}
-                      className="w-full"
-                      onClick={() =>
-                        document
-                          .getElementById(`beforeAfter-${view.value}`)
-                          .click()
-                      }
-                    >
-                      {existingImages.beforeAfter[view.value]
-                        ? 'Replace Image'
-                        : 'Upload Before/After Image'}
-                    </Button>
-                  </div>
+                  <input
+                    type="file"
+                    id={`beforeAfter-${view.value}`}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      handleBeforeAfterFileChange(view.value, e.target.files[0])
+                    }
+                    disabled={uploading}
+                  />
+                  <Button
+                    variant="neutral-secondary"
+                    size="small"
+                    icon={<FeatherUpload />}
+                    disabled={uploading}
+                    className="w-full justify-center"
+                    onClick={() =>
+                      document
+                        .getElementById(`beforeAfter-${view.value}`)
+                        .click()
+                    }
+                  >
+                    {existingImages.beforeAfter[view.value]
+                      ? t('treatmentPlanImages.buttons.replace')
+                      : t('treatmentPlanImages.buttons.select')}
+                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* Footer */}
-        <div className="flex w-full items-center gap-4 justify-between p-6 border-t border-neutral-border">
+        {/* Custom Footer for DialogWrapper */}
+        <div className="flex w-full items-center justify-end gap-3 pt-4 border-t border-neutral-border mt-auto">
           <Button
             variant="neutral-secondary"
             onClick={onClose}
             disabled={uploading}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             variant="brand-primary"
-            icon={uploading ? <FeatherUpload /> : <FeatherCheck />}
+            icon={uploading ? null : <FeatherCheck />}
             onClick={uploadFiles}
             disabled={!hasNewFiles() || uploading}
+            loading={uploading}
           >
-            {uploading ? 'Uploading...' : 'Upload Images'}
+            {uploading
+              ? t('treatmentPlanImages.buttons.uploading')
+              : t('treatmentPlanImages.buttons.upload')}
           </Button>
         </div>
-      </Dialog.Content>
-    </Dialog>
+      </div>
+    </DialogWrapper>
   );
 };
 

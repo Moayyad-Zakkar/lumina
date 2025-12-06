@@ -992,5 +992,51 @@
       "clickSave": "Click Save to store the IPR chart with the treatment plan"
     },
     "saveButton": "Save IPR Chart"
+  },
+  "treatmentPlanImages": {
+    "title": "Treatment Plan Images",
+    "subtitle": "Upload sequence images and before/after comparisons for this case.",
+    "tabs": {
+      "sequence": "Sequence Images",
+      "beforeAfter": "Before & After"
+    },
+    "alerts": {
+      "sequence": {
+        "title": "Upload Sequence Images",
+        "description": "Upload multiple images for each view showing the treatment progression. Images will be numbered automatically as Step 1, Step 2, etc."
+      },
+      "beforeAfter": {
+        "title": "Upload Before & After",
+        "description": "Upload a single combined image showing both before and after for each view."
+      }
+    },
+    "views": {
+      "front": "Front View",
+      "left": "Left View",
+      "right": "Right View",
+      "upper": "Upper Occlusal",
+      "lower": "Lower Occlusal"
+    },
+    "labels": {
+      "existing": "Existing Steps",
+      "newUploads": "Pending Uploads",
+      "step": "Step",
+      "imageExists": "Image exists",
+      "currentImage": "Current Image",
+      "noImages": "No images uploaded yet"
+    },
+    "buttons": {
+      "addImages": "Add Images",
+      "upload": "Upload Images",
+      "uploading": "Uploading...",
+      "replace": "Replace Image",
+      "select": "Select Image"
+    },
+    "toast": {
+      "deleted": "Image deleted successfully",
+      "deleteFailed": "Failed to delete image",
+      "uploaded": "Images uploaded successfully",
+      "uploadFailed": "Failed to upload images"
+    }
   }
 }

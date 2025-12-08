@@ -276,7 +276,7 @@ const AdminSignUpRequests = () => {
   };
 
   const getLanguageBadge = (language) => {
-    const isArabic = language === 'arabic';
+    const isArabic = language === 'ar';
     return (
       <span
         className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
@@ -343,7 +343,7 @@ const AdminSignUpRequests = () => {
           </Table.Row>
         ) : requests.length === 0 ? (
           <Table.Row>
-            <Table.Cell colSpan={8}>
+            <Table.Cell colSpan={7}>
               <div className="text-center py-8">
                 <span className="text-neutral-500">
                   {t('signUpRequests.noRequests')}

@@ -135,7 +135,7 @@ const TreatmentDetails = ({ caseData }) => {
               {t('caseSubmit.diagnosis.canineRelationship')}
             </span>
             <div className="flex flex-col gap-2 pl-4 border-l-2 border-neutral-border">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-start gap-2">
                 <span className="text-caption font-caption text-subtext-color">
                   {t('caseSubmit.diagnosis.rightSide')}:
                 </span>
@@ -143,7 +143,7 @@ const TreatmentDetails = ({ caseData }) => {
                   {getClassLabel(caseData.canine_right_class)}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-start gap-2">
                 <span className="text-caption font-caption text-subtext-color">
                   {t('caseSubmit.diagnosis.leftSide')}:
                 </span>
@@ -160,7 +160,7 @@ const TreatmentDetails = ({ caseData }) => {
               {t('caseSubmit.diagnosis.molarRelationship')}
             </span>
             <div className="flex flex-col gap-2 pl-4 border-l-2 border-neutral-border">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-start gap-2">
                 <span className="text-caption font-caption text-subtext-color">
                   {t('caseSubmit.diagnosis.rightSide')}:
                 </span>
@@ -168,7 +168,7 @@ const TreatmentDetails = ({ caseData }) => {
                   {getClassLabel(caseData.molar_right_class)}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-start gap-2">
                 <span className="text-caption font-caption text-subtext-color">
                   {t('caseSubmit.diagnosis.leftSide')}:
                 </span>
@@ -182,6 +182,7 @@ const TreatmentDetails = ({ caseData }) => {
       </div>
 
       {/* Additional Notes Section - Only show if notes exist */}
+      {/*
       {caseData.user_note && (
         <>
           <div className="w-full border-t border-neutral-border" />
@@ -197,6 +198,7 @@ const TreatmentDetails = ({ caseData }) => {
           </div>
         </>
       )}
+      */}
     </div>
   );
 };

@@ -17,13 +17,15 @@ const CaseNotes = ({
   isAdmin = false,
 }) => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
       <div className="flex w-full items-center gap-2">
         <FeatherFileText className="h-5 w-5 text-neutral-600" />
         <span className="text-heading-3 font-heading-3 text-default-font">
-          {isAdmin ? t('casePage.caseNotes.doctorNotes') : t('casePage.caseNotes.caseNotes')}
+          {isAdmin
+            ? t('casePage.caseNotes.doctorNotes')
+            : t('casePage.caseNotes.caseNotes')}
         </span>
       </div>
 
@@ -69,7 +71,9 @@ const CaseNotes = ({
                 disabled={noteSaving}
                 size="small"
               >
-                {noteSaving ? t('casePage.caseNotes.saving') : t('casePage.caseNotes.saveNote')}
+                {noteSaving
+                  ? t('casePage.caseNotes.saving')
+                  : t('casePage.caseNotes.saveNote')}
               </Button>
               <Button
                 variant="neutral-secondary"

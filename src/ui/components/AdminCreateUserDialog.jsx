@@ -11,6 +11,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
     email: '',
     address: '',
     password: '',
+    language_preference: 'en',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -64,6 +65,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
           email: '',
           address: '',
           password: '',
+          language_preference: 'en',
         });
         setShowPassword(false);
         onClose();
@@ -255,6 +257,30 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sky-600 focus:border-transparent"
                 placeholder="123 Main Street, Suite 100, City, State 12345"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="language_preference"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                {t('signUpRequests.prefferedLanguage')}{' '}
+                <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="language_preference"
+                name="language_preference"
+                required
+                value={formData.language_preference}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sky-600 focus:border-transparent bg-white"
+              >
+                <option value="en">English</option>
+                <option value="ar">العربية (Arabic)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {t('signUpRequests.prefferedLanguageSubtext')}
+              </p>
             </div>
 
             <div className="flex gap-3 pt-4">

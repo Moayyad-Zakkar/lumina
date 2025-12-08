@@ -8,6 +8,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
     phone: '',
     email: '',
     address: '',
+    language_preference: 'en', // Default to English
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,6 +44,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
           phone: '',
           email: '',
           address: '',
+          language_preference: 'en',
         });
         onClose();
       }, 2000);
@@ -192,26 +194,29 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 placeholder="123 Main Street, Suite 100, City, State 12345"
               />
             </div>
-            {/*
+
             <div>
               <label
-                htmlFor="notes"
+                htmlFor="language_preference"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Additional Notes
+                Preferred Language <span className="text-red-500">*</span>
               </label>
-              <textarea
-                id="notes"
-                name="notes"
-                rows="3"
-                value={formData.notes}
+              <select
+                id="language_preference"
+                name="language_preference"
+                required
+                value={formData.language_preference}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                placeholder="Any additional information you'd like to share..."
-              />
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white"
+              >
+                <option value="en">English</option>
+                <option value="ar">العربية (Arabic)</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                Choose your preferred language for the application interface
+              </p>
             </div>
-
-*/}
 
             <div className="flex gap-3 pt-4">
               <button

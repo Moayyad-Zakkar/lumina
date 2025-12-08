@@ -321,7 +321,7 @@ function CaseViewer() {
       <Header>
         <LogoContainer>
           <LogoImage src="/logo.png" alt="3DA Logo" />
-          <LogoText>{t('viewer.title')}</LogoText>
+          {/*<LogoText>{t('viewer.title')}</LogoText>*/}
         </LogoContainer>
       </Header>
 
@@ -581,7 +581,11 @@ function CaseViewer() {
         <DisclaimerContainer>
           <DisclaimerTitle>{t('viewer.disclaimer.title')}</DisclaimerTitle>
           <DisclaimerText isRTL={isRTL}>
-            {t('viewer.disclaimer.text')}
+            {t('viewer.disclaimer.points', { returnObjects: true }).map(
+              (point, index) => (
+                <li key={index}>{point}.</li>
+              )
+            )}
           </DisclaimerText>
         </DisclaimerContainer>
       </Container>
@@ -829,6 +833,7 @@ const ProgressBar = styled.div`
   background-color: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
   overflow: hidden;
+  direction: ltr;
 `;
 
 const ProgressFill = styled.div`
@@ -859,6 +864,7 @@ const PlayerButtonsContainer = styled.div`
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  direction: ltr;
 `;
 
 const ControlButton = styled.button`
@@ -955,13 +961,29 @@ const DisclaimerTitle = styled.div`
   text-align: center;
 `;
 
-const DisclaimerText = styled.p`
+const DisclaimerText = styled.ul`
   font-size: 0.9rem;
   color: #856404;
   line-height: 1.6;
   margin: 0;
+  padding: 0;
+  list-style-type: none; /* We will add custom bullets */
   text-align: ${(props) => (props.isRTL ? 'right' : 'left')};
   direction: ${(props) => (props.isRTL ? 'rtl' : 'ltr')};
+
+  li {
+    margin-bottom: 0.5rem;
+    position: relative;
+    padding-inline-start: 1.5rem;
+
+    &:before {
+      content: '•';
+      position: absolute;
+      left: ${(props) => (props.isRTL ? 'auto' : '0')};
+      right: ${(props) => (props.isRTL ? '0' : 'auto')};
+      font-weight: bold;
+    }
+  }
 `;
 
 const DisclaimerDivider = styled.div`

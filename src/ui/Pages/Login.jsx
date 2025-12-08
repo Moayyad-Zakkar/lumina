@@ -97,6 +97,7 @@ function Login() {
           clinic: formData.clinic,
           phone: formData.phone,
           address: formData.address,
+          language_preference: formData.language_preference,
           status: 'pending',
         },
       ]);

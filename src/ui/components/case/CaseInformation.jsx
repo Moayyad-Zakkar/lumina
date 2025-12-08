@@ -16,6 +16,7 @@ import {
   FeatherPhone,
   FeatherRefreshCw,
   FeatherPrinter,
+  FeatherFileText,
 } from '@subframe/core';
 
 /* -------------------------------------------------------
@@ -69,9 +70,48 @@ const PrintableContent = React.forwardRef(
     return (
       <div
         ref={ref}
-        className="p-8"
+        className="p-8 print-container"
         style={{ direction: isRTL ? 'rtl' : 'ltr' }}
       >
+        <style>{`
+          @media print {
+            .print-container {
+              width: 100%;
+              max-width: 100%;
+            }
+            
+            /* Prevent page breaks inside small components */
+            .print-no-break {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+            
+            /* Prevent orphaned headers - keep header with next content */
+            h2, h3 {
+              page-break-after: avoid;
+              break-after: avoid;
+            }
+            
+            /* Keep subsections together */
+            .subsection-box {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+            
+            /* Only force page break for very large components like dental chart */
+            .force-page-break {
+              page-break-before: always;
+              break-before: always;
+            }
+            
+            /* Footer on last page */
+            .print-footer {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+          }
+        `}</style>
+
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
           <div>
@@ -155,7 +195,7 @@ const PrintableContent = React.forwardRef(
           </div>
 
           {caseData.refinement_reason && (
-            <div className="mt-4 p-3 bg-gray-50 rounded">
+            <div className="mt-4 p-3 bg-gray-50 rounded print-no-break">
               <p className="text-sm font-semibold text-gray-700 mb-1">
                 {t('casePage.refinementReason')}:
               </p>
@@ -166,14 +206,14 @@ const PrintableContent = React.forwardRef(
           )}
         </div>
 
-        {/* Treatment & Diagnosis Details Section - NEW */}
-        <div className="mb-6 page-break-inside-avoid">
+        {/* Treatment & Diagnosis Details Section */}
+        <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
             {t('casePage.treatmentOptionsTitle')}
           </h2>
 
           {/* Treatment Options */}
-          <div className="mb-4">
+          <div className="mb-4 subsection-box">
             <h3 className="text-base font-semibold mb-2 text-gray-700">
               {t('casePage.treatmentOptions')}
             </h3>
@@ -191,7 +231,7 @@ const PrintableContent = React.forwardRef(
 
           {/* Midline Analysis */}
           {(caseData.upper_midline || caseData.lower_midline) && (
-            <div className="mb-4">
+            <div className="mb-4 subsection-box">
               <h3 className="text-base font-semibold mb-2 text-gray-700">
                 {t('casePage.midlineAnalysis')}
               </h3>
@@ -229,7 +269,7 @@ const PrintableContent = React.forwardRef(
             caseData.canine_left_class ||
             caseData.molar_right_class ||
             caseData.molar_left_class) && (
-            <div className="mb-4">
+            <div className="mb-4 subsection-box">
               <h3 className="text-base font-semibold mb-2 text-gray-700">
                 {t('casePage.occlusalRelationship')}
               </h3>
@@ -283,27 +323,34 @@ const PrintableContent = React.forwardRef(
               </div>
             </div>
           )}
+        </div>
 
-          {/* Additional Notes */}
-          {caseData.user_note && (
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-              <p className="text-sm font-semibold text-gray-700 mb-1">
-                {t('caseSubmit.diagnosis.additionalNotes')}
-              </p>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">
+        {/* Case Notes Section */}
+        {caseData.user_note && (
+          <div className="mb-6 print-no-break">
+            <div className="flex items-center gap-2 mb-3">
+              <FeatherFileText className="h-5 w-5 text-gray-600" />
+              <h2 className="text-xl font-semibold text-gray-800">
+                {isAdmin
+                  ? t('casePage.caseNotes.doctorNotes')
+                  : t('casePage.caseNotes.caseNotes')}
+              </h2>
+            </div>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                 {caseData.user_note}
               </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Dental Chart Section */}
         {isAdmin && (
-          <div className="mb-6 page-break-inside-avoid">
+          <div className="mb-6 force-page-break">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
               {t('dentalChart.title')}
             </h2>
-            <div className="border border-gray-300 rounded-lg p-4 bg-white overflow-hidden">
+            <div className="border border-gray-300 rounded-lg p-4 bg-white overflow-hidden print-no-break">
               <div>
                 <DentalChart
                   initialStatus={caseData.tooth_status || {}}
@@ -315,7 +362,7 @@ const PrintableContent = React.forwardRef(
         )}
 
         {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
+        <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500 print-footer">
           <p>
             {t('adminTreatmentPlan.print.footer', {
               date: new Date().toLocaleString(),

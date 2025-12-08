@@ -162,6 +162,8 @@
       "clinicName": "Clinic Name",
       "phoneNumber": "Phone Number",
       "clinicAddress": "Clinic Address",
+      "prefferedLanguage": "Preffered Language",
+      "prefferedLanguageSubtext": "Choose the preferred language for the application interface",
       "setPassword": "Set Password",
       "passwordRequired": "Password must be at least 6 characters",
       "passwordPlaceholder": "Enter password for user",
@@ -214,7 +216,11 @@
       "lowerAligners": "Lower Aligners",
       "disclaimer": {
         "title": "Important Notice",
-        "text": "There may be differences between the computer-generated treatment prediction and the actual clinical outcome. The number of aligners may increase depending on the case requirements. The treating doctor is solely responsible for the treatment plan."
+        "points": [
+          "There may be differences between the computer-generated prediction and the actual clinical outcome",
+          "The number of aligners may increase depending on the case requirements",
+          "The treating doctor is solely responsible for the treatment plan"
+        ]
       }
     },
 

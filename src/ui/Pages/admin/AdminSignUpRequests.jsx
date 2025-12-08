@@ -7,6 +7,7 @@ import {
   FeatherEye,
   FeatherXCircle,
   FeatherRefreshCw,
+  FeatherGlobe,
 } from '@subframe/core';
 import AdminHeadline from '../../components/AdminHeadline';
 import AdminCreateUserDialog from '../../components/AdminCreateUserDialog';
@@ -71,6 +72,7 @@ const AdminSignUpRequests = () => {
     setError(null);
 
     try {
+      // Create user account with all metadata
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email: selectedRequest.email,
@@ -81,11 +83,32 @@ const AdminSignUpRequests = () => {
             clinic: selectedRequest.clinic,
             phone: selectedRequest.phone,
             address: selectedRequest.address,
+            language_preference: selectedRequest.language_preference || 'en',
           },
         });
 
       if (authError) throw authError;
 
+      // Wait for the profile to be created by database trigger
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update the profile with all the data
+      const { error: profileUpdateError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: selectedRequest.full_name,
+          clinic: selectedRequest.clinic,
+          phone: selectedRequest.phone,
+          address: selectedRequest.address,
+          language_preference: selectedRequest.language_preference || 'en',
+        })
+        .eq('id', authData.user.id);
+
+      if (profileUpdateError) {
+        console.warn('Profile update warning:', profileUpdateError);
+      }
+
+      // Update signup request status
       const { error: updateError } = await supabase
         .from('signup_requests')
         .update({
@@ -97,14 +120,19 @@ const AdminSignUpRequests = () => {
 
       if (updateError) throw updateError;
 
+      // Verify the profile was updated correctly
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, role')
+        .select(
+          'id, role, full_name, clinic, phone, address, language_preference'
+        )
         .eq('id', authData.user.id)
         .single();
 
       if (profileError) {
-        console.warn('Profile check warning:', profileError);
+        console.warn('Profile verification warning:', profileError);
+      } else {
+        console.log('Profile created/updated successfully:', profile);
       }
 
       alert(
@@ -162,16 +190,33 @@ const AdminSignUpRequests = () => {
             clinic: formData.clinic,
             phone: formData.phone,
             address: formData.address,
+            language_preference: formData.language_preference || 'en',
           },
         });
 
       if (authError) throw authError;
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update the profile with additional data
+      const { error: profileUpdateError } = await supabaseAdmin
+        .from('profiles')
+        .update({
+          full_name: formData.full_name,
+          clinic: formData.clinic,
+          phone: formData.phone,
+          address: formData.address,
+          language_preference: formData.language_preference || 'en',
+        })
+        .eq('id', authData.user.id);
+
+      if (profileUpdateError) {
+        console.warn('Profile update warning:', profileUpdateError);
+      }
 
       const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
-        .select('id, role, full_name')
+        .select('id, role, full_name, language_preference')
         .eq('id', authData.user.id)
         .single();
 
@@ -230,6 +275,22 @@ const AdminSignUpRequests = () => {
     );
   };
 
+  const getLanguageBadge = (language) => {
+    const isArabic = language === 'arabic';
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+          isArabic
+            ? 'bg-purple-100 text-purple-800'
+            : 'bg-blue-100 text-blue-800'
+        }`}
+      >
+        <FeatherGlobe className="w-3 h-3" />
+        {isArabic ? 'العربية' : 'English'}
+      </span>
+    );
+  };
+
   return (
     <>
       {error && <Error error={error} />}
@@ -265,6 +326,7 @@ const AdminSignUpRequests = () => {
             <Table.HeaderCell>{t('signUpRequests.email')}</Table.HeaderCell>
             <Table.HeaderCell>{t('signUpRequests.clinic')}</Table.HeaderCell>
             <Table.HeaderCell>{t('signUpRequests.phone')}</Table.HeaderCell>
+
             <Table.HeaderCell>{t('signUpRequests.status')}</Table.HeaderCell>
             <Table.HeaderCell>{t('signUpRequests.date')}</Table.HeaderCell>
             <Table.HeaderCell>{t('common.actions')}</Table.HeaderCell>
@@ -281,7 +343,7 @@ const AdminSignUpRequests = () => {
           </Table.Row>
         ) : requests.length === 0 ? (
           <Table.Row>
-            <Table.Cell colSpan={7}>
+            <Table.Cell colSpan={8}>
               <div className="text-center py-8">
                 <span className="text-neutral-500">
                   {t('signUpRequests.noRequests')}
@@ -312,6 +374,12 @@ const AdminSignUpRequests = () => {
                   {request.phone || '-'}
                 </span>
               </Table.Cell>
+              {/*
+                          <Table.Cell>
+                {getLanguageBadge(request.language_preference || 'en')}
+              </Table.Cell>
+              */}
+
               <Table.Cell>{getStatusBadge(request.status)}</Table.Cell>
               <Table.Cell>
                 <span className="whitespace-nowrap text-body font-body text-neutral-500">
@@ -416,6 +484,17 @@ const AdminSignUpRequests = () => {
                   </p>
                 </div>
               )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  {t('signUpRequests.prefferedLanguage')}
+                </label>
+                <div className="mt-1">
+                  {getLanguageBadge(
+                    selectedRequest.language_preference || 'en'
+                  )}
+                </div>
+              </div>
 
               {selectedRequest.status === 'pending' && (
                 <div>

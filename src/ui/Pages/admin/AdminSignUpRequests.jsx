@@ -370,7 +370,10 @@ const AdminSignUpRequests = () => {
                 </span>
               </Table.Cell>
               <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
+                <span
+                  className="whitespace-nowrap text-body font-body text-neutral-500"
+                  style={{ direction: 'ltr' }}
+                >
                   {request.phone || '-'}
                 </span>
               </Table.Cell>

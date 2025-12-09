@@ -13,7 +13,8 @@ import supabase from '../../helper/supabaseClient';
 import toast from 'react-hot-toast';
 
 function ProfilePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -243,6 +244,8 @@ function ProfilePage() {
                   placeholder={t('profile.phonePlaceholder')}
                   value={profile.phone}
                   onChange={handleInputChange}
+                  className={` ${isRTL ? 'text-right' : ''}`}
+                  style={{ direction: 'ltr' }}
                 />
               </TextField>
               <TextField className="w-full" label={t('profile.clinicName')}>

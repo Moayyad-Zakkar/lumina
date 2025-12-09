@@ -193,8 +193,8 @@
     "createUser": "إنشاء مستخدم",
     "userCreatedSuccess": "تم إنشاء حساب المستخدم بنجاح!",
     "confirmReject": "هل أنت متأكد من رفض هذا الطلب؟",
-    "statusPending": "بانتظار الموافقة",
-    "statusApproved": "موافق عليه",
+    "statusPending": "بانتظار القبول",
+    "statusApproved": "مقبول",
     "statusRejected": "مرفوض"
   },
   "settings": {

@@ -11,7 +11,8 @@ import supabase from '../../../helper/supabaseClient';
 import toast from 'react-hot-toast';
 
 function AdminSettingsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [activeTab, setActiveTab] = useState('security');
   const [error, setError] = useState(null);
 
@@ -321,6 +322,8 @@ function AdminSettingsPage() {
                   placeholder="+1 (555) 000-0000"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  style={{ direction: 'ltr' }}
+                  className={` ${isRTL ? 'text-right' : ''}`}
                 />
               </TextField>
               <Button

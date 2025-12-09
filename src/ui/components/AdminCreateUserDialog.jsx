@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { FeatherX } from '@subframe/core';
 
 const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [formData, setFormData] = useState({
     full_name: '',
     clinic: '',
@@ -236,7 +237,8 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sky-600 focus:border-transparent ${
+                      isRTL ? 'text-right' : '' }`}
                 placeholder="+1 (555) 123-4567"
               />
             </div>

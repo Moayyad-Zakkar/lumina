@@ -187,7 +187,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
         header={
           <img
             className="flex-none"
-            src="https://res.cloudinary.com/subframe/image/upload/v1751492213/uploads/16759/l3l2pvgu2os65s6q3wi6.png"
+            src="/logo.png"
           />
         }
         footer={
@@ -197,7 +197,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                 <Avatar
                   image={
                     avatarUrl ||
-                    'https://res.cloudinary.com/subframe/image/upload/v1751492213/uploads/16759/l3l2pvgu2os65s6q3wi6.png'
+                    '/logo.png'
                   }
                 />
               </div>

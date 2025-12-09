@@ -18,7 +18,8 @@ import { IconButton } from '../../components/IconButton';
 import Error from '../../components/Error';
 
 const AdminSignUpRequests = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -471,7 +472,12 @@ const AdminSignUpRequests = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     {t('signUpRequests.phoneNumber')}
                   </label>
-                  <p className="mt-1 text-sm text-gray-900">
+                  <p
+                    className={`mt-1 text-sm text-gray-900 ${
+                      isRTL ? 'text-right' : ''
+                    }`}
+                    style={{ direction: 'ltr' }}
+                  >
                     {selectedRequest.phone || 'N/A'}
                   </p>
                 </div>

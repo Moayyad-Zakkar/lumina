@@ -320,7 +320,7 @@ function CaseViewer() {
       {/* Header with Logo */}
       <Header>
         <LogoContainer>
-          <LogoImage src="/logo.png" alt="3DA Logo" />
+          <LogoImage src="/logo.png" alt="Lumina Logo" />
           {/*<LogoText>{t('viewer.title')}</LogoText>*/}
         </LogoContainer>
       </Header>

@@ -125,6 +125,7 @@ const PaymentButton = ({ onReceivePayment }) => {
       className="h-10 w-auto flex-none"
       icon={<FeatherArrowDown />}
       onClick={onReceivePayment}
+      variant="success-primary"
     >
       {t('billingStats.receivePayment')}
     </Button>

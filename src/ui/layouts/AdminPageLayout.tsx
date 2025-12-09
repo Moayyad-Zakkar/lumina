@@ -228,17 +228,12 @@ const DefaultPageLayoutRoot = React.forwardRef<
     >
       <SidebarWithLargeItems
         className="mobile:hidden"
-        header={
-          <img
-            className="flex-none"
-            src="https://res.cloudinary.com/subframe/image/upload/v1751492213/uploads/16759/l3l2pvgu2os65s6q3wi6.png"
-          />
-        }
+        header={<img className="flex-none" src="/logo.png" />}
         footer={
           <SubframeCore.DropdownMenu.Root>
             <SubframeCore.DropdownMenu.Trigger asChild>
               <div className="cursor-pointer">
-                <Avatar image="https://res.cloudinary.com/subframe/image/upload/v1751492213/uploads/16759/l3l2pvgu2os65s6q3wi6.png" />
+                <Avatar image="/logo.png" />
               </div>
             </SubframeCore.DropdownMenu.Trigger>
             <SubframeCore.DropdownMenu.Portal>

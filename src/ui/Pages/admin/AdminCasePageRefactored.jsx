@@ -357,8 +357,6 @@ const AdminCasePageRefactored = () => {
         {currentStatus === 'completed' && caseData.satisfaction_rating && (
           <CaseSatisfactionDisplay caseData={caseData} />
         )}
-
-        <TreatmentDetails caseData={caseData} />
         {/* Decline Reason Section */}
         {(currentStatus === 'user_rejected' || currentStatus === 'rejected') &&
           caseData.decline_reason && (
@@ -386,6 +384,7 @@ const AdminCasePageRefactored = () => {
               )}
             </div>
           )}
+        <TreatmentDetails caseData={caseData} />
 
         {caseData.user_note && (
           <CaseNotes
@@ -431,6 +430,9 @@ const AdminCasePageRefactored = () => {
           handleDecline={handleDecline}
         />
 
+        {/* Admin Notes Section */}
+        <AdminNotesSection caseData={caseData} />
+
         {/* Treatment Plan Editor - Only for accepted cases and beyond */}
         <AdminTreatmentPlanEditor
           caseData={caseData}
@@ -467,9 +469,6 @@ const AdminCasePageRefactored = () => {
           isDisabled={isDisabled}
           handleStatusTransition={handleStatusTransition}
         />
-
-        {/* Admin Notes Section */}
-        <AdminNotesSection caseData={caseData} />
 
         <FileDownloadTable
           caseData={caseData}

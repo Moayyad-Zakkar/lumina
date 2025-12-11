@@ -1,25 +1,139 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FeatherRefreshCw, FeatherCheck } from '@subframe/core';
 import { Button } from './Button';
 import { Loader } from './Loader';
-import RadioGroup from './RadioGroup';
 import DialogWrapper from './DialogWrapper';
 import AlertBox from './AlertBox';
-import FileUploadField from './FileUploadField';
+import TreatmentOptionsForm from './case/TreatmentOptionsForm';
+import DiagnosisForm from './case/DiagnosisForm';
+import DentalChart from './DentalChart';
+import FileUploadSection from './case/FileUploadSection';
 
 const RefinementDialog = ({
   isOpen,
   onClose,
   onSubmit,
-  formData,
-  onChange,
+  originalCaseData,
   alignerMaterials,
   loadingMaterials,
   loading,
   error,
 }) => {
   const { t } = useTranslation();
+
+  // Initialize form data with original case data as defaults
+  const [formData, setFormData] = useState({
+    reason: '',
+    alignerMaterial: originalCaseData?.aligner_material || '',
+    treatmentArch: originalCaseData?.treatment_arch || '',
+    uploadMethod: 'individual',
+    upperJawScan: null,
+    lowerJawScan: null,
+    biteScan: null,
+    compressedScans: null,
+    additionalFiles: [],
+    // Diagnosis data from original case
+    upperMidline: originalCaseData?.upper_midline || '',
+    upperMidlineShift: originalCaseData?.upper_midline_shift || '',
+    lowerMidline: originalCaseData?.lower_midline || '',
+    lowerMidlineShift: originalCaseData?.lower_midline_shift || '',
+    canineRightClass: originalCaseData?.canine_right_class || '',
+    canineLeftClass: originalCaseData?.canine_left_class || '',
+    molarRightClass: originalCaseData?.molar_right_class || '',
+    molarLeftClass: originalCaseData?.molar_left_class || '',
+  });
+
+  // Initialize tooth status with original case data
+  const [toothStatus, setToothStatus] = useState(
+    originalCaseData?.tooth_status || {}
+  );
+
+  // Reset form when dialog opens with new case data
+  useEffect(() => {
+    if (isOpen && originalCaseData) {
+      setFormData({
+        reason: '',
+        alignerMaterial: originalCaseData?.aligner_material || '',
+        treatmentArch: originalCaseData?.treatment_arch || '',
+        uploadMethod: 'individual',
+        upperJawScan: null,
+        lowerJawScan: null,
+        biteScan: null,
+        compressedScans: null,
+        additionalFiles: [],
+        upperMidline: originalCaseData?.upper_midline || '',
+        upperMidlineShift: originalCaseData?.upper_midline_shift || '',
+        lowerMidline: originalCaseData?.lower_midline || '',
+        lowerMidlineShift: originalCaseData?.lower_midline_shift || '',
+        canineRightClass: originalCaseData?.canine_right_class || '',
+        canineLeftClass: originalCaseData?.canine_left_class || '',
+        molarRightClass: originalCaseData?.molar_right_class || '',
+        molarLeftClass: originalCaseData?.molar_left_class || '',
+      });
+      setToothStatus(originalCaseData?.tooth_status || {});
+    }
+  }, [isOpen, originalCaseData]);
+
+  const handleChange = (e) => {
+    const { name, value, files, type, checked } = e.target;
+
+    if (files) {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]:
+          name === 'additionalFiles'
+            ? [...prevData.additionalFiles, ...files]
+            : files[0],
+      }));
+    } else if (type === 'checkbox') {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: checked,
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+
+      // Clear shift values when midline is centered
+      if (name === 'upperMidline' && value === 'centered') {
+        setFormData((prevData) => ({
+          ...prevData,
+          upperMidlineShift: '',
+        }));
+      }
+      if (name === 'lowerMidline' && value === 'centered') {
+        setFormData((prevData) => ({
+          ...prevData,
+          lowerMidlineShift: '',
+        }));
+      }
+
+      // Clear opposite upload method files
+      if (name === 'uploadMethod' && value === 'compressed') {
+        setFormData((prevData) => ({
+          ...prevData,
+          upperJawScan: null,
+          lowerJawScan: null,
+          biteScan: null,
+        }));
+      }
+
+      if (name === 'uploadMethod' && value === 'individual') {
+        setFormData((prevData) => ({
+          ...prevData,
+          compressedScans: null,
+        }));
+      }
+    }
+  };
+
+  const handleSubmit = () => {
+    // Pass both formData and toothStatus to parent
+    onSubmit({ ...formData, toothStatus });
+  };
 
   return (
     <DialogWrapper
@@ -29,185 +143,101 @@ const RefinementDialog = ({
       description={t('casePage.refinement.dialog.description')}
       icon={<FeatherRefreshCw />}
       loading={loading}
-      maxWidth="max-w-[640px]"
+      maxWidth="max-w-[900px]" // Wider for more content
     >
-      {/* Info Alert */}
-      <AlertBox
-        variant="warning"
-        title={t('casePage.refinement.dialog.warningTitle')}
-        message={t('casePage.refinement.dialog.warningMessage')}
-      />
+      <div className="space-y-6 max-h-[70vh] overflow-y-auto px-1">
+        {/* Info Alert */}
+        <AlertBox
+          variant="warning"
+          title={t('casePage.refinement.dialog.warningTitle')}
+          message={t('casePage.refinement.dialog.warningMessage')}
+        />
 
-      {error && (
-        <AlertBox variant="error" title={t('common.error')} message={error} />
-      )}
+        {error && (
+          <AlertBox variant="error" title={t('common.error')} message={error} />
+        )}
 
-      {/* Reason for Refinement */}
-      <div className="border border-neutral-border rounded-md p-4">
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="reason"
-            className="text-body-bold font-body-bold text-default-font"
-          >
-            {t('casePage.refinement.dialog.reasonLabel')}{' '}
-            <span className="text-red-500">*</span>
-          </label>
-          <p className="text-body font-body text-subtext-color -mt-1 mb-2">
-            {t('casePage.refinement.dialog.reasonHelp')}
-          </p>
-          <textarea
-            id="reason"
-            value={formData.reason}
-            onChange={(e) =>
-              onChange({ target: { name: 'reason', value: e.target.value } })
-            }
-            placeholder={t('casePage.refinement.dialog.reasonPlaceholder')}
-            rows={4}
-            disabled={loading}
-            className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 resize-vertical min-h-[100px] placeholder:text-subtext-color disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-        </div>
-      </div>
-
-      {/* Aligner Material Selection */}
-      <div className="border border-neutral-border rounded-md p-4">
-        {loadingMaterials ? (
-          <div className="flex items-center justify-center py-4">
-            <Loader size="small" />
+        {/* Reason for Refinement */}
+        <div className="border border-neutral-border rounded-md p-4 bg-default-background">
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="reason"
+              className="text-body-bold font-body-bold text-default-font"
+            >
+              {t('casePage.refinement.dialog.reasonLabel')}{' '}
+              <span className="text-red-500">*</span>
+            </label>
+            <p className="text-body font-body text-subtext-color -mt-1 mb-2">
+              {t('casePage.refinement.dialog.reasonHelp')}
+            </p>
+            <textarea
+              id="reason"
+              value={formData.reason}
+              onChange={handleChange}
+              name="reason"
+              placeholder={t('casePage.refinement.dialog.reasonPlaceholder')}
+              rows={4}
+              disabled={loading}
+              className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 resize-vertical min-h-[100px] placeholder:text-subtext-color disabled:opacity-50 disabled:cursor-not-allowed"
+            />
           </div>
-        ) : alignerMaterials.length > 0 ? (
-          <RadioGroup
-            label={t('casePage.refinement.dialog.materialLabel')}
-            name="alignerMaterial"
-            options={alignerMaterials.map((mat) => ({
-              label: `${mat.name} (${mat.price}$/aligner)`,
-              value: mat.name,
-            }))}
-            selectedValue={formData.alignerMaterial}
-            onChange={onChange}
-          />
-        ) : (
-          <p className="text-body font-body text-subtext-color">
-            {t('casePage.refinement.dialog.noMaterials')}
-          </p>
-        )}
-      </div>
-
-      {/* Upload Method Selection */}
-      <div className="border border-neutral-border rounded-md p-4">
-        <fieldset className="flex flex-col gap-3">
-          <legend className="text-body-bold font-body-bold text-default-font mb-2">
-            {t('casePage.refinement.dialog.uploadMethod')}
-          </legend>
-          <label className="flex items-center gap-3 cursor-pointer text-body font-body text-default-font">
-            <input
-              type="radio"
-              name="uploadMethod"
-              value="individual"
-              checked={formData.uploadMethod === 'individual'}
-              onChange={onChange}
-              disabled={loading}
-              className="accent-blue-600 w-4 h-4"
-            />
-            <span>{t('casePage.refinement.dialog.individualFiles')}</span>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer text-body font-body text-default-font">
-            <input
-              type="radio"
-              name="uploadMethod"
-              value="compressed"
-              checked={formData.uploadMethod === 'compressed'}
-              onChange={onChange}
-              disabled={loading}
-              className="accent-blue-600 w-4 h-4"
-            />
-            <span>{t('casePage.refinement.dialog.compressedArchive')}</span>
-          </label>
-        </fieldset>
-      </div>
-
-      {/* File Uploads */}
-      <div className="border border-neutral-border rounded-md p-4">
-        <h4 className="text-body-bold font-body-bold text-default-font mb-4">
-          {t('casePage.refinement.dialog.scansRequired')}
-        </h4>
-
-        {formData.uploadMethod === 'individual' ? (
-          <>
-            <AlertBox
-              variant="info"
-              message={t('casePage.refinement.dialog.individualHelp')}
-            />
-
-            <div className="space-y-4 mt-4">
-              <FileUploadField
-                label={t('casePage.refinement.dialog.upperJawScan')}
-                name="upperJawScan"
-                accept=".stl,.obj,.ply"
-                onChange={onChange}
-                disabled={loading}
-                required
-              />
-              <FileUploadField
-                label={t('casePage.refinement.dialog.lowerJawScan')}
-                name="lowerJawScan"
-                accept=".stl,.obj,.ply"
-                onChange={onChange}
-                disabled={loading}
-                required
-              />
-              <FileUploadField
-                label={t('casePage.refinement.dialog.biteScan')}
-                name="biteScan"
-                accept=".stl,.obj,.ply"
-                onChange={onChange}
-                disabled={loading}
-                required
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            <AlertBox
-              variant="info"
-              message={t('casePage.refinement.dialog.compressedHelp')}
-            />
-
-            <div className="mt-4">
-              <FileUploadField
-                label={t('casePage.refinement.dialog.compressedLabel')}
-                name="compressedScans"
-                accept=".zip,.rar,.7z"
-                onChange={onChange}
-                disabled={loading}
-                required
-              />
-            </div>
-          </>
-        )}
-
-        {/* Additional Files */}
-        <div className="pt-4 mt-4 border-t border-neutral-border">
-          <FileUploadField
-            label={t('casePage.refinement.dialog.additionalFiles')}
-            name="additionalFiles"
-            accept=".stl,.obj,.ply,.pdf,.jpg,.png"
-            onChange={onChange}
-            disabled={loading}
-            multiple
-          />
-          {formData.additionalFiles.length > 0 && (
-            <div className="mt-2 text-sm text-gray-500">
-              {t('casePage.refinement.dialog.filesSelected', {
-                count: formData.additionalFiles.length,
-              })}
-            </div>
-          )}
         </div>
+
+        {/* Treatment Options Form */}
+        <div className="border border-neutral-border rounded-md bg-default-background">
+          <div className="px-4 pt-3 pb-1">
+            <h3 className="text-heading-3 font-heading-3 text-default-font mb-2">
+              {t('casePage.treatmentOptions')}
+            </h3>
+            <p className="text-body font-body text-subtext-color mb-4">
+              Review and update treatment options if needed
+            </p>
+          </div>
+          <div className="px-4 pb-4">
+            <TreatmentOptionsForm
+              formData={formData}
+              handleChange={handleChange}
+              alignerMaterials={alignerMaterials}
+            />
+          </div>
+        </div>
+
+        {/* Dental Chart */}
+        <div className="border border-neutral-border rounded-md p-4 bg-default-background">
+          <h3 className="text-heading-3 font-heading-3 text-default-font mb-2">
+            {t('casePage.dentalChart')}
+          </h3>
+          <p className="text-body font-body text-subtext-color mb-4">
+            Update tooth status if there are any changes
+          </p>
+          <DentalChart initialStatus={toothStatus} onChange={setToothStatus} />
+        </div>
+
+        {/* Diagnosis Form */}
+        <div className="border border-neutral-border rounded-md bg-default-background">
+          <div className="px-4 pt-3 pb-1">
+            <h3 className="text-heading-3 font-heading-3 text-default-font mb-2">
+              {t('caseSubmit.diagnosis.title')}
+            </h3>
+            <p className="text-body font-body text-subtext-color mb-4">
+              Review and update diagnosis information if needed
+            </p>
+          </div>
+          <div className="px-4 pb-4">
+            <DiagnosisForm formData={formData} handleChange={handleChange} />
+          </div>
+        </div>
+
+        {/* File Upload Section */}
+        <FileUploadSection
+          formData={formData}
+          handleChange={handleChange}
+          isRequired={true}
+        />
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-2 mt-2 pt-4 border-t border-neutral-border">
+      <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-neutral-border">
         <Button
           variant="neutral-secondary"
           onClick={onClose}
@@ -218,7 +248,7 @@ const RefinementDialog = ({
         <Button
           variant="brand-primary"
           icon={<FeatherCheck />}
-          onClick={onSubmit}
+          onClick={handleSubmit}
           disabled={loading}
         >
           {loading

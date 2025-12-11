@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FeatherX } from '@subframe/core';
 
 const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [formData, setFormData] = useState({
     full_name: '',
     clinic: '',
@@ -29,7 +32,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
     try {
       // Validate required fields
       if (!formData.full_name || !formData.email || !formData.clinic) {
-        throw new Error('Please fill in all required fields');
+        throw new Error(t('login.signUpDialog.errors.requiredFields'));
       }
 
       // Call the onSubmit prop (this will handle Supabase insertion)
@@ -62,7 +65,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
       <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-xl mx-4 max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
-            Request Account Access
+            {t('login.signUpDialog.title')}
           </h2>
           <button
             onClick={onClose}
@@ -78,11 +81,10 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
               <div className="flex">
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-green-800">
-                    Request submitted successfully!
+                    {t('login.signUpDialog.successTitle')}
                   </h3>
                   <p className="mt-2 text-sm text-green-700">
-                    An administrator will review your request and create your
-                    account soon.
+                    {t('login.signUpDialog.successMessage')}
                   </p>
                 </div>
               </div>
@@ -107,7 +109,8 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="full_name"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Full Name <span className="text-red-500">*</span>
+                {t('login.signUpDialog.fullName')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -117,7 +120,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 value={formData.full_name}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                placeholder="Dr. John Doe"
+                placeholder={t('login.signUpDialog.fullNamePlaceholder')}
               />
             </div>
 
@@ -126,7 +129,8 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Email Address <span className="text-red-500">*</span>
+                {t('login.signUpDialog.email')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -136,7 +140,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                placeholder="john.doe@example.com"
+                placeholder={t('login.signUpDialog.emailPlaceholder')}
               />
             </div>
 
@@ -145,7 +149,8 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="clinic"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Clinic Name <span className="text-red-500">*</span>
+                {t('login.signUpDialog.clinicName')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -155,7 +160,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 value={formData.clinic}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                placeholder="City Medical Center"
+                placeholder={t('login.signUpDialog.clinicNamePlaceholder')}
               />
             </div>
 
@@ -164,7 +169,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Phone Number
+                {t('login.signUpDialog.phoneNumber')}
               </label>
               <input
                 type="tel"
@@ -172,8 +177,11 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                placeholder="+1 (555) 123-4567"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                  isRTL ? 'text-right' : ''
+                } `}
+                placeholder={t('login.signUpDialog.phoneNumberPlaceholder')}
+                dir="ltr"
               />
             </div>
 
@@ -182,7 +190,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="address"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Clinic Address
+                {t('login.signUpDialog.clinicAddress')}
               </label>
               <textarea
                 id="address"
@@ -191,7 +199,7 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 value={formData.address}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                placeholder="123 Main Street, Suite 100, City, State 12345"
+                placeholder={t('login.signUpDialog.clinicAddressPlaceholder')}
               />
             </div>
 
@@ -200,7 +208,8 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 htmlFor="language_preference"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Preferred Language <span className="text-red-500">*</span>
+                {t('login.signUpDialog.languagePreference')}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <select
                 id="language_preference"
@@ -210,11 +219,11 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white"
               >
-                <option value="en">English</option>
-                <option value="ar">العربية (Arabic)</option>
+                <option value="en">{t('settings.english')}</option>
+                <option value="ar">{t('settings.arabic')}</option>
               </select>
               <p className="mt-1 text-sm text-gray-500">
-                Choose your preferred language for the application interface
+                {t('login.signUpDialog.languageHelp')}
               </p>
             </div>
 
@@ -224,15 +233,17 @@ const SignUpRequestDialog = ({ isOpen, onClose, onSubmit }) => {
                 onClick={onClose}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 font-medium disabled:bg-sky-400"
+                className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-md hover:bg-brand-700 font-medium disabled:bg-brand-400"
               >
-                {loading ? 'Submitting...' : 'Submit Request'}
+                {loading
+                  ? t('login.signUpDialog.submitting')
+                  : t('login.signUpDialog.submitButton')}
               </button>
             </div>
           </div>

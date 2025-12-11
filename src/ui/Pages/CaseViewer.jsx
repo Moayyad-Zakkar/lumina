@@ -728,7 +728,8 @@ const TabsContainer = styled.div`
 
 const Tab = styled.button`
   padding: 0.75rem 2rem;
-  background-color: ${(props) => (props.active ? '#0284c7' : 'transparent')};
+  //background-color: ${(props) => (props.active ? '#0284c7' : 'transparent')};
+  background-color: ${(props) => (props.active ? '#760052' : 'transparent')};
   color: ${(props) => (props.active ? '#fff' : '#495057')};
   border: none;
   border-radius: 6px;
@@ -738,7 +739,7 @@ const Tab = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${(props) => (props.active ? '#00adef' : '#f8f9fa')};
+    background-color: ${(props) => (props.active ? '#a72181' : '#f8f9fa')};
   }
 `;
 
@@ -811,7 +812,7 @@ const LoadingBar = styled.div`
 
 const LoadingBarFill = styled.div`
   height: 100%;
-  background-color: #0284c7;
+  background-color: #760052;
   transition: width 0.3s ease;
 `;
 
@@ -838,7 +839,7 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled.div`
   height: 100%;
-  background-color: #0284c7;
+  background-color: #760052;
   transition: width 0.3s ease;
 `;
 
@@ -881,8 +882,8 @@ const ControlButton = styled.button`
 
   &:hover:not(:disabled) {
     background-color: #f8f9fa;
-    border-color: #0284c7;
-    color: #0284c7;
+    border-color: #a72181;
+    color: #a72181;
   }
 
   &:active:not(:disabled) {
@@ -897,7 +898,7 @@ const ControlButton = styled.button`
 
 const PlayButton = styled.button`
   padding: 1rem 1.5rem;
-  background-color: #0284c7;
+  background-color: #760052;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -908,7 +909,7 @@ const PlayButton = styled.button`
   justify-content: center;
 
   &:hover:not(:disabled) {
-    background-color: #00adef;
+    background-color: #a72181;
     transform: scale(1.05);
   }
 

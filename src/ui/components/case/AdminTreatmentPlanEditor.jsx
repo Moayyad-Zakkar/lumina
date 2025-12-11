@@ -58,7 +58,10 @@ const PrintableTreatmentPlan = React.forwardRef(
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-brand-600">3DA</h1>
+            <img
+              className="h-10 flex-none object-cover"
+              src={`${window.location.origin}/logo.png`}
+            />
             <p className="text-sm text-gray-600">
               {t('adminTreatmentPlan.print.treatmentPlanDetails')}
             </p>

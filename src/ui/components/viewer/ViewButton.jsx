@@ -29,6 +29,7 @@ const ViewIcon = styled.img`
   width: 43px;
   height: 40px;
   display: block;
+
   @media (max-width: 570px) {
     width: 35px;
   }
@@ -66,7 +67,7 @@ const ActiveOption = styled.div`
   border-radius: 10px;
   margin-left: 0.4vw;
   margin-right: 0.4vw;
-  background-color: #e0f0f8;
+  background-color: #ffd6f3;
   z-index: 1020;
   display: flex;
   flex-direction: column;

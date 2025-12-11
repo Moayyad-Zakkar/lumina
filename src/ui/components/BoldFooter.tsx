@@ -99,12 +99,10 @@ const BoldFooterRoot = React.forwardRef<HTMLElement, BoldFooterRootProps>(
           </div>
           <div className="flex w-full max-w-[768px] flex-col items-center gap-4">
             <span className="font-['Montserrat'] text-[14px] font-[500] leading-[20px] text-subtext-color text-center">
-              © Subframe 2024
+              © Lumina 2025
             </span>
             <span className="font-['Montserrat'] text-[14px] font-[500] leading-[20px] text-subtext-color text-center">
-              Subframe is an intergalactic financial services company registered
-              with the Cosmic Union. It is authorized in most galaxies, subject
-              to local laws and regulations.
+              Lumina Clear Aligners
             </span>
           </div>
         </div>

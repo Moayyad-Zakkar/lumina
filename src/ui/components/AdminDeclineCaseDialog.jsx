@@ -47,15 +47,9 @@ const DeclineCaseDialog = ({
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div
-            className={`flex items-center justify-between p-6 border-b border-neutral-200 ${
-              isRTL ? '' : 'flex-row-reverse'
-            }`}
+            className={`flex items-center justify-between p-6 border-b border-neutral-200`}
           >
-            <div
-              className={`flex items-center gap-3 ${
-                isRTL ? 'flex-row-reverse' : ''
-              }`}
-            >
+            <div className={`flex items-center gap-3 `}>
               <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                 <FeatherAlertTriangle className="w-4 h-4 text-red-600" />
               </div>
@@ -75,10 +69,10 @@ const DeclineCaseDialog = ({
           {/* Content */}
           <div className={`p-6 ${isRTL ? 'text-right' : ''}`}>
             <p className="text-body font-body text-neutral-700 mb-4">
-              {t('casePage.dialogs.decline.message')}
+              {t('casePage.dialogs.decline.reasonRequired')}
             </p>
 
-            <div className={`flex flex-col gap-2 ${isRTL ? '' : 'items-end'}`}>
+            <div className={`flex flex-col gap-2`}>
               <label
                 htmlFor="declineReason"
                 className="text-body-bold font-body-bold text-default-font"
@@ -111,7 +105,7 @@ const DeclineCaseDialog = ({
                 </span>
               )}
               <span className="text-caption font-caption text-subtext-color">
-                {t('casePage.dialogs.decline.infoText')}
+                {t('casePage.dialogs.decline.adminInfoText')}
               </span>
             </div>
           </div>

@@ -532,7 +532,7 @@ const AdminCaseSubmit = () => {
           <span className="text-heading-3 font-heading-3 text-default-font">
             {t('casePage.dentalChart')}
           </span>
-          <div>
+          <div className="flex w-full justify-center">
             <DentalChart initialStatus={{}} onChange={setToothStatus} />
           </div>
         </div>

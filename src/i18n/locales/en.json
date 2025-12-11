@@ -100,8 +100,8 @@
       "clinicZA": "Clinic Z-A",
       "statusAZ": "Status A-Z",
       "statusZA": "Status Z-A",
-      "material": "Aligner Type",
-      "allMaterials": "All Aligner Types",
+      "material": "Aligners System",
+      "allMaterials": "All Aligners Systems",
       "mostCasesFirst": "Most Cases First",
       "fewestCasesFirst": "Fewest Cases First"
     }
@@ -118,7 +118,7 @@
     "totalPaid": "TOTAL PAID",
     "totalExpenses": "TOTAL EXPENSES",
     "doctorsBilling": "Doctors Billing",
-    "myCasesAndBilling": "My Cases & Billing",
+    "myCasesAndBilling": "My Billings",
     "searchDoctors": "Search doctors...",
     "transactionLog": "Transaction Log",
     "receivePayment": "Receive Payment",
@@ -146,36 +146,6 @@
         "processing": "Processing",
         "unknown": "Unknown"
       }
-    },
-    "signUpRequests": {
-      "title": "Sign Up Requests",
-      "subtitle": "Review and approve new user registrations",
-      "name": "Name",
-      "email": "Email",
-      "clinic": "Clinic",
-      "phone": "Phone",
-      "status": "Status",
-      "date": "Date",
-      "noRequests": "No sign-up requests found",
-      "reviewRequest": "Review Sign-Up Request",
-      "fullName": "Full Name",
-      "clinicName": "Clinic Name",
-      "phoneNumber": "Phone Number",
-      "clinicAddress": "Clinic Address",
-      "prefferedLanguage": "Preffered Language",
-      "prefferedLanguageSubtext": "Choose the preferred language for the application interface",
-      "setPassword": "Set Password",
-      "passwordRequired": "Password must be at least 6 characters",
-      "passwordPlaceholder": "Enter password for user",
-      "passwordHint": "Minimum 6 characters. Make sure to save this password.",
-      "approveAndCreate": "Approve & Create Account",
-      "creatingAccount": "Creating Account...",
-      "createUser": "Create User",
-      "userCreatedSuccess": "User account created successfully!",
-      "confirmReject": "Are you sure you want to reject this request?",
-      "statusPending": "Pending",
-      "statusApproved": "Approved",
-      "statusRejected": "Rejected"
     },
 
     "expenseDialog": {
@@ -327,7 +297,7 @@
       "upperArch": "Upper arch",
       "lowerArch": "Lower arch",
       "bothArches": "Both arches",
-      "alignerMaterial": "Preferred Aligner Material"
+      "alignerMaterial": "Preferred Aligners System"
     },
 
     "fileUpload": {
@@ -365,9 +335,9 @@
       "classI": "Class I",
       "classII": "Class II",
       "classIII": "Class III",
-      "additionalNotes": "Additional Notes",
-      "additionalNotesPlaceholder": "Enter any special instructions, patient history, or additional details...",
-      "additionalNotesHelp": "Add any additional information or special instructions for this case"
+      "additionalNotes": "Treatment Plan",
+      "additionalNotesPlaceholder": "Enter your suggested treatment plan, or any special instructions, patient history, or additional details about specific teeth...",
+      "additionalNotesHelp": "Add your treatment plane or any special instructions for this case"
     },
 
     "errors": {
@@ -480,7 +450,7 @@
       "caseAcceptedAlert": "This case has been accepted. The case study fee has been set and the case is ready for treatment planning.",
       "caseAcceptedAlertTitle": "Case Accepted"
     },
-
+    "deleteCase": "Delete Case",
     "deleteCaseConfirm": "This action cannot be undone. Are you sure you want to permanently delete this case?",
     "caseDeclined": "Case Declined",
     "reason": "Reason",
@@ -498,7 +468,7 @@
     "submissionDate": "Submission Date",
     "caseId": "Case ID",
     "clinic": "Clinic",
-    "alignerMaterial": "Aligner Material",
+    "alignerMaterial": "Aligners System",
     "notSpecified": "Not specified",
     "refinementReason": "Refinement Reason",
     "printCaseInfo": "Print Case Info",
@@ -533,8 +503,8 @@
       "noFiles": "No files uploaded for this case."
     },
     "caseNotes": {
-      "doctorNotes": "Doctor Notes",
-      "caseNotes": "Case Notes",
+      "doctorNotes": "Treatment Plan",
+      "caseNotes": "Treatment Plan",
       "additionalNotes": "Additional Notes",
       "adminPlaceholder": "Enter any special instructions, internal comments, etc...",
       "userPlaceholder": "Enter any special instructions, patient history, or additional details...",
@@ -571,8 +541,8 @@
         "reasonLabel": "Reason for Refinement",
         "reasonHelp": "Please describe why you need refinement (e.g., treatment not progressing as expected, new concerns, etc.)",
         "reasonPlaceholder": "Enter reason for refinement...",
-        "materialLabel": "Preferred Aligner Material *",
-        "noMaterials": "No materials available",
+        "materialLabel": "Preferred Aligner System *",
+        "noMaterials": "No aligner systems available",
         "uploadMethod": "Choose Upload Method",
         "individualFiles": "Individual Files (Upload each scan separately)",
         "compressedArchive": "Compressed Archive (Upload all scans in one ZIP/RAR file)",
@@ -592,7 +562,7 @@
       "errors": {
         "loadServicesFailed": "Failed to load service options",
         "reasonRequired": "Please provide a reason for the refinement request",
-        "materialRequired": "Please select an aligner material",
+        "materialRequired": "Please select an aligners system",
         "allScansRequired": "Please upload all required scan files",
         "compressedRequired": "Please upload the compressed scan archive",
         "notAuthenticated": "User not authenticated",
@@ -666,23 +636,24 @@
         "reasonPlaceholder": "Enter the reason for declining this case...",
         "reasonRequired": "Please provide a reason for declining this case.",
         "infoText": "This information will be recorded and may be shared with relevant team members.",
+        "adminInfoText": "This information will be sent for the doctor for future reference.",
         "declining": "Declining...",
         "confirmButton": "Confirm Decline"
       },
       "requestEdit": {
         "title": "Request Treatment Plan Edit",
-        "subtitle": "Request changes to your treatment plan by selecting a different aligner material and adding notes.",
-        "changeMaterial": "Change Aligner Material",
-        "currentMaterial": "Current material:",
-        "materialDescription": "Select a different aligner material. Your case will be re-evaluated by our team.",
-        "selectMaterial": "Select New Aligner Material",
-        "noMaterials": "No materials available",
+        "subtitle": "Request changes to your patient's treatment plan by selecting a different aligners system and adding notes.",
+        "changeMaterial": "Change Aligners System",
+        "currentMaterial": "Current System:",
+        "materialDescription": "Select a different aligner system. Your case will be re-evaluated by our team.",
+        "selectMaterial": "Select New Aligners System",
+        "noMaterials": "No aligner systems available",
         "notesLabel": "Additional Notes (Optional)",
         "notesDescription": "Add any specific requests or concerns about your treatment plan.",
         "notesPlaceholder": "Enter any additional notes or requests for our team...",
         "notesHelp": "These notes will be visible to the team member reviewing your case.",
         "warningTitle": "⚠️ Important Information",
-        "warningMessage": "Changing the aligner material will send your case back to out team for re-evaluation. You will need to approve the updated treatment plan once it's ready.",
+        "warningMessage": "Changing the aligner system will send your case back to out team for re-evaluation. You will need to approve the updated treatment plan once it's ready.",
         "submitting": "Submitting...",
         "submitButton": "Submit Edit Request"
       }
@@ -693,9 +664,51 @@
       "approveFailed": "Failed to approve plan",
       "planDeclined": "Plan declined successfully",
       "declineFailed": "Failed to decline plan",
-      "materialUpdatedReeval": "Material updated. Case is sent for re-evaluation by our team.",
-      "materialUpdated": "Material updated successfully.",
-      "updateMaterialFailed": "Failed to update material"
+      "materialUpdatedReeval": "System updated. Case is sent for re-evaluation by our team.",
+      "materialUpdated": "System updated successfully.",
+      "updateMaterialFailed": "Failed to update the Aligners System"
+    },
+    "alerts": {
+      "submitted": {
+        "title": "Review the case and accept it",
+        "description": "Review the case information, then accept or decline the case."
+      },
+      "accepted": {
+        "title": "Case accepted - Create treatment plan",
+        "description": "Set aligners count and duration, then send to doctor for approval."
+      },
+      "awaiting_user_approval": {
+        "title": "Treatment plan is sent to doctor for approval",
+        "description": "Waiting for the doctor approval to proceed with the production process."
+      },
+      "approved": {
+        "title": "Doctor approved the treatment plan",
+        "description": "Proceed with manufacturing. Update the case status as production progresses."
+      },
+      "in_production": {
+        "title": "Aligners are in production",
+        "description": "Update to Ready for Delivery when manufacturing is complete."
+      },
+      "ready_for_delivery": {
+        "title": "Aligners are ready for delivery",
+        "description": "Mark as Delivered once the clinic receives their aligners."
+      },
+      "delivered": {
+        "title": "Aligners are delivered to clinic",
+        "description": "The Doctor will mark the case as Completed when treatment finishes."
+      },
+      "completed": {
+        "title": "The case is complete",
+        "description": "The doctor had finished the case"
+      },
+      "rejected": {
+        "title": "Case has been declined",
+        "description": "This case was declined and is no longer active. You can undo this action if needed."
+      },
+      "user_rejected": {
+        "title": "Treatment plan was declined",
+        "description": "This case's Treatment plan was declined by the doctor and the case is no longer active."
+      }
     }
   },
   "settings": {
@@ -731,7 +744,7 @@
     "caseStudyFeeDescription": "This fee is charged when a new case is accepted.",
     "amountUSD": "Amount (USD)",
     "saveFee": "Save Fee",
-    "alignerMaterials": "Aligner Materials",
+    "alignerMaterials": "Aligners Systems",
     "services": "Services",
 
     "errors": {
@@ -871,11 +884,12 @@
     "createUserButton": "Create User"
   },
   "dentalChart": {
+    "title": "Dental Chart",
     "statuses": {
       "movable": "Can be moved orthodontically",
       "unmovable": "Dental implant, bridge pontic, or ankylosed teeth",
       "missing": "Missing or to be extracted",
-      "note": "A note about this tooth in the notes field"
+      "note": "A note about this tooth in the Treatment Plan field"
     },
     "statusLabels": {
       "movable": "Movable",
@@ -1043,6 +1057,100 @@
       "deleteFailed": "Failed to delete image",
       "uploaded": "Images uploaded successfully",
       "uploadFailed": "Failed to upload images"
+    }
+  },
+  "login": {
+    "welcomeBack": "Welcome back",
+    "subtitle": "Sign in to view and submit your Lumina cases",
+    "enterCredentials": "Enter your credentials to access your account",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "signingIn": "Signing in...",
+    "requestAccess": "Request Access",
+    "forgotPasswordText": "Forgot your password?",
+    "resetPassword": "Reset Password",
+    "errors": {
+      "emptyFields": "Please enter both email and password",
+      "submitFailed": "Failed to submit request"
+    },
+    "signUpDialog": {
+      "title": "Request Account Access",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Dr. John Doe",
+      "email": "Email Address",
+      "emailPlaceholder": "john.doe@example.com",
+      "clinicName": "Clinic Name",
+      "clinicNamePlaceholder": "City Medical Center",
+      "phoneNumber": "Phone Number",
+      "phoneNumberPlaceholder": "+1 (555) 123-4567",
+      "clinicAddress": "Clinic Address",
+      "clinicAddressPlaceholder": "123 Main Street, Suite 100, City, State 12345",
+      "languagePreference": "Preferred Language",
+      "languageHelp": "Choose your preferred language for the application interface",
+      "submitting": "Submitting...",
+      "submitButton": "Submit Request",
+      "successTitle": "Request submitted successfully!",
+      "successMessage": "An administrator will review your request and create your account soon.",
+      "errors": {
+        "requiredFields": "Please fill in all required fields"
+      }
+    }
+  },
+  "resetPassword": {
+    "title": "Reset your password",
+    "subtitle": "Enter your email address and we'll send you instructions to reset your password.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "sending": "Sending instructions...",
+    "sendButton": "Send reset instructions",
+    "backToSignIn": "Back to sign in",
+    "errors": {
+      "emailRequired": "Please enter your email address"
+    },
+    "success": {
+      "instructionsSent": "Password reset instructions have been sent to your email"
+    }
+  },
+  "signUpRequests": {
+    "title": "Sign Up Requests",
+    "subtitle": "Review and approve new user registrations",
+    "name": "Name",
+    "email": "Email",
+    "clinic": "Clinic",
+    "phone": "Phone",
+    "status": "Status",
+    "date": "Date",
+    "noRequests": "No sign-up requests found",
+    "reviewRequest": "Review Sign-Up Request",
+    "fullName": "Full Name",
+    "clinicName": "Clinic Name",
+    "phoneNumber": "Phone Number",
+    "clinicAddress": "Clinic Address",
+    "prefferedLanguage": "Preffered Language",
+    "prefferedLanguageSubtext": "Choose the preferred language for the application interface",
+    "setPassword": "Set Password",
+    "passwordRequired": "Password must be at least 6 characters",
+    "passwordPlaceholder": "Enter password for user",
+    "passwordHint": "Minimum 6 characters. Make sure to save this password.",
+    "approveAndCreate": "Approve & Create Account",
+    "creatingAccount": "Creating Account...",
+    "createUser": "Create User",
+    "userCreatedSuccess": "User account created successfully!",
+    "confirmReject": "Are you sure you want to reject this request?",
+    "statusPending": "Pending",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected"
+  },
+  "adminCasePage": {
+    "caseDeclined": "Case Declined",
+    "doctorDeclineReason": "Doctor Decline Reason",
+    "adminDeclineReason": "Admin Decline Reason",
+    "approvePlan": "Approve Plan",
+    "toast": {
+      "caseDeleted": "Case deleted successfully",
+      "deleteFailed": "Failed to delete case",
+      "iprSaved": "IPR data saved successfully",
+      "iprFailed": "Failed to save IPR data"
     }
   }
 }

@@ -17,7 +17,7 @@ function Home() {
         </span>
         <span className="max-w-[576px] whitespace-pre-wrap font-['Montserrat'] text-[20px] font-[500] leading-[28px] text-subtext-color text-center -tracking-[0.015em]">
           {
-            '3DA is your dedicated partner in manufacturing custom orthodontic aligners with speed, accuracy, and care. Fully digital. Fully scalable. Fully dependable.'
+            'Lumina is your dedicated partner in manufacturing custom orthodontic aligners with speed, accuracy, and care. Fully digital. Fully scalable. Fully dependable.'
           }
         </span>
         <div className="flex flex-wrap items-center justify-center gap-6">

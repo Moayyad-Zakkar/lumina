@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLoaderData } from 'react-router';
+import { Link, useLoaderData, useRevalidator } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { Button } from '../components/Button';
@@ -45,6 +45,7 @@ import TreatmentDetails from '../components/case/TreatmentDetails';
 const CasePageRefactored = () => {
   const { t } = useTranslation();
   const { caseData, error } = useLoaderData();
+  const revalidator = useRevalidator(); // [!code change] Initialize revalidator
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [caseHasViewer, setCaseHasViewer] = useState(false);
@@ -68,6 +69,11 @@ const CasePageRefactored = () => {
     handleCancelEditNote,
     handleSaveNote,
   } = useCaseNotes(caseData);
+
+  // [!code change] Helper to refresh data
+  const handleRefresh = () => {
+    revalidator.revalidate();
+  };
 
   // Check if the case has treatment sequence viewer available or not
   useEffect(() => {
@@ -124,9 +130,13 @@ const CasePageRefactored = () => {
         .update({ status: 'approved' })
         .eq('id', caseData.id);
       if (updateError) throw updateError;
+
       setStatus('approved');
       setIsApprovalConfirmOpen(false);
       toast.success(t('casePage.toast.planApproved'));
+
+      // [!code change] Refresh data from server
+      handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.approveFailed'));
       toast.error(e.message || t('casePage.toast.approveFailed'));
@@ -150,9 +160,13 @@ const CasePageRefactored = () => {
         })
         .eq('id', caseData.id);
       if (updateError) throw updateError;
+
       setStatus('user_rejected');
       setIsDeclineDialogOpen(false);
       toast.success(t('casePage.toast.planDeclined'));
+
+      // [!code change] Refresh data from server
+      handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.declineFailed'));
       toast.error(e.message || t('casePage.toast.declineFailed'));
@@ -198,6 +212,9 @@ const CasePageRefactored = () => {
       }
 
       setIsRequestEditOpen(false);
+
+      // [!code change] Refresh data from server
+      handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.updateMaterialFailed'));
       toast.error(e.message || t('casePage.toast.updateMaterialFailed'));
@@ -296,10 +313,16 @@ const CasePageRefactored = () => {
 
       <div className="flex w-full flex-col items-start gap-6">
         <CaseInformation caseData={caseData} isAdmin={false} />
+
         {/* Satisfaction Display */}
+        {/* [!code change] Added onRefresh prop. Ensure Child calls this on success */}
         {status === 'completed' && caseData.satisfaction_rating && (
-          <CaseSatisfactionDisplay caseData={caseData} />
+          <CaseSatisfactionDisplay
+            caseData={caseData}
+            onRefresh={handleRefresh}
+          />
         )}
+
         <TreatmentDetails caseData={caseData} />
         {/* Decline Reason Section */}
         {(status === 'user_rejected' || status === 'rejected') &&
@@ -407,8 +430,10 @@ const CasePageRefactored = () => {
           </div>
         )}
         {/* Refinement Section */}
-        <RefinementSection caseData={caseData} />
-
+        <RefinementSection
+          caseData={caseData}
+          onCaseUpdate={handleRefresh} // or revalidator.revalidate
+        />
         {/* Refinement History */}
         <RefinementHistory caseData={caseData} />
 

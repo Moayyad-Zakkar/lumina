@@ -238,7 +238,8 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 value={formData.phone}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-sky-600 focus:border-transparent ${
-                      isRTL ? 'text-right' : '' }`}
+                  isRTL ? 'text-right' : ''
+                }`}
                 placeholder="+1 (555) 123-4567"
               />
             </div>
@@ -297,7 +298,7 @@ const AdminCreateUserDialog = ({ isOpen, onClose, onSubmit }) => {
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 font-medium disabled:bg-sky-400"
+                className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-md hover:bg-brand-700 font-medium disabled:bg-brand-400"
               >
                 {loading
                   ? t('signUpRequests.creatingAccount')

@@ -53,7 +53,7 @@ const TreatmentDetails = ({ caseData }) => {
 
       {/* Treatment Options Section */}
       <div className="w-full">
-        <span className="text-body-bold font-body-bold text-default-font mb-3 block">
+        <span className="text-body-bold font-body-bold text-default-font mb-3 block font-bold">
           {t('casePage.treatmentOptions')}
         </span>
         <div className="flex flex-wrap items-start gap-8">
@@ -84,7 +84,7 @@ const TreatmentDetails = ({ caseData }) => {
 
       {/* Midline Analysis Section */}
       <div className="w-full">
-        <span className="text-body-bold font-body-bold text-default-font mb-3 block">
+        <span className="text-body-bold font-body-bold text-default-font mb-3 block font-bold">
           {t('casePage.midlineAnalysis')}
         </span>
         <div className="flex flex-wrap items-start gap-8">
@@ -125,13 +125,13 @@ const TreatmentDetails = ({ caseData }) => {
 
       {/* Occlusal Relationship Section */}
       <div className="w-full">
-        <span className="text-body-bold font-body-bold text-default-font mb-3 block">
+        <span className="text-body-bold font-body-bold text-default-font mb-3 block font-bold">
           {t('casePage.occlusalRelationship')}
         </span>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Canine Relationship */}
           <div className="flex flex-col gap-3">
-            <span className="text-body font-body text-default-font">
+            <span className="text-body font-body text-default-font font-bold">
               {t('caseSubmit.diagnosis.canineRelationship')}
             </span>
             <div className="flex flex-col gap-2 pl-4 border-l-2 border-neutral-border">
@@ -156,7 +156,7 @@ const TreatmentDetails = ({ caseData }) => {
 
           {/* Molar Relationship */}
           <div className="flex flex-col gap-3">
-            <span className="text-body font-body text-default-font">
+            <span className="text-body font-body text-default-font font-bold">
               {t('caseSubmit.diagnosis.molarRelationship')}
             </span>
             <div className="flex flex-col gap-2 pl-4 border-l-2 border-neutral-border">

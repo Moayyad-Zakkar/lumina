@@ -18,17 +18,6 @@ const RefinementSection = ({ caseData, onCaseUpdate }) => {
   const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [error, setError] = useState(null);
 
-  const [refinementFormData, setRefinementFormData] = useState({
-    reason: '',
-    alignerMaterial: '',
-    uploadMethod: 'individual',
-    upperJawScan: null,
-    lowerJawScan: null,
-    biteScan: null,
-    compressedScans: null,
-    additionalFiles: [],
-  });
-
   const [satisfactionData, setSatisfactionData] = useState({
     rating: 0,
     message: '',
@@ -39,16 +28,6 @@ const RefinementSection = ({ caseData, onCaseUpdate }) => {
   useEffect(() => {
     if (isRefinementDialogOpen) {
       fetchServices();
-      setRefinementFormData({
-        reason: '',
-        alignerMaterial: '',
-        uploadMethod: 'individual',
-        upperJawScan: null,
-        lowerJawScan: null,
-        biteScan: null,
-        compressedScans: null,
-        additionalFiles: [],
-      });
     }
   }, [isRefinementDialogOpen]);
 
@@ -73,48 +52,29 @@ const RefinementSection = ({ caseData, onCaseUpdate }) => {
     }
   };
 
-  const handleRefinementChange = (e) => {
-    const { name, value, files } = e.target;
-
-    if (files) {
-      setRefinementFormData((prevData) => ({
-        ...prevData,
-        [name]:
-          name === 'additionalFiles'
-            ? [...prevData.additionalFiles, ...files]
-            : files[0],
-      }));
-    } else {
-      setRefinementFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleRefinementSubmit = async () => {
+  const handleRefinementSubmit = async (refinementData) => {
     // Validate form
-    if (!refinementFormData.reason.trim()) {
+    if (!refinementData.reason?.trim()) {
       setError(t('casePage.refinement.errors.reasonRequired'));
       return;
     }
-    if (!refinementFormData.alignerMaterial) {
+    if (!refinementData.alignerMaterial) {
       setError(t('casePage.refinement.errors.materialRequired'));
       return;
     }
 
     // Validate files based on upload method
-    if (refinementFormData.uploadMethod === 'individual') {
+    if (refinementData.uploadMethod === 'individual') {
       if (
-        !refinementFormData.upperJawScan ||
-        !refinementFormData.lowerJawScan ||
-        !refinementFormData.biteScan
+        !refinementData.upperJawScan ||
+        !refinementData.lowerJawScan ||
+        !refinementData.biteScan
       ) {
         setError(t('casePage.refinement.errors.allScansRequired'));
         return;
       }
-    } else if (refinementFormData.uploadMethod === 'compressed') {
-      if (!refinementFormData.compressedScans) {
+    } else if (refinementData.uploadMethod === 'compressed') {
+      if (!refinementData.compressedScans) {
         setError(t('casePage.refinement.errors.compressedRequired'));
         return;
       }
@@ -130,101 +90,164 @@ const RefinementSection = ({ caseData, onCaseUpdate }) => {
       if (!user)
         throw new Error(t('casePage.refinement.errors.notAuthenticated'));
 
-      let upperJawResult, lowerJawResult, biteScanResult;
+      // Fetch doctor's profile information
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name, clinic')
+        .eq('id', user.id)
+        .single();
+
+      const doctorName =
+        profileData?.full_name || user.email || 'Unknown Doctor';
+      const clinicName = profileData?.clinic || null;
+      const patientName = `${caseData.first_name} ${caseData.last_name}`;
+      const refinementCaseId = `REF-${caseData.id}-${Date.now()}`;
+
+      // Upload files helper
+      const uploadFileWithErrorHandling = async (
+        file,
+        folderPath,
+        metadata = {}
+      ) => {
+        if (!file) return null;
+
+        try {
+          const result = await uploadFile(file, folderPath, {
+            caseId: metadata.caseId || refinementCaseId,
+            patientName: metadata.patientName || patientName,
+            fileType: metadata.fileType || folderPath,
+            doctorName: metadata.doctorName || doctorName,
+          });
+
+          if (!result.success) {
+            throw new Error(result.error || 'Upload failed');
+          }
+
+          return result.filePath;
+        } catch (error) {
+          console.error(`Upload error for ${folderPath}:`, error);
+          throw error;
+        }
+      };
+
+      let upperJawScanPath = null;
+      let lowerJawScanPath = null;
+      let biteScanPath = null;
+      let compressedScansPath = null;
+      let additionalFilesPaths = [];
 
       // Upload based on method
-      if (refinementFormData.uploadMethod === 'compressed') {
-        const compressedResult = await uploadFile(
-          refinementFormData.compressedScans,
-          'refinement-scans/compressed',
+      if (refinementData.uploadMethod === 'individual') {
+        const uploadResults = await Promise.all([
+          uploadFileWithErrorHandling(
+            refinementData.upperJawScan,
+            'upper-jaw-scans',
+            {
+              caseId: refinementCaseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: t('caseSubmit.upperJawScan'),
+            }
+          ),
+          uploadFileWithErrorHandling(
+            refinementData.lowerJawScan,
+            'lower-jaw-scans',
+            {
+              caseId: refinementCaseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: t('caseSubmit.lowerJawScan'),
+            }
+          ),
+          uploadFileWithErrorHandling(refinementData.biteScan, 'bite-scans', {
+            caseId: refinementCaseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: t('caseSubmit.biteScan'),
+          }),
+        ]);
+
+        [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
+      } else if (refinementData.uploadMethod === 'compressed') {
+        compressedScansPath = await uploadFileWithErrorHandling(
+          refinementData.compressedScans,
+          'compressed-scans',
           {
-            caseId: caseData.id,
-            patientName: `${caseData.first_name} ${caseData.last_name}`,
-            fileType: 'compressed-scans',
+            caseId: refinementCaseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: t('caseSubmit.compressedScans'),
           }
         );
-
-        if (!compressedResult.success) {
-          throw new Error(
-            t('casePage.refinement.errors.compressedUploadFailed')
-          );
-        }
-
-        upperJawResult = lowerJawResult = biteScanResult = compressedResult;
-      } else {
-        // Individual file uploads
-        const uploadPromises = [
-          uploadFile(
-            refinementFormData.upperJawScan,
-            'refinement-scans/upper-jaw',
-            {
-              caseId: caseData.id,
-              patientName: `${caseData.first_name} ${caseData.last_name}`,
-              fileType: 'upper-jaw-scan',
-            }
-          ),
-          uploadFile(
-            refinementFormData.lowerJawScan,
-            'refinement-scans/lower-jaw',
-            {
-              caseId: caseData.id,
-              patientName: `${caseData.first_name} ${caseData.last_name}`,
-              fileType: 'lower-jaw-scan',
-            }
-          ),
-          uploadFile(refinementFormData.biteScan, 'refinement-scans/bite', {
-            caseId: caseData.id,
-            patientName: `${caseData.first_name} ${caseData.last_name}`,
-            fileType: 'bite-scan',
-          }),
-        ];
-
-        [upperJawResult, lowerJawResult, biteScanResult] = await Promise.all(
-          uploadPromises
-        );
-
-        if (
-          !upperJawResult.success ||
-          !lowerJawResult.success ||
-          !biteScanResult.success
-        ) {
-          throw new Error(t('casePage.refinement.errors.scanUploadFailed'));
-        }
       }
 
       // Upload additional files if any
-      const additionalFilesPromises = (
-        refinementFormData.additionalFiles || []
-      ).map((file) =>
-        uploadFile(file, 'refinement-scans/additional', {
-          caseId: caseData.id,
-          patientName: `${caseData.first_name} ${caseData.last_name}`,
-          fileType: 'additional-file',
-        })
-      );
+      if (
+        refinementData.additionalFiles &&
+        refinementData.additionalFiles.length > 0
+      ) {
+        additionalFilesPaths = await Promise.all(
+          refinementData.additionalFiles.map((file, index) =>
+            uploadFileWithErrorHandling(file, 'additional-files', {
+              caseId: refinementCaseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: t('caseSubmit.additionalFile', { number: index + 1 }),
+            })
+          )
+        );
+      }
 
-      const additionalResults = await Promise.all(additionalFilesPromises);
+      // Get the latest refinement number for this parent case
+      const { data: existingRefinements } = await supabase
+        .from('cases')
+        .select('refinement_number')
+        .eq('parent_case_id', caseData.id)
+        .order('refinement_number', { ascending: false })
+        .limit(1);
 
-      const additionalFilesUrls = additionalResults
-        .filter((result) => result.success)
-        .map((result) => result.filePath);
+      const nextRefinementNumber = existingRefinements?.[0]?.refinement_number
+        ? existingRefinements[0].refinement_number + 1
+        : 1;
 
-      // Create new refinement case
-      const { error: insertError } = await supabase.from('cases').insert({
+      // Create refinement case with comprehensive data
+      const insertPayload = {
         user_id: user.id,
+        parent_case_id: caseData.id,
+        refinement_number: nextRefinementNumber,
         first_name: caseData.first_name,
         last_name: caseData.last_name,
-        aligner_material: refinementFormData.alignerMaterial,
-        parent_case_id: caseData.id,
-        refinement_number: 1,
-        refinement_reason: refinementFormData.reason,
-        upload_method: refinementFormData.uploadMethod,
-        upper_jaw_scan_url: upperJawResult.filePath,
-        lower_jaw_scan_url: lowerJawResult.filePath,
-        bite_scan_url: biteScanResult.filePath,
-        additional_files_urls: additionalFilesUrls,
+        refinement_reason: refinementData.reason.trim(),
+        aligner_material: refinementData.alignerMaterial,
+        treatment_arch: refinementData.treatmentArch || caseData.treatment_arch,
+        upload_method: refinementData.uploadMethod,
+        upper_jaw_scan_url: upperJawScanPath,
+        lower_jaw_scan_url: lowerJawScanPath,
+        bite_scan_url: biteScanPath,
+        compressed_scans_url: compressedScansPath,
+        additional_files_urls: additionalFilesPaths || [],
+        // Include tooth status from dental chart
+        tooth_status: refinementData.toothStatus || {},
+        // Include diagnosis data
+        upper_midline: refinementData.upperMidline || null,
+        upper_midline_shift: refinementData.upperMidlineShift || null,
+        lower_midline: refinementData.lowerMidline || null,
+        lower_midline_shift: refinementData.lowerMidlineShift || null,
+        canine_right_class: refinementData.canineRightClass || null,
+        canine_left_class: refinementData.canineLeftClass || null,
+        molar_right_class: refinementData.molarRightClass || null,
+        molar_left_class: refinementData.molarLeftClass || null,
         status: 'submitted',
-      });
+      };
+
+      const { error: insertError } = await supabase
+        .from('cases')
+        .insert(insertPayload);
 
       if (insertError) throw insertError;
 
@@ -235,6 +258,7 @@ const RefinementSection = ({ caseData, onCaseUpdate }) => {
     } catch (error) {
       console.error('Submit error:', error);
       setError(error.message || t('casePage.refinement.errors.submitFailed'));
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -323,12 +347,12 @@ const RefinementSection = ({ caseData, onCaseUpdate }) => {
         </div>
       </div>
 
+      {/* Updated RefinementDialog with comprehensive data collection */}
       <RefinementDialog
         isOpen={isRefinementDialogOpen}
         onClose={handleRefinementClose}
         onSubmit={handleRefinementSubmit}
-        formData={refinementFormData}
-        onChange={handleRefinementChange}
+        originalCaseData={caseData}
         alignerMaterials={alignerMaterials}
         loadingMaterials={loadingMaterials}
         loading={loading}

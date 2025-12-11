@@ -123,7 +123,7 @@ export default {
           '16px',
           {
             lineHeight: '20px',
-            fontWeight: '500',
+            fontWeight: '800',
             letterSpacing: '0em',
           },
         ],
@@ -131,7 +131,7 @@ export default {
           '20px',
           {
             lineHeight: '24px',
-            fontWeight: '500',
+            fontWeight: '800',
             letterSpacing: '0em',
           },
         ],
@@ -139,7 +139,7 @@ export default {
           '30px',
           {
             lineHeight: '36px',
-            fontWeight: '500',
+            fontWeight: '800',
             letterSpacing: '0em',
           },
         ],

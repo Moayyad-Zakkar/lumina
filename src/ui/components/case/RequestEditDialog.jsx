@@ -82,6 +82,18 @@ const RequestEditDialog = ({
     }
   };
 
+  // Helper to determine if there are unsaved changes
+  const hasChanges = () => {
+    const originalMaterial = caseData?.aligner_material || '';
+    const originalNote = caseData?.user_note || '';
+
+    const materialChanged = selectedMaterial !== originalMaterial;
+    // Check if note changed (trimming ensures we ignore empty spaces vs empty string)
+    const noteChanged = userNote.trim() !== originalNote.trim();
+
+    return materialChanged || noteChanged;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -223,11 +235,7 @@ const RequestEditDialog = ({
               variant="brand-primary"
               icon={<FeatherRefreshCw />}
               onClick={handleUpdateMaterial}
-              disabled={
-                saving ||
-                !selectedMaterial ||
-                selectedMaterial === caseData?.aligner_material
-              }
+              disabled={saving || !selectedMaterial || !hasChanges()}
             >
               {saving
                 ? t('casePage.dialogs.requestEdit.submitting')

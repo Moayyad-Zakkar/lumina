@@ -37,7 +37,7 @@ const ViewLabel = styled.p`
 `;
 
 const ViewLabelSpan = styled.span`
-  color: #00adef;
+  color: #760052;
   font-weight: bold;
   margin: 0;
   font-size: 1rem;

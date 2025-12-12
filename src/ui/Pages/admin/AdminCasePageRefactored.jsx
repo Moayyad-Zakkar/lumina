@@ -331,7 +331,7 @@ const AdminCasePageRefactored = () => {
       {/* Standard status alert for non-rejected cases */}
       {currentStatus !== 'rejected' && currentStatus !== 'user_rejected' && (
         <Alert
-          variant="brand"
+          variant="success"
           icon={<FeatherBell />}
           title={t(`casePage.alerts.${currentStatus}.title`)}
           description={t(`casePage.alerts.${currentStatus}.description`)}

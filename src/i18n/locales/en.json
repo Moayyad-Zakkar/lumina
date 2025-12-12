@@ -22,7 +22,8 @@
     "close": "Close",
     "generate": "Generate",
     "hide": "Hide",
-    "show": "Show"
+    "show": "Show",
+    "print": "Print"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -539,6 +540,9 @@
         "warningTitle": "⚠️ Important Information",
         "warningMessage": "Your refinement request will be reviewed by our team. We will contact you with pricing and treatment details.",
         "reasonLabel": "Reason for Refinement",
+        "treatmentOptionsUpdate": "Review and update treatment options if needed",
+        "dentalChartUpdate": "Update tooth status if there are any changes",
+        "diagnosisUpdate": "Review and update diagnosis information if needed",
         "reasonHelp": "Please describe why you need refinement (e.g., treatment not progressing as expected, new concerns, etc.)",
         "reasonPlaceholder": "Enter reason for refinement...",
         "materialLabel": "Preferred Aligner System *",
@@ -694,8 +698,8 @@
         "description": "Mark as Delivered once the clinic receives their aligners."
       },
       "delivered": {
-        "title": "Aligners are delivered to clinic",
-        "description": "The Doctor will mark the case as Completed when treatment finishes."
+        "title": "Aligners has been delivered to the clinic",
+        "description": "The doctor will mark the case as 'Completed' when treatment finishes."
       },
       "completed": {
         "title": "The case is complete",
@@ -927,7 +931,7 @@
     },
     "print": {
       "treatmentPlanDetails": "Treatment Plan Details",
-      "footer": "This document was generated on {{date}} | Lumina Clear Aligners"
+      "footer": "This document was generated on {{date}} | Lumina"
     }
   },
   "adminNotes": {
@@ -961,6 +965,14 @@
     "doctorPlaceholder": "Select a doctor...",
     "paymentAmountLabel": "Payment Amount (USD)",
     "paymentAmountPlaceholder": "0.00",
+    "totalPayment": "Total Payment:",
+    "paymentReceipt": "Payment Receipt",
+    "printInvoice": "Print Invoice",
+    "paymentInvoice": "Payment Invoice",
+    "paymentInvoiceDescription": "Your payment has been processed successfully. You can print this invoice for your records.",
+    "casesIncluded": "Cases Included",
+    "invoice": "Invoice",
+    "paymentSummary": "Payment Summary",
     "notesLabel": "Notes (Optional)",
     "notesPlaceholder": "Add any notes about this payment...",
     "unpaidCasesTitle": "Unpaid Cases",
@@ -977,7 +989,8 @@
     "remainingSplitNote": "Remaining amount will be split among {{count}} unselected cases",
     "cancel": "Cancel",
     "processPayment": "Process Payment",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "patient": "Patient"
   },
   "manufacturingProgress": {
     "title": "Manufacturing Progress",

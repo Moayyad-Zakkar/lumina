@@ -71,7 +71,7 @@ const AlertRoot = React.forwardRef<HTMLElement, AlertRootProps>(
             {title ? (
               <span
                 className={SubframeUtils.twClassNames(
-                  'w-full whitespace-pre-wrap text-body-bold font-body-bold text-default-font',
+                  'w-full whitespace-pre-wrap text-body-bold font-body-bold text-default-font font-bold',
                   {
                     'text-warning-900': variant === 'warning',
                     'text-success-900': variant === 'success',

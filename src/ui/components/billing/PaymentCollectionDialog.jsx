@@ -1,17 +1,216 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useReactToPrint } from 'react-to-print';
 
 // Use the new DialogWrapper instead of Dialog
-import DialogWrapper from '../DialogWrapper'; // Assuming DialogWrapper is in the same directory or adjust path
+import DialogWrapper from '../DialogWrapper';
 import { TextField } from '../TextField';
 import { Button } from '../Button';
-import { FeatherDollarSign, FeatherCheck } from '@subframe/core';
-// Removed: FeatherX, IconButton
+import {
+  FeatherDollarSign,
+  FeatherCheck,
+  FeatherPrinter,
+} from '@subframe/core';
 
 import {
   useDoctorCases,
   usePaymentProcessor,
 } from '../../../hooks/useBillingData';
+
+const statusDisplayText = {
+  submitted: 'Submitted',
+  accepted: 'Accepted',
+  under_review: 'Under Review',
+  rejected: 'Rejected',
+  awaiting_patient_approval: 'Awaiting Approval',
+  patient_rejected: 'Rejected by Patient',
+  awaiting_user_approval: 'Awaiting Approval',
+  user_rejected: 'Rejected by Doctor',
+  approved: 'Approved',
+  in_production: 'In Production',
+  ready_for_delivery: 'Ready for Delivery',
+  delivered: 'Delivered',
+  completed: 'Completed',
+};
+
+/* -------------------------------------------------------
+   PrintableInvoice Component
+------------------------------------------------------- */
+const PrintableInvoice = React.forwardRef(
+  ({ paymentData, doctorInfo, selectedCasesData, paymentNotes }, ref) => {
+    const { t } = useTranslation();
+    const invoiceNumber = `INV-${Date.now()}`;
+    const currentDate = new Date().toLocaleDateString();
+
+    return (
+      <div ref={ref} className="p-8 bg-white">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
+          <div>
+            <img
+              className="h-10 flex-none object-cover"
+              src={`${window.location.origin}/logo.png`}
+              alt="Logo"
+            />
+            <p className="text-sm text-gray-600 mt-2">
+              {t('paymentCollectionDialog.paymentReceipt')}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">
+              <strong>{t('paymentCollectionDialog.invoice')} #:</strong>{' '}
+              {invoiceNumber}
+            </p>
+            <p className="text-sm text-gray-600">
+              <strong>{t('transactions.table.date')}:</strong> {currentDate}
+            </p>
+          </div>
+        </div>
+
+        {/* Doctor Information */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            {t('paymentCollectionDialog.doctorLabel')}
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">Name</p>
+                <p className="text-sm text-gray-900">{doctorInfo.full_name}</p>
+              </div>
+              {doctorInfo.email && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1">
+                    {t('auth.email')}
+                  </p>
+                  <p className="text-sm text-gray-900">{doctorInfo.email}</p>
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              {doctorInfo.clinic && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1">
+                    {t('casePage.clinic')}
+                  </p>
+                  <p className="text-sm text-gray-900">{doctorInfo.clinic}</p>
+                </div>
+              )}
+              {doctorInfo.phone && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1">
+                    {t('casePage.phone')}
+                  </p>
+                  <p className="text-sm text-gray-900">{doctorInfo.phone}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Summary */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            {t('paymentCollectionDialog.paymentSummary')}
+          </h2>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                {t('paymentCollectionDialog.paymentAmount')}
+              </span>
+              <span className="text-lg font-bold text-gray-900">
+                ${parseFloat(paymentData.amount).toFixed(2)}
+              </span>
+            </div>
+            {paymentNotes && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-xs font-medium text-gray-500 mb-1">
+                  {t('paymentCollectionDialog.notesLabel')}
+                </p>
+                <p className="text-sm text-gray-700">{paymentNotes}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Cases Breakdown */}
+        {selectedCasesData.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              {t('paymentCollectionDialog.casesIncluded')}
+            </h2>
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('cases.caseId')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('paymentCollectionDialog.patient')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('paymentCollectionDialog.statusLabel')}
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('casePage.treatmentPlan.totalCost')}
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('paymentCollectionDialog.paymentAmountLabel')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {selectedCasesData.map((case_) => (
+                    <tr key={case_.id}>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {t('doctorTransactions.case')} #{case_.id}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {case_.first_name} {case_.last_name}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {statusDisplayText[case_.status] || case_.status}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                        ${parseFloat(case_.total_cost || 0).toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                        ${case_.paymentApplied.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50">
+                  <tr>
+                    <td
+                      colSpan="4"
+                      className="px-4 py-3 text-sm font-medium text-gray-900 text-right"
+                    >
+                      {t('paymentCollectionDialog.totalPayment')}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right">
+                      ${parseFloat(paymentData.amount).toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
+          <p>
+            {t('adminTreatmentPlan.print.footer', {
+              date: new Date().toLocaleString(),
+            })}
+          </p>
+        </div>
+      </div>
+    );
+  }
+);
 
 const PaymentCollectionDialog = ({
   isOpen,
@@ -25,10 +224,19 @@ const PaymentCollectionDialog = ({
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [selectedCases, setSelectedCases] = useState(new Set());
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [lastPaymentData, setLastPaymentData] = useState(null);
+
+  const printRef = useRef();
 
   const { doctorCases, loadingCases, loadDoctorCases } = useDoctorCases();
   const { processingPayment, processPayment } =
     usePaymentProcessor(refetchBillingData);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Payment-Invoice-${Date.now()}`,
+  });
 
   // Reset form when dialog opens/closes or initial doctor changes
   useEffect(() => {
@@ -37,6 +245,8 @@ const PaymentCollectionDialog = ({
       setSelectedCases(new Set());
       setPaymentAmount('');
       setPaymentNotes('');
+      setShowPrintPreview(false);
+      setLastPaymentData(null);
       if (initialDoctor) {
         loadDoctorCases(initialDoctor.id);
       }
@@ -86,19 +296,93 @@ const PaymentCollectionDialog = ({
     });
 
     if (success) {
-      onClose();
+      // Prepare data for invoice
+      const paymentAmountNum = parseFloat(paymentAmount);
+      const selectedTotal = calculateSelectedCasesTotal();
+      const remainingAmount = Math.max(0, paymentAmountNum - selectedTotal);
+      const unselectedCases = getUnselectedCases();
+
+      const selectedCasesData = doctorCases
+        .filter((case_) => selectedCases.has(case_.id))
+        .map((case_) => ({
+          ...case_,
+          paymentApplied: Math.min(case_.remainingAmount, paymentAmountNum),
+        }));
+
+      // Add unselected cases if there's remaining amount
+      if (remainingAmount > 0 && unselectedCases.length > 0) {
+        const perCaseAmount = remainingAmount / unselectedCases.length;
+        unselectedCases.forEach((case_) => {
+          selectedCasesData.push({
+            ...case_,
+            paymentApplied: Math.min(case_.remainingAmount, perCaseAmount),
+          });
+        });
+      }
+
+      setLastPaymentData({
+        paymentData: {
+          amount: paymentAmount,
+          date: new Date().toISOString(),
+        },
+        doctorInfo: selectedDoctor,
+        selectedCasesData,
+        paymentNotes,
+      });
+
+      setShowPrintPreview(true);
     }
   };
 
   const handleClose = () => {
-    // Optionally reset state on close if not covered by useEffect
-    // setSelectedDoctor(null);
-    // setSelectedCases(new Set());
-    // setPaymentAmount('');
-    // setPaymentNotes('');
+    setShowPrintPreview(false);
+    setLastPaymentData(null);
     onClose();
   };
 
+  const handlePrintAndClose = () => {
+    handlePrint();
+    setTimeout(() => {
+      handleClose();
+    }, 500);
+  };
+
+  // Show print preview after successful payment
+  if (showPrintPreview && lastPaymentData) {
+    return (
+      <DialogWrapper
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={t('paymentCollectionDialog.paymentInvoice')}
+        description={t('paymentCollectionDialog.paymentInvoiceDescription')}
+        icon={<FeatherPrinter />}
+        maxWidth="max-w-4xl"
+      >
+        <div className="space-y-4 w-full pt-4">
+          <div className="border border-neutral-border rounded-lg bg-white max-h-[60vh] overflow-y-auto">
+            <PrintableInvoice
+              ref={printRef}
+              paymentData={lastPaymentData.paymentData}
+              doctorInfo={lastPaymentData.doctorInfo}
+              selectedCasesData={lastPaymentData.selectedCasesData}
+              paymentNotes={lastPaymentData.paymentNotes}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pt-6 border-t border-neutral-border w-full mt-6">
+          <Button variant="neutral-secondary" onClick={handleClose}>
+            {t('common.close')}
+          </Button>
+          <Button icon={<FeatherPrinter />} onClick={handlePrintAndClose}>
+            {t('paymentCollectionDialog.printInvoice')}
+          </Button>
+        </div>
+      </DialogWrapper>
+    );
+  }
+
+  // Original payment collection form
   return (
     <DialogWrapper
       isOpen={isOpen}
@@ -107,12 +391,9 @@ const PaymentCollectionDialog = ({
       description={t('paymentCollectionDialog.subtitle')}
       icon={<FeatherDollarSign />}
       loading={processingPayment}
-      // Increased max width to accommodate the cases section comfortably
       maxWidth="max-w-4xl"
     >
       <div className="space-y-6 w-full pt-4">
-        {' '}
-        {/* Added padding top after header */}
         <DoctorSelection
           doctors={doctors}
           selectedDoctor={selectedDoctor}
@@ -140,7 +421,6 @@ const PaymentCollectionDialog = ({
         )}
       </div>
 
-      {/* Actions are now a child, not a Dialog.Action */}
       <DialogActions
         onClose={handleClose}
         onSubmit={handleSubmit}
@@ -152,9 +432,7 @@ const PaymentCollectionDialog = ({
   );
 };
 
-// Removed DialogHeader - its logic is now inside DialogWrapper
-
-// --- DoctorSelection, PaymentAmountInput, PaymentNotesInput are unchanged ---
+// ... (rest of the component code remains the same: DoctorSelection, PaymentAmountInput, etc.)
 
 const DoctorSelection = ({ doctors, selectedDoctor, onDoctorChange }) => {
   const { t } = useTranslation();
@@ -227,10 +505,7 @@ const PaymentNotesInput = ({ paymentNotes, setPaymentNotes }) => {
   );
 };
 
-// --- CasesSection and its children are unchanged except for removing DialogHeader ---
-
 const CasesSection = ({
-  //selectedDoctor,
   doctorCases,
   loadingCases,
   selectedCases,
@@ -284,23 +559,6 @@ const CasesSectionHeader = ({ selectedCases, doctorCases }) => {
   );
 };
 
-const statusDisplayText = {
-  submitted: 'Submitted',
-  accepted: 'Accepted',
-  under_review: 'Under Review',
-  rejected: 'Rejected',
-  awaiting_patient_approval: 'Awaiting Approval',
-  patient_rejected: 'Rejected by Patient',
-  awaiting_user_approval: 'Awaiting Approval',
-  user_rejected: 'Rejected by Doctor',
-  approved: 'Approved',
-  in_production: 'In Production',
-  ready_for_delivery: 'Ready for Delivery',
-  delivered: 'Delivered',
-  completed: 'Completed',
-};
-
-// Enhanced payment status badges
 const PaymentStatusBadge = ({ paymentStatus, paymentPercentage }) => {
   const { t } = useTranslation();
 
@@ -482,8 +740,6 @@ const DialogActions = ({
 }) => {
   const { t } = useTranslation();
 
-  // Changed styling to fit within the new DialogWrapper structure,
-  // without the need for an external border-t.
   return (
     <div className="flex items-center justify-end gap-3 pt-6 border-t border-neutral-border w-full mt-6">
       <Button

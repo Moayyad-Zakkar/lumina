@@ -303,7 +303,7 @@ const CasePageRefactored = () => {
 
       {showPlanSection && (
         <Alert
-          variant="brand"
+          variant="success"
           icon={<FeatherAlertTriangle />}
           title={alertContent.title}
           description={alertContent.description}

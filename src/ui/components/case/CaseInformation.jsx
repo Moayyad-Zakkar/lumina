@@ -513,7 +513,7 @@ const CaseInformation = ({ caseData, isAdmin = false }) => {
               }}
               className="w-auto"
             >
-              {t('casePage.printCaseInfo')}
+              {t('common.print')}
             </Button>
           </div>
 

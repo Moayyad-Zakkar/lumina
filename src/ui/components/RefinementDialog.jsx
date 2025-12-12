@@ -190,7 +190,7 @@ const RefinementDialog = ({
               {t('casePage.treatmentOptions')}
             </h3>
             <p className="text-body font-body text-subtext-color mb-4">
-              Review and update treatment options if needed
+              {t('casePage.refinement.dialog.treatmentOptionsUpdate')}
             </p>
           </div>
           <div className="px-4 pb-4">
@@ -208,9 +208,17 @@ const RefinementDialog = ({
             {t('casePage.dentalChart')}
           </h3>
           <p className="text-body font-body text-subtext-color mb-4">
-            Update tooth status if there are any changes
+            {t('casePage.refinement.dialog.dentalChartUpdate')}
           </p>
-          <DentalChart initialStatus={toothStatus} onChange={setToothStatus} />
+          <div
+            className="flex w-full justify-center"
+            style={{ transform: 'scale(90%)' }}
+          >
+            <DentalChart
+              initialStatus={toothStatus}
+              onChange={setToothStatus}
+            />
+          </div>
         </div>
 
         {/* Diagnosis Form */}
@@ -220,7 +228,7 @@ const RefinementDialog = ({
               {t('caseSubmit.diagnosis.title')}
             </h3>
             <p className="text-body font-body text-subtext-color mb-4">
-              Review and update diagnosis information if needed
+              {t('casePage.refinement.dialog.diagnosisUpdate')}
             </p>
           </div>
           <div className="px-4 pb-4">

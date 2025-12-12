@@ -508,7 +508,7 @@ const AdminTreatmentPlanEditor = ({
               )}
             </div>
 
-            {/* View 3DA Viewer Button */}
+            {/* View Viewer Button */}
             {caseHasViewer && (
               <div className="flex w-full items-center gap-2">
                 <Button

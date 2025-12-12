@@ -962,6 +962,8 @@
     "title": "Collect Payment",
     "subtitle": "Enter payment details and select cases to allocate the payment.",
     "doctorLabel": "Doctor",
+    "name": "Name",
+    "notes": "Notes",
     "doctorPlaceholder": "Select a doctor...",
     "paymentAmountLabel": "Payment Amount (USD)",
     "paymentAmountPlaceholder": "0.00",

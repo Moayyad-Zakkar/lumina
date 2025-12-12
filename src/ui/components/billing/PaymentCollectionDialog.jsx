@@ -17,30 +17,30 @@ import {
   usePaymentProcessor,
 } from '../../../hooks/useBillingData';
 
-const statusDisplayText = {
-  submitted: 'Submitted',
-  accepted: 'Accepted',
-  under_review: 'Under Review',
-  rejected: 'Rejected',
-  awaiting_patient_approval: 'Awaiting Approval',
-  patient_rejected: 'Rejected by Patient',
-  awaiting_user_approval: 'Awaiting Approval',
-  user_rejected: 'Rejected by Doctor',
-  approved: 'Approved',
-  in_production: 'In Production',
-  ready_for_delivery: 'Ready for Delivery',
-  delivered: 'Delivered',
-  completed: 'Completed',
-};
-
 /* -------------------------------------------------------
    PrintableInvoice Component
 ------------------------------------------------------- */
-const PrintableInvoice = React.forwardRef(
+export const PrintableInvoice = React.forwardRef(
   ({ paymentData, doctorInfo, selectedCasesData, paymentNotes }, ref) => {
     const { t } = useTranslation();
     const invoiceNumber = `INV-${Date.now()}`;
     const currentDate = new Date().toLocaleDateString();
+
+    const statusDisplayText = {
+      submitted: t('caseStatusBadge.submitted'),
+      accepted: t('caseStatusBadge.accepted'),
+      under_review: t('caseStatusBadge.underReview'),
+      rejected: t('caseStatusBadge.rejected'),
+      awaiting_patient_approval: t('caseStatusBadge.awaitingApproval'),
+      patient_rejected: t('caseStatusBadge.patientRejected'),
+      awaiting_user_approval: t('caseStatusBadge.awaitingApproval'),
+      user_rejected: t('caseStatusBadge.userRejected'),
+      approved: t('caseStatusBadge.approved'),
+      in_production: t('caseStatusBadge.inProduction'),
+      ready_for_delivery: t('caseStatusBadge.readyForDelivery'),
+      delivered: t('caseStatusBadge.delivered'),
+      completed: t('caseStatusBadge.completed'),
+    };
 
     return (
       <div ref={ref} className="p-8 bg-white">
@@ -75,7 +75,9 @@ const PrintableInvoice = React.forwardRef(
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Name</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">
+                  {t('paymentCollectionDialog.name')}
+                </p>
                 <p className="text-sm text-gray-900">{doctorInfo.full_name}</p>
               </div>
               {doctorInfo.email && (
@@ -125,7 +127,7 @@ const PrintableInvoice = React.forwardRef(
             {paymentNotes && (
               <div className="mt-3 pt-3 border-t border-gray-200">
                 <p className="text-xs font-medium text-gray-500 mb-1">
-                  {t('paymentCollectionDialog.notesLabel')}
+                  {t('paymentCollectionDialog.notes')}
                 </p>
                 <p className="text-sm text-gray-700">{paymentNotes}</p>
               </div>
@@ -143,19 +145,19 @@ const PrintableInvoice = React.forwardRef(
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('cases.caseId')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('paymentCollectionDialog.patient')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('paymentCollectionDialog.statusLabel')}
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('casePage.treatmentPlan.totalCost')}
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('paymentCollectionDialog.paymentAmountLabel')}
                     </th>
                   </tr>
@@ -163,19 +165,19 @@ const PrintableInvoice = React.forwardRef(
                 <tbody className="bg-white divide-y divide-gray-200">
                   {selectedCasesData.map((case_) => (
                     <tr key={case_.id}>
-                      <td className="px-4 py-3 text-sm text-gray-900">
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
                         {t('doctorTransactions.case')} #{case_.id}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
                         {case_.first_name} {case_.last_name}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-gray-700 text-center">
                         {statusDisplayText[case_.status] || case_.status}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
                         ${parseFloat(case_.total_cost || 0).toFixed(2)}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 text-center">
                         ${case_.paymentApplied.toFixed(2)}
                       </td>
                     </tr>
@@ -185,11 +187,11 @@ const PrintableInvoice = React.forwardRef(
                   <tr>
                     <td
                       colSpan="4"
-                      className="px-4 py-3 text-sm font-medium text-gray-900 text-right"
+                      className="px-4 py-3 text-sm font-medium text-gray-900 text-center"
                     >
                       {t('paymentCollectionDialog.totalPayment')}
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-gray-900 text-right">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-900 text-center">
                       ${parseFloat(paymentData.amount).toFixed(2)}
                     </td>
                   </tr>
@@ -382,7 +384,6 @@ const PaymentCollectionDialog = ({
     );
   }
 
-  // Original payment collection form
   return (
     <DialogWrapper
       isOpen={isOpen}
@@ -431,8 +432,6 @@ const PaymentCollectionDialog = ({
     </DialogWrapper>
   );
 };
-
-// ... (rest of the component code remains the same: DoctorSelection, PaymentAmountInput, etc.)
 
 const DoctorSelection = ({ doctors, selectedDoctor, onDoctorChange }) => {
   const { t } = useTranslation();
@@ -635,6 +634,22 @@ const CasesList = ({
 
 const CaseItem = ({ case_, isSelected, onSelectionChange }) => {
   const { t } = useTranslation();
+
+  const statusDisplayText = {
+    submitted: t('caseStatusBadge.submitted'),
+    accepted: t('caseStatusBadge.accepted'),
+    under_review: t('caseStatusBadge.underReview'),
+    rejected: t('caseStatusBadge.rejected'),
+    awaiting_patient_approval: t('caseStatusBadge.awaitingApproval'),
+    patient_rejected: t('caseStatusBadge.patientRejected'),
+    awaiting_user_approval: t('caseStatusBadge.awaitingApproval'),
+    user_rejected: t('caseStatusBadge.userRejected'),
+    approved: t('caseStatusBadge.approved'),
+    in_production: t('caseStatusBadge.inProduction'),
+    ready_for_delivery: t('caseStatusBadge.readyForDelivery'),
+    delivered: t('caseStatusBadge.delivered'),
+    completed: t('caseStatusBadge.completed'),
+  };
 
   return (
     <div className="flex items-center gap-3 p-3 border-b border-neutral-border last:border-b-0 hover:bg-neutral-50">

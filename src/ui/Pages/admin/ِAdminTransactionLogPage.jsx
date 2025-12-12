@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useReactToPrint } from 'react-to-print';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { Loader } from '../../components/Loader';
@@ -14,17 +15,207 @@ import {
   FeatherRefreshCw,
   FeatherTrash,
   FeatherCalendar,
+  FeatherPrinter,
 } from '@subframe/core';
 import AdminHeadline from '../../components/AdminHeadline';
 import supabase from '../../../helper/supabaseClient';
 import { useUserRole } from '../../../helper/useUserRole';
-
 import { Link } from 'react-router';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { isSuperAdmin } from '../../../helper/auth';
+import DialogWrapper from '../../components/DialogWrapper';
+
+/* -------------------------------------------------------
+   PrintableInvoice Component
+------------------------------------------------------- */
+const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
+  const { t, i18n } = useTranslation();
+
+  const statusDisplayText = {
+    submitted: t('caseStatusBadge.submitted'),
+    accepted: t('caseStatusBadge.accepted'),
+    under_review: t('caseStatusBadge.underReview'),
+    rejected: t('caseStatusBadge.rejected'),
+    awaiting_patient_approval: t('caseStatusBadge.awaitingApproval'),
+    patient_rejected: t('caseStatusBadge.patientRejected'),
+    awaiting_user_approval: t('caseStatusBadge.awaitingApproval'),
+    user_rejected: t('caseStatusBadge.userRejected'),
+    approved: t('caseStatusBadge.approved'),
+    in_production: t('caseStatusBadge.inProduction'),
+    ready_for_delivery: t('caseStatusBadge.readyForDelivery'),
+    delivered: t('caseStatusBadge.delivered'),
+    completed: t('caseStatusBadge.completed'),
+  };
+
+  // Use the actual Transaction ID (e.g., TXN-12345)
+  const invoiceNumber = transaction.id;
+  const currentDate = new Date(transaction.datetime).toLocaleDateString();
+
+  return (
+    <div ref={ref} className="p-8 bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
+        <div>
+          <img
+            className="h-10 flex-none object-cover"
+            src={`${window.location.origin}/logo.png`}
+            alt="Logo"
+          />
+          <p className="text-sm text-gray-600 mt-2">
+            {t('paymentCollectionDialog.paymentReceipt')}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-600">
+            <strong>{t('paymentCollectionDialog.invoice')} #:</strong>{' '}
+            {invoiceNumber}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>{t('transactions.table.date')}:</strong> {currentDate}
+          </p>
+        </div>
+      </div>
+
+      {/* Doctor Information */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          {t('paymentCollectionDialog.doctorLabel')}
+        </h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">
+                {t('paymentCollectionDialog.name')}
+              </p>
+              <p className="text-sm text-gray-900">{transaction.from}</p>
+            </div>
+            {transaction.email !== '-' && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">
+                  {t('auth.email')}
+                </p>
+                <p className="text-sm text-gray-900">{transaction.email}</p>
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            {transaction.clinic !== '-' && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">
+                  {t('casePage.clinic')}
+                </p>
+                <p className="text-sm text-gray-900">{transaction.clinic}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Summary */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          {t('paymentCollectionDialog.paymentSummary')}
+        </h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              {t('paymentCollectionDialog.paymentAmount')}
+            </span>
+            <span className="text-lg font-bold text-gray-900">
+              ${transaction.amount.toFixed(2)}
+            </span>
+          </div>
+          {transaction.description && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs font-medium text-gray-500 mb-1">
+                {t('paymentCollectionDialog.notes')}
+              </p>
+              <p className="text-sm text-gray-700">{transaction.description}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Cases Breakdown */}
+      {casesData && casesData.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            {t('paymentCollectionDialog.casesIncluded')}
+          </h2>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('cases.caseId')}
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('paymentCollectionDialog.patient')}
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('paymentCollectionDialog.statusLabel')}
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('casePage.treatmentPlan.totalCost')}
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('paymentCollectionDialog.paymentAmountLabel')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {casesData.map((case_) => (
+                  <tr key={case_.id}>
+                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                      {t('doctorTransactions.case')} #{case_.id}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                      {case_.first_name} {case_.last_name}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700 text-center">
+                      {statusDisplayText[case_.status] || case_.status}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                      ${parseFloat(case_.total_cost || 0).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 text-center">
+                      ${case_.paymentApplied.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-50">
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-4 py-3 text-sm font-medium text-gray-900 text-center"
+                  >
+                    {t('paymentCollectionDialog.totalPayment')}
+                  </td>
+                  <td className="px-4 py-3 text-sm font-bold text-gray-900 text-center">
+                    ${transaction.amount.toFixed(2)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
+        <p>
+          {t('adminTreatmentPlan.print.footer', {
+            date: new Date().toLocaleString(),
+          })}
+        </p>
+      </div>
+    </div>
+  );
+});
 
 function AdminTransactionLogPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { role } = useUserRole();
   const isSuperAdminUser = isSuperAdmin(role);
 
@@ -38,6 +229,13 @@ function AdminTransactionLogPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
 
+  // Print preview state
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [transactionToPrint, setTransactionToPrint] = useState(null);
+  const [fetchedCasesData, setFetchedCasesData] = useState([]);
+  const [printLoading, setPrintLoading] = useState(false);
+  const printRef = useRef();
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -46,6 +244,12 @@ function AdminTransactionLogPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Print handler
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Invoice-${transactionToPrint?.id || 'Receipt'}`,
+  });
 
   // Get available years from transactions
   const availableYears = useMemo(() => {
@@ -148,6 +352,66 @@ function AdminTransactionLogPage() {
     fetchTransactions(true);
   };
 
+  /* ------------------------------------------------------------------
+     Handle Print Click - Fetch Cases from payment_case_allocations
+  ------------------------------------------------------------------ */
+  const handlePrintClick = async (transaction) => {
+    setTransactionToPrint(transaction);
+    setShowPrintPreview(true);
+    setPrintLoading(true);
+    setFetchedCasesData([]); // Reset previous data
+
+    try {
+      // Query the junction table 'payment_case_allocations'
+      // And join with 'cases' table to get details
+      const { data, error } = await supabase
+        .from('payment_case_allocations')
+        .select(
+          `
+          allocated_amount,
+          cases (
+            id,
+            first_name,
+            last_name,
+            status,
+            total_cost
+          )
+        `
+        )
+        .eq('payment_id', transaction.fullId);
+
+      if (error) {
+        console.error('Error fetching invoice details:', error);
+      } else if (data) {
+        // Transform the data: flatten the object and rename allocated_amount to paymentApplied
+        const formattedCases = data.map((item) => ({
+          ...item.cases,
+          paymentApplied: parseFloat(item.allocated_amount),
+        }));
+        setFetchedCasesData(formattedCases);
+      }
+    } catch (err) {
+      console.error('Error fetching invoice details:', err);
+    } finally {
+      setPrintLoading(false);
+    }
+  };
+
+  const handlePrintAndClose = () => {
+    handlePrint();
+    setTimeout(() => {
+      setShowPrintPreview(false);
+      setTransactionToPrint(null);
+      setFetchedCasesData([]);
+    }, 500);
+  };
+
+  const handleClosePrintPreview = () => {
+    setShowPrintPreview(false);
+    setTransactionToPrint(null);
+    setFetchedCasesData([]);
+  };
+
   const handleDeleteClick = (transaction) => {
     setTransactionToDelete(transaction);
     setShowDeleteDialog(true);
@@ -160,6 +424,8 @@ function AdminTransactionLogPage() {
       setDeletingId(transactionToDelete.fullId);
       setError(null);
 
+      // Deleting the payment should cascade delete allocations if FKs are set up correctly.
+      // If strict FKs prevent this, you might need to delete from payment_case_allocations first.
       const { error: deleteError } = await supabase
         .from('payments')
         .delete()
@@ -167,7 +433,6 @@ function AdminTransactionLogPage() {
 
       if (deleteError) throw deleteError;
 
-      // Remove from local state
       setTransactions((prev) =>
         prev.filter((txn) => txn.fullId !== transactionToDelete.fullId)
       );
@@ -201,7 +466,6 @@ function AdminTransactionLogPage() {
       const txnDate = new Date(txn.datetime);
       const today = new Date();
 
-      // Quick date filter
       let matchesQuickDate = true;
       if (dateFilter !== 'all') {
         if (dateFilter === 'today') {
@@ -217,13 +481,11 @@ function AdminTransactionLogPage() {
         }
       }
 
-      // Year filter
       let matchesYear = true;
       if (selectedYear !== 'all') {
         matchesYear = txnDate.getFullYear() === parseInt(selectedYear);
       }
 
-      // Date range filter
       let matchesDateRange = true;
       if (startDate || endDate) {
         if (startDate) {
@@ -670,15 +932,13 @@ function AdminTransactionLogPage() {
                 <Table.HeaderCell>
                   {t('transactions.table.amount')}
                 </Table.HeaderCell>
-                {isSuperAdminUser && (
-                  <Table.HeaderCell>{t('common.actions')}</Table.HeaderCell>
-                )}
+                <Table.HeaderCell>{t('common.actions')}</Table.HeaderCell>
               </Table.HeaderRow>
             }
           >
             {filteredTransactions.length === 0 ? (
               <Table.Row>
-                <Table.Cell colSpan={isSuperAdminUser ? 7 : 6}>
+                <Table.Cell colSpan={7}>
                   <div className="text-center py-8">
                     <span className="text-neutral-500">
                       {t('transactions.noTransactions')}
@@ -742,16 +1002,23 @@ function AdminTransactionLogPage() {
                       {txn.type === 'expense' && '-'}${txn.amount.toFixed(2)}
                     </span>
                   </Table.Cell>
-                  {isSuperAdminUser && (
-                    <Table.Cell>
+                  <Table.Cell>
+                    <div className="flex items-center gap-2">
                       <IconButton
-                        icon={<FeatherTrash />}
-                        onClick={() => handleDeleteClick(txn)}
-                        disabled={deletingId === txn.fullId}
-                        variant="destructive"
+                        icon={<FeatherPrinter />}
+                        onClick={() => handlePrintClick(txn)}
+                        variant="neutral"
                       />
-                    </Table.Cell>
-                  )}
+                      {isSuperAdminUser && (
+                        <IconButton
+                          icon={<FeatherTrash />}
+                          onClick={() => handleDeleteClick(txn)}
+                          disabled={deletingId === txn.fullId}
+                          variant="destructive"
+                        />
+                      )}
+                    </div>
+                  </Table.Cell>
                 </Table.Row>
               ))
             )}
@@ -766,6 +1033,50 @@ function AdminTransactionLogPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Print Preview Dialog */}
+      {showPrintPreview && transactionToPrint && (
+        <DialogWrapper
+          isOpen={showPrintPreview}
+          onClose={handleClosePrintPreview}
+          title={t('paymentCollectionDialog.paymentInvoice')}
+          description={t('paymentCollectionDialog.paymentInvoiceDescription')}
+          icon={<FeatherPrinter />}
+          maxWidth="max-w-4xl"
+        >
+          <div className="space-y-4 w-full pt-4">
+            {printLoading ? (
+              <div className="flex w-full h-40 justify-center items-center">
+                <Loader size="medium" />
+              </div>
+            ) : (
+              <div className="border border-neutral-border rounded-lg bg-white max-h-[60vh] overflow-y-auto">
+                <PrintableInvoice
+                  ref={printRef}
+                  transaction={transactionToPrint}
+                  casesData={fetchedCasesData}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-neutral-border w-full mt-6">
+            <Button
+              variant="neutral-secondary"
+              onClick={handleClosePrintPreview}
+            >
+              {t('common.close')}
+            </Button>
+            <Button
+              icon={<FeatherPrinter />}
+              onClick={handlePrintAndClose}
+              disabled={printLoading}
+            >
+              {t('paymentCollectionDialog.printInvoice')}
+            </Button>
+          </div>
+        </DialogWrapper>
       )}
 
       {/* Delete Confirmation Dialog */}

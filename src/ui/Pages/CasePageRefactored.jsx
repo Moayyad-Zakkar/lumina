@@ -315,7 +315,6 @@ const CasePageRefactored = () => {
         <CaseInformation caseData={caseData} isAdmin={false} />
 
         {/* Satisfaction Display */}
-        {/* [!code change] Added onRefresh prop. Ensure Child calls this on success */}
         {status === 'completed' && caseData.satisfaction_rating && (
           <CaseSatisfactionDisplay
             caseData={caseData}

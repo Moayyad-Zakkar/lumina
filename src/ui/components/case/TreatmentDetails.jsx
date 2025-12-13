@@ -51,6 +51,25 @@ const TreatmentDetails = ({ caseData }) => {
         {t('casePage.treatmentOptionsTitle')}
       </span>
 
+      {/* Chief Complaint Section - Only show if it exists */}
+      {caseData.chief_complaint && (
+        <>
+          <div className="w-full">
+            <span className="text-body-bold font-body-bold text-default-font mb-2 block">
+              {t('caseSubmit.diagnosis.chiefComplaint')}
+            </span>
+            <div className="bg-neutral-50 dark:bg-neutral-900 rounded-md p-4 border border-neutral-border">
+              <p className="text-body font-body text-default-font whitespace-pre-wrap">
+                {caseData.chief_complaint}
+              </p>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full border-t border-neutral-border" />
+        </>
+      )}
+
       {/* Treatment Options Section */}
       <div className="w-full">
         <span className="text-body-bold font-body-bold text-default-font mb-3 block font-bold">

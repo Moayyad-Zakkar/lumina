@@ -216,6 +216,20 @@ const PrintableContent = React.forwardRef(
             {t('casePage.treatmentOptionsTitle')}
           </h2>
 
+          {/* Chief Complaint */}
+          {caseData.chief_complaint && (
+            <div className="mb-4 subsection-box">
+              <h3 className="text-base font-semibold mb-2 text-gray-700">
+                {t('caseSubmit.diagnosis.chiefComplaint')}
+              </h3>
+              <div className="bg-brand-50 border-l-4 border-brand-500 p-3 rounded">
+                <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                  {caseData.chief_complaint}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Treatment Options */}
           <div className="mb-4 subsection-box">
             <h3 className="text-base font-semibold mb-2 text-gray-700">
@@ -340,7 +354,7 @@ const PrintableContent = React.forwardRef(
                   : t('casePage.caseNotes.caseNotes')}
               </h2>
             </div>
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <div className="bg-brand-50 border-l-4 border-brand-500 p-4 rounded">
               <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                 {caseData.user_note}
               </p>

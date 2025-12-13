@@ -30,6 +30,7 @@ import DialogWrapper from '../../components/DialogWrapper';
 ------------------------------------------------------- */
 const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
   const statusDisplayText = {
     submitted: t('caseStatusBadge.submitted'),
@@ -47,14 +48,15 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
     completed: t('caseStatusBadge.completed'),
   };
 
-  // Use the actual Transaction ID (e.g., TXN-12345)
   const invoiceNumber = transaction.id;
   const currentDate = new Date(transaction.datetime).toLocaleDateString();
 
   return (
-    <div ref={ref} className="p-8 bg-white">
+    <div ref={ref} className="p-8 bg-white" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
+      <div
+        className={`flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6`}
+      >
         <div>
           <img
             className="h-10 flex-none object-cover"
@@ -65,7 +67,7 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
             {t('paymentCollectionDialog.paymentReceipt')}
           </p>
         </div>
-        <div className="text-right">
+        <div className={isRTL ? 'text-left' : 'text-right'}>
           <p className="text-sm text-gray-600">
             <strong>{t('paymentCollectionDialog.invoice')} #:</strong>{' '}
             {invoiceNumber}
@@ -117,7 +119,7 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
           {t('paymentCollectionDialog.paymentSummary')}
         </h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="flex justify-between items-center mb-2">
+          <div className={`flex justify-between items-center mb-2`}>
             <span className="text-sm font-medium text-gray-700">
               {t('paymentCollectionDialog.paymentAmount')}
             </span>
@@ -146,19 +148,39 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                  >
                     {t('cases.caseId')}
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                  >
                     {t('paymentCollectionDialog.patient')}
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                  >
                     {t('paymentCollectionDialog.statusLabel')}
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                  >
                     {t('casePage.treatmentPlan.totalCost')}
                   </th>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                  >
                     {t('paymentCollectionDialog.paymentAmountLabel')}
                   </th>
                 </tr>
@@ -166,19 +188,39 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {casesData.map((case_) => (
                   <tr key={case_.id}>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                    <td
+                      className={`px-4 py-3 text-sm text-gray-900 ${
+                        isRTL ? 'text-right' : 'text-left'
+                      }`}
+                    >
                       {t('doctorTransactions.case')} #{case_.id}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                    <td
+                      className={`px-4 py-3 text-sm text-gray-900 ${
+                        isRTL ? 'text-right' : 'text-left'
+                      }`}
+                    >
                       {case_.first_name} {case_.last_name}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 text-center">
+                    <td
+                      className={`px-4 py-3 text-sm text-gray-700 ${
+                        isRTL ? 'text-right' : 'text-left'
+                      }`}
+                    >
                       {statusDisplayText[case_.status] || case_.status}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                    <td
+                      className={`px-4 py-3 text-sm text-gray-900 ${
+                        isRTL ? 'text-right' : 'text-left'
+                      }`}
+                    >
                       ${parseFloat(case_.total_cost || 0).toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 text-center">
+                    <td
+                      className={`px-4 py-3 text-sm font-medium text-gray-900 ${
+                        isRTL ? 'text-right' : 'text-left'
+                      }`}
+                    >
                       ${case_.paymentApplied.toFixed(2)}
                     </td>
                   </tr>
@@ -188,11 +230,17 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
                 <tr>
                   <td
                     colSpan="4"
-                    className="px-4 py-3 text-sm font-medium text-gray-900 text-center"
+                    className={`px-4 py-3 text-sm font-medium text-gray-900 ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
                   >
                     {t('paymentCollectionDialog.totalPayment')}
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold text-gray-900 text-center">
+                  <td
+                    className={`px-4 py-3 text-sm font-bold text-gray-900 ${
+                      isRTL ? 'text-right' : 'text-left'
+                    }`}
+                  >
                     ${transaction.amount.toFixed(2)}
                   </td>
                 </tr>

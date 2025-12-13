@@ -36,6 +36,7 @@ const CaseSubmitRefactored = () => {
     compressedScans: null,
     toothStatus: {},
     additionalFiles: [],
+    chiefComplaint: '',
     userNote: '',
     upperMidline: '',
     upperMidlineShift: '',
@@ -357,6 +358,7 @@ const CaseSubmitRefactored = () => {
         compressed_scans_url: compressedScansPath,
         additional_files_urls: additionalFilesPaths || [],
         tooth_status: toothStatus,
+        chief_complaint: formData.chiefComplaint?.trim() || null,
         user_note: formData.userNote?.trim() || null,
         upper_midline: formData.upperMidline?.trim() || null,
         upper_midline_shift: formData.upperMidlineShift?.trim() || null,
@@ -425,7 +427,8 @@ const CaseSubmitRefactored = () => {
           handleChange={handleChange}
           alignerMaterials={alignerMaterials}
         />
-
+        <DiagnosisForm formData={formData} handleChange={handleChange} />
+        {/* Dental Chart */}
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">
             {t('casePage.dentalChart')}
@@ -434,8 +437,6 @@ const CaseSubmitRefactored = () => {
             <DentalChart initialStatus={{}} onChange={setToothStatus} />
           </div>
         </div>
-
-        <DiagnosisForm formData={formData} handleChange={handleChange} />
 
         <FileUploadSection formData={formData} handleChange={handleChange} />
 

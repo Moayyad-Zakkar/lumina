@@ -348,12 +348,12 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                     </h3>
                     <div className="text-xs text-subtext-color bg-white px-2 py-1 rounded border border-neutral-border">
                       {existingList.length + pendingList.length}{' '}
-                      {t('treatmentPlanImages.labels.step')}s
+                      {t('treatmentPlanImages.labels.step')}
                     </div>
                   </div>
 
                   <div className="p-4 flex flex-col gap-4">
-                    {/* 1. Existing Steps (Clearer UI) */}
+                    {/* 1. Existing Steps */}
                     {existingList.length > 0 && (
                       <div className="flex flex-col gap-2">
                         <span className="text-caption font-caption text-subtext-color uppercase tracking-wider">

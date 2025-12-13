@@ -711,6 +711,9 @@
 
     "diagnosis": {
       "title": "التشخيص الأساسي",
+      "chiefComplaint": "الشكوى الرئيسية",
+      "chiefComplaintPlaceholder": "صف الشكوى الرئيسية للمريض أو سبب طلب المعالجة...",
+      "chiefComplaintHelp": "أدخل الشكوى الرئيسية للمريض أو هدف المعالجة",
       "upperMidline": "الخط المتوسط العلوي",
       "lowerMidline": "الخط المتوسط السفلي",
       "centered": "متمركز",
@@ -1120,6 +1123,7 @@
     "creatingAccount": "جارٍ إنشاء الحساب...",
     "createUser": "إنشاء مستخدم",
     "userCreatedSuccess": "تم إنشاء حساب المستخدم بنجاح!",
+    "password": "كلمة المرور",
     "confirmReject": "هل أنت متأكد من رفض هذا الطلب؟",
     "statusPending": "بانتظار القبول",
     "statusApproved": "مقبول",

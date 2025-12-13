@@ -320,6 +320,9 @@
 
     "diagnosis": {
       "title": "Basic Diagnosis",
+      "chiefComplaint": "Chief Complaint",
+      "chiefComplaintPlaceholder": "Describe the patient's main concern or reason for seeking treatment...",
+      "chiefComplaintHelp": "Enter the patient's primary complaint or treatment goal",
       "upperMidline": "Upper Midline",
       "lowerMidline": "Lower Midline",
       "centered": "Centered",
@@ -1151,6 +1154,7 @@
     "creatingAccount": "Creating Account...",
     "createUser": "Create User",
     "userCreatedSuccess": "User account created successfully!",
+    "password": "Password",
     "confirmReject": "Are you sure you want to reject this request?",
     "statusPending": "Pending",
     "statusApproved": "Approved",

@@ -12,6 +12,30 @@ const DiagnosisForm = ({ formData, handleChange }) => {
         {t('caseSubmit.diagnosis.title')}
       </span>
 
+      {/* Chief Complaint */}
+      <div className="w-full">
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="chiefComplaint"
+            className="text-body-bold font-body-bold text-default-font"
+          >
+            {t('caseSubmit.diagnosis.chiefComplaint')}
+          </label>
+          <textarea
+            id="chiefComplaint"
+            name="chiefComplaint"
+            value={formData.chiefComplaint}
+            onChange={handleChange}
+            placeholder={t('caseSubmit.diagnosis.chiefComplaintPlaceholder')}
+            rows={3}
+            className="w-full px-3 py-2 text-body font-body text-default-font bg-default-background border border-neutral-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical min-h-[80px] placeholder:text-subtext-color"
+          />
+          <span className="text-caption font-caption text-subtext-color">
+            {t('caseSubmit.diagnosis.chiefComplaintHelp')}
+          </span>
+        </div>
+      </div>
+
       {/* Upper Midline */}
       <div className="w-full">
         <div className="flex flex-col gap-4">

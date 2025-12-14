@@ -364,7 +364,7 @@ const PrintableContent = React.forwardRef(
 
         {/* Dental Chart Section */}
         {isAdmin && (
-          <div className="mb-6 force-page-break">
+          <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
               {t('dentalChart.title')}
             </h2>

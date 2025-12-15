@@ -19,6 +19,7 @@ const RefinementDialog = ({
   loadingMaterials,
   loading,
   error,
+  isAdminMode = false,
 }) => {
   const { t } = useTranslation();
 
@@ -165,7 +166,7 @@ const RefinementDialog = ({
               className="text-body-bold font-body-bold text-default-font"
             >
               {t('casePage.refinement.dialog.reasonLabel')}{' '}
-              <span className="text-red-500">*</span>
+              {!isAdminMode && <span className="text-red-500">*</span>}
             </label>
             <p className="text-body font-body text-subtext-color -mt-1 mb-2">
               {t('casePage.refinement.dialog.reasonHelp')}

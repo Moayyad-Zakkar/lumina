@@ -11,6 +11,8 @@ import { Dialog } from '../../components/Dialog';
 import toast from 'react-hot-toast';
 import DentalChart from '../../components/DentalChart';
 import DeclineCaseDialog from '../../components/AdminDeclineCaseDialog';
+import RefinementDialog from '../../components/RefinementDialog';
+import RefinementHistory from '../../components/RefinementHistory';
 
 // Import refactored components
 import CaseInformation from '../../components/case/CaseInformation';
@@ -37,6 +39,7 @@ import {
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
+import { uploadFile } from '../../../helper/storageUtils';
 import { checkCaseTreatmentImages } from '../../../helper/caseHasView';
 import TreatmentDetails from '../../components/case/TreatmentDetails';
 import CaseSatisfactionDisplay from '../../components/case/CaseSatisfactionDisplay';
@@ -46,6 +49,40 @@ const AdminCasePageRefactored = () => {
   const { caseData, error } = useLoaderData();
   const navigate = useNavigate();
   const [caseHasViewer, setCaseHasViewer] = useState(false);
+
+  const [isRefinementDialogOpen, setIsRefinementDialogOpen] = useState(false);
+  const [alignerMaterials, setAlignerMaterials] = useState([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+  const [refinementError, setRefinementError] = useState(null);
+  const [isSubmittingRefinement, setIsSubmittingRefinement] = useState(false);
+
+  // Fetch services when refinement dialog opens
+  useEffect(() => {
+    if (isRefinementDialogOpen) {
+      fetchServices();
+    }
+  }, [isRefinementDialogOpen]);
+
+  const fetchServices = async () => {
+    setLoadingMaterials(true);
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      setAlignerMaterials(
+        data.filter((item) => item.type === 'aligners_material')
+      );
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      toast.error(t('casePage.refinement.errors.loadServicesFailed'));
+    } finally {
+      setLoadingMaterials(false);
+    }
+  };
 
   // Initialize IPR data from caseData
   const [iprData, setIprData] = useState(caseData?.ipr_data || {});
@@ -197,6 +234,193 @@ const AdminCasePageRefactored = () => {
       toast.success(t('casePage.toast.planApproved'));
     } catch (e) {
       toast.error(e.message || t('casePage.toast.approveFailed'));
+    }
+  };
+
+  const handleRefinementSubmit = async (refinementData) => {
+    try {
+      setIsSubmittingRefinement(true);
+      setRefinementError(null);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user)
+        throw new Error(t('casePage.refinement.errors.notAuthenticated'));
+
+      // Use the case's doctor info instead of current user
+      const doctorName = caseData.profiles?.full_name || 'Unknown Doctor';
+      const clinicName = caseData.profiles?.clinic || null;
+      const patientName = `${caseData.first_name} ${caseData.last_name}`;
+      const refinementCaseId = `REF-${caseData.id}-${Date.now()}`;
+
+      // Upload files helper (same as RefinementSection)
+      const uploadFileWithErrorHandling = async (
+        file,
+        folderPath,
+        metadata = {}
+      ) => {
+        if (!file) return null;
+
+        try {
+          const result = await uploadFile(file, folderPath, {
+            caseId: metadata.caseId || refinementCaseId,
+            patientName: metadata.patientName || patientName,
+            fileType: metadata.fileType || folderPath,
+            doctorName: metadata.doctorName || doctorName,
+          });
+
+          if (!result.success) {
+            throw new Error(result.error || 'Upload failed');
+          }
+
+          return result.filePath;
+        } catch (error) {
+          console.error(`Upload error for ${folderPath}:`, error);
+          throw error;
+        }
+      };
+
+      let upperJawScanPath = null;
+      let lowerJawScanPath = null;
+      let biteScanPath = null;
+      let compressedScansPath = null;
+      let additionalFilesPaths = [];
+
+      // Upload based on method
+      if (refinementData.uploadMethod === 'individual') {
+        const uploadResults = await Promise.all([
+          uploadFileWithErrorHandling(
+            refinementData.upperJawScan,
+            'upper-jaw-scans',
+            {
+              caseId: refinementCaseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: t('caseSubmit.upperJawScan'),
+            }
+          ),
+          uploadFileWithErrorHandling(
+            refinementData.lowerJawScan,
+            'lower-jaw-scans',
+            {
+              caseId: refinementCaseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: t('caseSubmit.lowerJawScan'),
+            }
+          ),
+          uploadFileWithErrorHandling(refinementData.biteScan, 'bite-scans', {
+            caseId: refinementCaseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: t('caseSubmit.biteScan'),
+          }),
+        ]);
+
+        [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
+      } else if (refinementData.uploadMethod === 'compressed') {
+        compressedScansPath = await uploadFileWithErrorHandling(
+          refinementData.compressedScans,
+          'compressed-scans',
+          {
+            caseId: refinementCaseId,
+            patientName,
+            doctorName,
+            clinicName,
+            fileType: t('caseSubmit.compressedScans'),
+          }
+        );
+      }
+
+      // Upload additional files if any
+      if (
+        refinementData.additionalFiles &&
+        refinementData.additionalFiles.length > 0
+      ) {
+        additionalFilesPaths = await Promise.all(
+          refinementData.additionalFiles.map((file, index) =>
+            uploadFileWithErrorHandling(file, 'additional-files', {
+              caseId: refinementCaseId,
+              patientName,
+              doctorName,
+              clinicName,
+              fileType: t('caseSubmit.additionalFile', { number: index + 1 }),
+            })
+          )
+        );
+      }
+
+      // Get the latest refinement number
+      const { data: existingRefinements } = await supabase
+        .from('cases')
+        .select('refinement_number')
+        .eq('parent_case_id', caseData.id)
+        .order('refinement_number', { ascending: false })
+        .limit(1);
+
+      const nextRefinementNumber = existingRefinements?.[0]?.refinement_number
+        ? existingRefinements[0].refinement_number + 1
+        : 1;
+
+      // Create refinement case
+      const insertPayload = {
+        user_id: caseData.user_id, // Use original case's doctor
+        parent_case_id: caseData.id,
+        refinement_number: nextRefinementNumber,
+        first_name: caseData.first_name,
+        last_name: caseData.last_name,
+        refinement_reason: refinementData.reason?.trim() || 'Admin refinement',
+        aligner_material:
+          refinementData.alignerMaterial || caseData.aligner_material,
+        treatment_arch: refinementData.treatmentArch || caseData.treatment_arch,
+        upload_method: refinementData.uploadMethod,
+        upper_jaw_scan_url: upperJawScanPath,
+        lower_jaw_scan_url: lowerJawScanPath,
+        bite_scan_url: biteScanPath,
+        compressed_scans_url: compressedScansPath,
+        additional_files_urls: additionalFilesPaths || [],
+        tooth_status: refinementData.toothStatus || {},
+        upper_midline: refinementData.upperMidline || null,
+        upper_midline_shift: refinementData.upperMidlineShift || null,
+        lower_midline: refinementData.lowerMidline || null,
+        lower_midline_shift: refinementData.lowerMidlineShift || null,
+        canine_right_class: refinementData.canineRightClass || null,
+        canine_left_class: refinementData.canineLeftClass || null,
+        molar_right_class: refinementData.molarRightClass || null,
+        molar_left_class: refinementData.molarLeftClass || null,
+        status: 'submitted',
+      };
+
+      const { error: insertError } = await supabase
+        .from('cases')
+        .insert(insertPayload);
+
+      if (insertError) throw insertError;
+
+      toast.success(t('casePage.refinement.success.submitted'));
+      setIsRefinementDialogOpen(false);
+
+      // Refresh the page data
+      window.location.reload();
+    } catch (error) {
+      console.error('Submit error:', error);
+      setRefinementError(
+        error.message || t('casePage.refinement.errors.submitFailed')
+      );
+      toast.error(error.message);
+    } finally {
+      setIsSubmittingRefinement(false);
+    }
+  };
+
+  const handleRefinementClose = () => {
+    if (!isSubmittingRefinement) {
+      setRefinementError(null);
+      setIsRefinementDialogOpen(false);
     }
   };
 
@@ -476,7 +700,21 @@ const AdminCasePageRefactored = () => {
           handleFileDownload={downloadSingleFile}
         />
 
+        {/* Refinement History */}
+        <RefinementHistory caseData={caseData} />
+
+        {/* Admin Buttons */}
         <div className="flex w-full items-center justify-end gap-2">
+          {currentStatus === 'delivered' && (
+            <Button
+              variant="brand-secondary"
+              icon={<FeatherRefreshCw />}
+              onClick={() => setIsRefinementDialogOpen(true)}
+              className="w-auto"
+            >
+              {t('casePage.refinement.requestRefinement')}
+            </Button>
+          )}
           {currentStatus === 'awaiting_user_approval' && (
             <Button
               variant="brand"
@@ -498,6 +736,19 @@ const AdminCasePageRefactored = () => {
           </Button>
         </div>
       </div>
+
+      {/* Refinement Dialog */}
+      <RefinementDialog
+        isOpen={isRefinementDialogOpen}
+        onClose={handleRefinementClose}
+        onSubmit={handleRefinementSubmit}
+        originalCaseData={caseData}
+        alignerMaterials={alignerMaterials}
+        loadingMaterials={loadingMaterials}
+        loading={isSubmittingRefinement}
+        error={refinementError}
+        isAdminMode={true} // Add this prop to make fields optional
+      />
 
       <DeclineCaseDialog
         isOpen={showDeclineDialog}

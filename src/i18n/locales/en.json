@@ -147,104 +147,6 @@
         "processing": "Processing",
         "unknown": "Unknown"
       }
-    },
-
-    "expenseDialog": {
-      "title": "Record Expense",
-      "subtitle": "Enter expense details for business costs and payments made.",
-      "expenseAmount": "Expense Amount *",
-      "description": "Description/Notes *",
-      "descriptionPlaceholder": "Describe the expense (e.g., Munqeth Wahood Lab Fees, office supplies, equipment)...",
-      "recordExpense": "Record Expense",
-      "recording": "Recording...",
-      "errors": {
-        "recordFailed": "Failed to record expense",
-        "validExpense": "Please enter a valid expense amount"
-      },
-      "success": {
-        "expenseRecorded": "Expense recorded successfully!"
-      }
-    },
-
-    "viewer": {
-      "title": "Case Viewer",
-      "loadingViewer": "Loading case viewer...",
-      "caseNotFound": "Case not found",
-      "patientName": "Patient Name",
-      "caseNumber": "Case Number",
-      "sequenceAnimation": "Sequence Animation",
-      "beforeAfter": "Before & After",
-      "preloadingImages": "Preloading images...",
-      "step": "Step",
-      "of": "of",
-      "noSequenceImages": "No sequence images available for this view",
-      "noBeforeAfterImage": "No before/after image available for this view",
-      "jumpToStart": "Jump to Start",
-      "previousStep": "Previous Step",
-      "nextStep": "Next Step",
-      "jumpToEnd": "Jump to End",
-      "upperAligners": "Upper Aligners",
-      "lowerAligners": "Lower Aligners",
-      "disclaimer": {
-        "title": "Important Notice",
-        "points": [
-          "There may be differences between the computer-generated prediction and the actual clinical outcome",
-          "The number of aligners may increase depending on the case requirements",
-          "The treating doctor is solely responsible for the treatment plan"
-        ]
-      }
-    },
-
-    "statusMessages": {
-      "awaitingApproval": "Please review the treatment plan details and choose to approve, decline, or request edits.",
-      "approved": "Your plan is approved. Production will start soon.",
-      "inProduction": "Your aligners are currently being manufactured.",
-      "readyForDelivery": "Your aligners are ready for delivery.",
-      "delivered": "Your aligners have been delivered. Follow your treatment schedule.",
-      "completed": "Your treatment is completed.",
-      "userRejected": "You have declined the treatment plan."
-    },
-    "alerts": {
-      "submitted": {
-        "title": "Review the case and accept it",
-        "description": "Review the case information, then accept or decline the case."
-      },
-      "accepted": {
-        "title": "Case accepted - Create treatment plan",
-        "description": "Set aligners count and duration, then send to doctor for approval."
-      },
-      "awaiting_user_approval": {
-        "title": "Treatment plan is sent to doctor for approval",
-        "description": "Waiting for the doctor approval to proceed with the production process."
-      },
-      "approved": {
-        "title": "Doctor approved the treatment plan",
-        "description": "Proceed with manufacturing. Update the case status as production progresses."
-      },
-      "in_production": {
-        "title": "Aligners are in production",
-        "description": "Update to Ready for Delivery when manufacturing is complete."
-      },
-      "ready_for_delivery": {
-        "title": "Aligners are ready for delivery",
-        "description": "Mark as Delivered once the clinic receives their aligners."
-      },
-      "delivered": {
-        "title": "Aligners delivered to clinic",
-        "description": "Mark the case as Completed when treatment concludes."
-      },
-      "completed": {
-        "title": "The case is complete",
-        "description": "The doctor had finished the case"
-      },
-      "rejected": {
-        "title": "Case has been declined",
-        "description": "This case was declined and is no longer active. You can undo this action if needed."
-      },
-      "user_rejected": {
-        "title": "Treatment plan was declined",
-        "description": "This case's Treatment plan was declined by the doctor and the case is no longer active."
-      }
     }
   },
 
@@ -443,6 +345,15 @@
     "openViewer": "Open Case Viewer",
     "viewOriginalCase": "View Original Case",
     "refinementCase": "Refinement",
+    "statusMessages": {
+      "awaitingApproval": "Please review the treatment plan details and choose to approve, decline, or request edits.",
+      "approved": "Your plan is approved. Production will start soon.",
+      "inProduction": "Your aligners are currently being manufactured.",
+      "readyForDelivery": "Your aligners are ready for delivery.",
+      "delivered": "Your aligners have been delivered. Follow your treatment schedule.",
+      "completed": "Your treatment is completed.",
+      "userRejected": "You have declined the treatment plan."
+    },
 
     "caseAcceptanceCard": {
       "title": "Case Review",
@@ -1170,6 +1081,50 @@
       "deleteFailed": "Failed to delete case",
       "iprSaved": "IPR data saved successfully",
       "iprFailed": "Failed to save IPR data"
+    }
+  },
+  "expenseDialog": {
+    "title": "Record Expense",
+    "subtitle": "Enter expense details for business costs and payments made.",
+    "expenseAmount": "Expense Amount *",
+    "description": "Description/Notes *",
+    "descriptionPlaceholder": "Describe the expense (e.g., Munqeth Wahood Lab Fees, office supplies, equipment)...",
+    "recordExpense": "Record Expense",
+    "recording": "Recording...",
+    "errors": {
+      "recordFailed": "Failed to record expense",
+      "validExpense": "Please enter a valid expense amount"
+    },
+    "success": {
+      "expenseRecorded": "Expense recorded successfully!"
+    }
+  },
+  "viewer": {
+    "title": "Case Viewer",
+    "loadingViewer": "Loading case viewer...",
+    "caseNotFound": "Case not found",
+    "patientName": "Patient Name",
+    "caseNumber": "Case Number",
+    "sequenceAnimation": "Sequence Animation",
+    "beforeAfter": "Before & After",
+    "preloadingImages": "Preloading images...",
+    "step": "Step",
+    "of": "of",
+    "noSequenceImages": "No sequence images available for this view",
+    "noBeforeAfterImage": "No before/after image available for this view",
+    "jumpToStart": "Jump to Start",
+    "previousStep": "Previous Step",
+    "nextStep": "Next Step",
+    "jumpToEnd": "Jump to End",
+    "upperAligners": "Upper Aligners",
+    "lowerAligners": "Lower Aligners",
+    "disclaimer": {
+      "title": "Important Notice",
+      "points": [
+        "There may be differences between the computer-generated prediction and the actual clinical outcome",
+        "The number of aligners may increase depending on the case requirements",
+        "The treating doctor is solely responsible for the treatment plan"
+      ]
     }
   }
 }

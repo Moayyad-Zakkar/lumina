@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "copy dist\\index.html dist\\404.html && gh-pages -d dist"
   },
   "dependencies": {
     "@subframe/core": "^1.145.0",

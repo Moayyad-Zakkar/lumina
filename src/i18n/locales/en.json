@@ -995,7 +995,7 @@
     "emailPlaceholder": "Enter your email",
     "passwordPlaceholder": "Enter your password",
     "signingIn": "Signing in...",
-    "requestAccess": "Request Access",
+    "requestAccess": "Request Account",
     "forgotPasswordText": "Forgot your password?",
     "resetPassword": "Reset Password",
     "errors": {

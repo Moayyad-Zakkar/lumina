@@ -88,7 +88,7 @@ export default {
       },
       fontSize: {
         caption: [
-          '15px',
+          '12px',
           {
             lineHeight: '16px',
             fontWeight: '400',
@@ -96,7 +96,7 @@ export default {
           },
         ],
         'caption-bold': [
-          '15px',
+          '12px',
           {
             lineHeight: '16px',
             fontWeight: '500',
@@ -104,7 +104,7 @@ export default {
           },
         ],
         body: [
-          '17px',
+          '14px',
           {
             lineHeight: '20px',
             fontWeight: '400',
@@ -112,7 +112,7 @@ export default {
           },
         ],
         'body-bold': [
-          '17px',
+          '14px',
           {
             lineHeight: '20px',
             fontWeight: '500',
@@ -120,7 +120,7 @@ export default {
           },
         ],
         'heading-3': [
-          '19px',
+          '16px',
           {
             lineHeight: '20px',
             fontWeight: '800',
@@ -128,7 +128,7 @@ export default {
           },
         ],
         'heading-2': [
-          '23px',
+          '20px',
           {
             lineHeight: '24px',
             fontWeight: '800',
@@ -136,7 +136,7 @@ export default {
           },
         ],
         'heading-1': [
-          '33px',
+          '30px',
           {
             lineHeight: '36px',
             fontWeight: '800',
@@ -144,7 +144,7 @@ export default {
           },
         ],
         'monospace-body': [
-          '17px',
+          '14px',
           {
             lineHeight: '20px',
             fontWeight: '400',

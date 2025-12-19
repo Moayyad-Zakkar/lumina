@@ -154,7 +154,8 @@ function Login() {
                 {t('auth.dontHaveAccount')}
               </span>
               <LinkButton
-                variant="neutral"
+                variant="brand"
+                size="small"
                 className="text-sky-600 p-0 h-auto"
                 onClick={() => setShowSignUpDialog(true)}
               >
@@ -167,7 +168,8 @@ function Login() {
               </span>
               <Link to="/reset-password">
                 <LinkButton
-                  variant="neutral"
+                  variant="brand"
+                  size="small"
                   className="text-sky-600 p-0 h-auto"
                 >
                   {t('login.resetPassword')}

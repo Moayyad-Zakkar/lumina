@@ -29,12 +29,18 @@ import { capitalizeFirstSafe } from '../../../helper/formatText';
 /* -------------------------------------------------------
    PrintField Component
 ------------------------------------------------------- */
-const PrintField = ({ label, value }) => (
-  <div>
-    <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
-    <p className="text-sm text-gray-900">{value}</p>
-  </div>
-);
+const PrintField = ({ label, value }) => {
+  const { i18n } = useTranslation();
+  // i18n.dir() returns 'rtl' or 'ltr' based on the active language
+  const isRTL = i18n.dir() === 'rtl';
+
+  return (
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="text-start">
+      <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
+      <p className="text-sm text-gray-900">{value}</p>
+    </div>
+  );
+};
 
 /* -------------------------------------------------------
    PrintableTreatmentPlan Component

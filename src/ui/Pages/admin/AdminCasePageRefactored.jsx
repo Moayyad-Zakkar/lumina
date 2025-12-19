@@ -43,6 +43,7 @@ import { uploadFile } from '../../../helper/storageUtils';
 import { checkCaseTreatmentImages } from '../../../helper/caseHasView';
 import TreatmentDetails from '../../components/case/TreatmentDetails';
 import CaseSatisfactionDisplay from '../../components/case/CaseSatisfactionDisplay';
+import InternalNotesSection from '../../components/case/InternalNotesSection';
 
 const AdminCasePageRefactored = () => {
   const { t } = useTranslation();
@@ -608,6 +609,8 @@ const AdminCasePageRefactored = () => {
               )}
             </div>
           )}
+
+        <InternalNotesSection caseData={caseData} />
         <TreatmentDetails caseData={caseData} />
 
         {caseData.user_note && (

@@ -90,7 +90,7 @@ export const downloadFile = async (storedUrlOrPath) => {
         return { success: true };
       }
     } catch (downloadError) {
-      console.log('Direct download failed, trying signed URL:', downloadError);
+      //console.log('Direct download failed, trying signed URL:', downloadError);
     }
 
     // Method 2: Fallback to signed URL

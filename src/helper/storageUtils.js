@@ -13,7 +13,7 @@ const TELEGRAM_API_URL = `${
 }/functions/v1/telegram-backup`;
 
 // Log the API URL for debugging (remove this later)
-console.log('Telegram Edge Function URL:', TELEGRAM_API_URL);
+//console.log('Telegram Edge Function URL:', TELEGRAM_API_URL);
 
 /**
  * Parse storage URL to extract the file path
@@ -65,13 +65,14 @@ export const parseStorageUrl = (urlOrPath) => {
  */
 const uploadToTelegram = async (file, metadata = {}) => {
   try {
+    /*
     console.log('🔄 Starting Telegram backup via Edge Function...', {
       filename: file.name,
       size: file.size,
       type: file.type,
       edgeFunction: TELEGRAM_API_URL,
     });
-
+*/
     // Get current session for authentication
     const {
       data: { session },
@@ -95,7 +96,7 @@ const uploadToTelegram = async (file, metadata = {}) => {
     formData.append('fileType', metadata.fileType || '');
     formData.append('userId', userId);
 
-    console.log('📤 Calling Edge Function with auth token');
+    //console.log('📤 Calling Edge Function with auth token');
 
     const response = await fetch(TELEGRAM_API_URL, {
       method: 'POST',
@@ -105,16 +106,16 @@ const uploadToTelegram = async (file, metadata = {}) => {
       body: formData,
     });
 
-    console.log('📥 Response status:', response.status);
+    //console.log('📥 Response status:', response.status);
 
     const result = await response.json();
-    console.log('📥 Response data:', result);
+    //console.log('📥 Response data:', result);
 
     if (!result.success) {
       throw new Error(result.error || 'Backup failed');
     }
 
-    console.log('✅ Backup successful');
+    //console.log('✅ Backup successful');
     return { success: true, data: result };
   } catch (error) {
     console.error('❌ Backup error:', error);
@@ -263,7 +264,7 @@ export const downloadFile = async (storedUrlOrPath) => {
         return { success: true };
       }
     } catch (downloadError) {
-      console.log('Direct download failed, trying signed URL:', downloadError);
+      // console.log('Direct download failed, trying signed URL:', downloadError);
     }
 
     // Method 2: Fallback to signed URL

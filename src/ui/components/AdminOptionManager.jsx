@@ -12,21 +12,33 @@ export default function AdminOptionManager({ type, label }) {
   const [loading, setLoading] = useState(false);
 
   const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState({ name: '', price: '' });
+  // 1. Updated newItem state
+  const [newItem, setNewItem] = useState({
+    name: '',
+    price: '',
+    description_en: '',
+    description_ar: '',
+  });
 
   const [editingId, setEditingId] = useState(null);
-  const [editDraft, setEditDraft] = useState({ name: '', price: '' });
+  // 2. Updated editDraft state
+  const [editDraft, setEditDraft] = useState({
+    name: '',
+    price: '',
+    description_en: '',
+    description_ar: '',
+  });
 
   const nameHeader = useMemo(() => {
     if (type === 'printing_method') return 'Method Name';
-    if (type === 'aligners_material') return 'Material Name';
+    if (type === 'aligners_material') return 'System Name';
     if (type === 'acceptance_fee') return 'Fee Name';
     return 'Name';
   }, [type]);
 
   const addButtonText = useMemo(() => {
     if (type === 'printing_method') return 'Add Method';
-    if (type === 'aligners_material') return 'Add Material';
+    if (type === 'aligners_material') return 'Add System';
     if (type === 'acceptance_fee') return 'Add Fee';
     return 'Add Item';
   }, [type]);
@@ -37,7 +49,6 @@ export default function AdminOptionManager({ type, label }) {
       .from('services')
       .select('*')
       .eq('type', type)
-      //.eq('is_active', true)
       .order('created_at', { ascending: true });
 
     if (!error) setItems(data || []);
@@ -52,37 +63,54 @@ export default function AdminOptionManager({ type, label }) {
     if (!newItem.name) return;
     const priceNumber = parseFloat(String(newItem.price).trim() || '0');
 
+    // 3. Included description in Insert
     await supabase.from('services').insert([
       {
         type,
         name: newItem.name,
+        description_en: newItem.description_en,
+        description_ar: newItem.description_ar,
         price: isNaN(priceNumber) ? 0 : priceNumber,
         is_active: true,
       },
     ]);
 
-    setNewItem({ name: '', price: '' });
+    setNewItem({ name: '', price: '', description_en: '', description_ar: '' });
     setIsAdding(false);
     fetchItems();
   };
 
   const startEdit = (item) => {
     setEditingId(item.id);
-    setEditDraft({ name: item.name || '', price: item.price ?? '' });
+    // 4. Map description to draft
+    setEditDraft({
+      name: item.name || '',
+      price: item.price ?? '',
+      description_en: item.description_en || '',
+      description_ar: item.description_ar || '',
+    });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditDraft({ name: '', price: '' });
+    setEditDraft({
+      name: '',
+      price: '',
+      description_en: '',
+      description_ar: '',
+    });
   };
 
   const saveEdit = async (id) => {
     const priceNumber = parseFloat(String(editDraft.price).trim());
 
+    // 5. Included description in Update
     await supabase
       .from('services')
       .update({
         name: editDraft.name,
+        description_en: editDraft.description_en,
+        description_ar: editDraft.description_ar,
         price: isNaN(priceNumber) ? 0 : priceNumber,
       })
       .eq('id', id);
@@ -120,6 +148,24 @@ export default function AdminOptionManager({ type, label }) {
                 setNewItem((p) => ({ ...p, name: e.target.value }))
               }
             />
+            {/* Added Description Input for New Item */}
+            <input
+              className="h-8 rounded-md border border-neutral-border px-3 text-body"
+              placeholder="English Description"
+              value={newItem.description_en}
+              onChange={(e) =>
+                setNewItem((p) => ({ ...p, description_en: e.target.value }))
+              }
+            />
+            <input
+              className="h-8 rounded-md border border-neutral-border px-3 text-body"
+              placeholder="Arabic Description"
+              value={newItem.description_ar}
+              onChange={(e) =>
+                setNewItem((p) => ({ ...p, description_ar: e.target.value }))
+              }
+              dir="rtl"
+            />
             <input
               type="number"
               className="h-8 w-28 rounded-md border border-neutral-border px-3 text-body"
@@ -133,7 +179,12 @@ export default function AdminOptionManager({ type, label }) {
               variant="neutral-secondary"
               onClick={() => {
                 setIsAdding(false);
-                setNewItem({ name: '', price: '' });
+                setNewItem({
+                  name: '',
+                  price: '',
+                  description_en: '',
+                  description_ar: '',
+                });
               }}
             >
               Cancel
@@ -147,6 +198,8 @@ export default function AdminOptionManager({ type, label }) {
         header={
           <Table.HeaderRow>
             <Table.HeaderCell>{nameHeader}</Table.HeaderCell>
+            <Table.HeaderCell>English Description</Table.HeaderCell>
+            <Table.HeaderCell>Arabic Description</Table.HeaderCell>
             <Table.HeaderCell>Price</Table.HeaderCell>
             <Table.HeaderCell>Status</Table.HeaderCell>
             <Table.HeaderCell />
@@ -170,6 +223,57 @@ export default function AdminOptionManager({ type, label }) {
                 </span>
               )}
             </Table.Cell>
+
+            {/* English Description Cell */}
+            <Table.Cell>
+              {editingId === item.id ? (
+                <input
+                  className="h-10 w-full rounded-md border border-neutral-border px-3 text-body"
+                  placeholder="English description"
+                  value={editDraft.description_en}
+                  onChange={(e) =>
+                    setEditDraft((p) => ({
+                      ...p,
+                      description_en: e.target.value,
+                    }))
+                  }
+                />
+              ) : (
+                <span
+                  className="text-body font-body text-neutral-500 text-wrap line-clamp-2"
+                  title={item.description_en}
+                >
+                  {item.description_en || '-'}
+                </span>
+              )}
+            </Table.Cell>
+
+            {/* Arabic Description Cell */}
+            <Table.Cell>
+              {editingId === item.id ? (
+                <input
+                  className="h-10 w-full rounded-md border border-neutral-border px-3 text-body"
+                  placeholder="وصف عربي"
+                  value={editDraft.description_ar}
+                  onChange={(e) =>
+                    setEditDraft((p) => ({
+                      ...p,
+                      description_ar: e.target.value,
+                    }))
+                  }
+                  dir="rtl"
+                />
+              ) : (
+                <span
+                  className="text-body font-body text-neutral-500 text-wrap line-clamp-2"
+                  title={item.description_ar}
+                  dir="rtl"
+                >
+                  {item.description_ar || '-'}
+                </span>
+              )}
+            </Table.Cell>
+
             <Table.Cell>
               {editingId === item.id ? (
                 <input
@@ -209,7 +313,7 @@ export default function AdminOptionManager({ type, label }) {
                 ) : (
                   <SubframeCore.DropdownMenu.Root>
                     <SubframeCore.DropdownMenu.Trigger asChild={true}>
-                      <IconButton icon=<SubframeCore.FeatherSquarePen /> />
+                      <IconButton icon={<SubframeCore.FeatherSquarePen />} />
                     </SubframeCore.DropdownMenu.Trigger>
                     <SubframeCore.DropdownMenu.Portal>
                       <SubframeCore.DropdownMenu.Content
@@ -221,7 +325,7 @@ export default function AdminOptionManager({ type, label }) {
                         <DropdownMenu>
                           <DropdownMenu.DropdownItem
                             onClick={() => startEdit(item)}
-                            icon=<SubframeCore.FeatherPen />
+                            icon={<SubframeCore.FeatherPen />}
                           >
                             Edit
                           </DropdownMenu.DropdownItem>
@@ -242,7 +346,7 @@ export default function AdminOptionManager({ type, label }) {
 
         {!loading && items.length === 0 ? (
           <Table.Row>
-            <Table.Cell className="col-span-4">
+            <Table.Cell className="col-span-6">
               <span className="text-body font-body text-neutral-500">
                 No records yet.
               </span>

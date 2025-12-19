@@ -278,7 +278,7 @@ const CaseSubmitRefactored = () => {
       const caseId = `CASE-${user.id.substring(0, 8)}-${Date.now()}`;
 
       if (formData.uploadMethod === 'individual') {
-        console.log('📤 Starting individual file uploads...');
+        //console.log('📤 Starting individual file uploads...');
 
         const uploadResults = await Promise.all([
           uploadFileWithErrorHandling(

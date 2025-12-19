@@ -42,7 +42,7 @@ function Login() {
         navigate('/app/dashboard');
       }
 
-      console.log('User signed in:', data.user);
+      //console.log('User signed in:', data.user);
     } catch (error) {
       console.error('Error signing in:', error.message);
       setError(error.message);

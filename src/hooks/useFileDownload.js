@@ -15,7 +15,7 @@ export const useFileDownload = () => {
     setDownloadingFiles((prev) => new Set([...prev, storedUrl]));
 
     try {
-      console.log('Starting download for:', fileName);
+      //console.log('Starting download for:', fileName);
 
       const result = await downloadFile(storedUrl);
 
@@ -99,7 +99,7 @@ export const useFileDownload = () => {
 
         if (result.success) {
           successCount++;
-          console.log(`✓ Downloaded: ${file.name}`);
+          //console.log(`✓ Downloaded: ${file.name}`);
         } else {
           failCount++;
           console.error(`✗ Failed: ${file.name} - ${result.error}`);

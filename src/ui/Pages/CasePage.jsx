@@ -142,7 +142,7 @@ const CasePage = () => {
 
         if (result.success) {
           successCount++;
-          console.log(`✓ Downloaded: ${file.name}`);
+          //console.log(`✓ Downloaded: ${file.name}`);
         } else {
           failCount++;
           console.error(`✗ Failed: ${file.name} - ${result.error}`);

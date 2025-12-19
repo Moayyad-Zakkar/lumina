@@ -23,7 +23,10 @@
     "generate": "Generate",
     "hide": "Hide",
     "show": "Show",
-    "print": "Print"
+    "print": "Print",
+    "learnMore": "Learn more about our systems",
+    "noDescription": "No description available.",
+    "noRecords": "No materials found."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -200,7 +203,9 @@
       "upperArch": "Upper arch",
       "lowerArch": "Lower arch",
       "bothArches": "Both arches",
-      "alignerMaterial": "Preferred Aligners System"
+      "alignerMaterial": "Preferred Aligners System",
+      "materialDetails": "Aligners Systems & Pricing",
+      "materialDesc": "Compare our available aligner systems and features."
     },
 
     "fileUpload": {
@@ -853,13 +858,28 @@
     "editNote": "Edit Note",
     "addNote": "Add Note",
     "additionalNotes": "Additional Notes",
+    "placeholder": "Enter any special instructions or comments for the doctor",
+    "helpText": "Add any additional information or notes about this case for the doctor.",
+    "saving": "Saving...",
+    "saveNote": "Save Note",
+    "noNotes": "No lab notes added yet.",
+    "toast": {
+      "saved": "Admin note saved",
+      "saveFailed": "Failed to save note"
+    }
+  },
+  "internalNotes": {
+    "title": "Internal Notes",
+    "editNote": "Edit Note",
+    "addNote": "Add Note",
+    "additionalNotes": "Additional Notes",
     "placeholder": "Enter any special instructions, internal comments, etc...",
     "helpText": "Add any additional information or internal notes about this case.",
     "saving": "Saving...",
     "saveNote": "Save Note",
     "noNotes": "No lab notes added yet.",
     "toast": {
-      "saved": "Admin note saved",
+      "saved": "Internal note saved",
       "saveFailed": "Failed to save note"
     }
   },

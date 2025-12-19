@@ -45,12 +45,12 @@ function AdminBillingPage() {
 
     // Early returns with logging
     if (totalCost <= 0) {
-      console.log(`🚫 Case ${case_.id}: No cost (${totalCost}), not billable`);
+      //console.log(`🚫 Case ${case_.id}: No cost (${totalCost}), not billable`);
       return 0;
     }
 
     if (case_.payment_status === 'not_applicable') {
-      console.log(`🚫 Case ${case_.id}: Status 'not_applicable', not billable`);
+      //console.log(`🚫 Case ${case_.id}: Status 'not_applicable', not billable`);
       return 0;
     }
 

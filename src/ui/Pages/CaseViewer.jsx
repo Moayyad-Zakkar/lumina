@@ -215,7 +215,7 @@ function CaseViewer() {
 
       Promise.all(imagePromises).then(() => {
         setImagesLoaded(true);
-        console.log(`All ${images.length} images preloaded for ${view} view`);
+        //console.log(`All ${images.length} images preloaded for ${view} view`);
       });
     }
   }, [view, currentTab, caseData]);

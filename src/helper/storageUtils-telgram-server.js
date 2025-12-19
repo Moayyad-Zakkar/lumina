@@ -12,9 +12,6 @@ const TELEGRAM_API_URL =
   import.meta.env.VITE_TELEGRAM_API_URL ||
   'http://localhost:3001/api/telegram-backup';
 
-// Log the API URL for debugging (remove this later)
-console.log('Telegram API URL:', TELEGRAM_API_URL);
-
 /**
  * Parse storage URL to extract the file path
  */
@@ -82,8 +79,6 @@ const uploadToTelegram = async (file, metadata = {}) => {
     formData.append('doctorName', metadata.doctorName || '');
     formData.append('clinicName', metadata.clinicName || '');
     formData.append('fileType', metadata.fileType || '');
-
-    console.log('📤 Sending request to:', TELEGRAM_API_URL);
 
     const response = await fetch(TELEGRAM_API_URL, {
       method: 'POST',
@@ -235,7 +230,7 @@ export const downloadFile = async (storedUrlOrPath) => {
         return { success: true };
       }
     } catch (downloadError) {
-      console.log('Direct download failed, trying signed URL:', downloadError);
+      //console.log('Direct download failed, trying signed URL:', downloadError);
     }
 
     // Method 2: Fallback to signed URL

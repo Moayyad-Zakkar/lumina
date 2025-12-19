@@ -41,6 +41,16 @@ function UserDashboard() {
       <Headline>
         {t('dashboard.hello')} {profile.full_name}
       </Headline>
+      {/* Banner */}
+      {/*
+      <div className="w-full h-[100px] md:h-[150px] overflow-hidden rounded-xl mb-6">
+        <img
+          src="/banner-2.jpg"
+          alt="Dashboard Banner"
+          className="w-full h-full object-cover"
+        />
+      </div>
+*/}
 
       {/* Stats Overview */}
       {billingLoading ? (

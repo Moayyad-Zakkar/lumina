@@ -102,7 +102,9 @@ function Login() {
             </Link>
           </div>
 
-          <div className="flex w-full flex-col items-start gap-2 text-center md:text-left">
+          <div
+            className={`flex w-full flex-col items-start gap-2 text-center md:text-start`}
+          >
             <span className="w-full text-xl font-medium text-default-font">
               {t('auth.signIn')}
             </span>

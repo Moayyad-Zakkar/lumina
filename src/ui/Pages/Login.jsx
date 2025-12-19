@@ -68,7 +68,7 @@ function Login() {
       <div className="hidden md:flex grow shrink-0 basis-0 flex-col items-start justify-between bg-brand-600 px-12 py-12">
         <Link to="/">
           <img
-            className="h-8 flex-none object-cover"
+            className="h-20 flex-none object-cover"
             src="./logo-2.png"
             alt="Logo"
           />

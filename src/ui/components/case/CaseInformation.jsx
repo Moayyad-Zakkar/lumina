@@ -168,9 +168,10 @@ const PrintableContent = React.forwardRef(
                     }
                   />
                   <PrintField
-                    style={{ direction: 'ltr' }}
                     label={t('casePage.phone')}
-                    value={caseData.profiles?.phone || 'N/A'}
+                    value={
+                      <span dir="ltr">{caseData.profiles?.phone || 'N/A'}</span>
+                    }
                   />
                 </>
               )}
@@ -465,7 +466,7 @@ const CaseInformation = ({ caseData, isAdmin = false }) => {
                 icon={<FeatherPhone />}
                 label={t('casePage.phone')}
               >
-                {caseData.profiles?.phone || 'N/A'}
+                <span dir="ltr">{caseData.profiles?.phone || 'N/A'}</span>
               </DataFieldHorizontal>
             )}
 

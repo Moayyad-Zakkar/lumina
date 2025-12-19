@@ -859,7 +859,10 @@ const AdminCasesPage = () => {
                 </span>
               </Table.Cell>
               <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
+                <span
+                  className="whitespace-nowrap text-body font-body text-neutral-500"
+                  style={{ direction: 'ltr' }}
+                >
                   {caseItem.profiles?.phone || '-'}
                 </span>
               </Table.Cell>

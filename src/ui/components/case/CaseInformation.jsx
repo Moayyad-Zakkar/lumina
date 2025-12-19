@@ -168,6 +168,7 @@ const PrintableContent = React.forwardRef(
                     }
                   />
                   <PrintField
+                    style={{ direction: 'ltr' }}
                     label={t('casePage.phone')}
                     value={caseData.profiles?.phone || 'N/A'}
                   />

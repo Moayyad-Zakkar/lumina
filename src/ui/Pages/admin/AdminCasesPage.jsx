@@ -12,7 +12,6 @@ import { TextField } from '../../components/TextField';
 import { IconButton } from '../../components/IconButton';
 import { Loader } from '../../components/Loader';
 import Error from '../../components/Error';
-import Headline from '../../components/Headline';
 import { Table } from '../../components/Table';
 import { Badge } from '../../components/Badge';
 import {

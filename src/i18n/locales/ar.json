@@ -6,6 +6,7 @@
     "delete": "حذف",
     "edit": "تعديل",
     "submit": "إرسال",
+    "required": "مطلوب",
     "loading": "جارٍ التحميل...",
     "error": "خطأ",
     "success": "نجح",
@@ -676,9 +677,9 @@
     "additionalFile": "ملف إضافي {{number}}",
 
     "patientInfo": {
-      "firstNameLabel": "الاسم الأول (مطلوب)",
+      "firstNameLabel": "الاسم الأول",
       "firstNamePlaceholder": "أدخل الاسم الأول للمريض",
-      "lastNameLabel": "اسم العائلة (مطلوب)",
+      "lastNameLabel": "اسم العائلة",
       "lastNamePlaceholder": "أدخل اسم العائلة للمريض",
       "urgentCase": "حالة عاجلة",
       "deliveryDateLabel": "تاريخ التسليم المطلوب",
@@ -925,7 +926,7 @@
     "saveNote": "حفظ الملاحظة",
     "noNotes": "لم تتم إضافة ملاحظات داخلية بعد.",
     "toast": {
-      "saved": "تم حفظ ملاحظة المسؤول",
+      "saved": "تم حفظ ملاحظة الداخلية",
       "saveFailed": "فشل في حفظ الملاحظة"
     }
   },

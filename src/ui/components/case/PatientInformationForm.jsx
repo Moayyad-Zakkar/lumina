@@ -6,13 +6,25 @@ import { Alert } from '../Alert';
 const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
   const { t } = useTranslation();
 
+  // Simple helper for mandatory fields
+  const Required = () => (
+    <span className="text-red-500 ml-1 font-bold" title={t('common.required')}>
+      *
+    </span>
+  );
+
   return (
-    <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+    <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-gray-200 bg-white px-6 pt-4 pb-6 shadow-sm">
       <div className="flex w-full items-start gap-4">
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
           <TextField
             className="h-auto w-full flex-none"
-            label={t('caseSubmit.patientInfo.firstNameLabel')}
+            label={
+              <span className="flex items-center">
+                {t('caseSubmit.patientInfo.firstNameLabel')}
+                <Required />
+              </span>
+            }
             helpText=""
           >
             <TextField.Input
@@ -29,7 +41,12 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
           <TextField
             className="h-auto w-full flex-none"
-            label={t('caseSubmit.patientInfo.lastNameLabel')}
+            label={
+              <span className="flex items-center">
+                {t('caseSubmit.patientInfo.lastNameLabel')}
+                <Required />
+              </span>
+            }
             helpText=""
           >
             <TextField.Input
@@ -58,7 +75,7 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
           />
           <label
             htmlFor="isUrgent"
-            className="text-body-bold font-body-bold text-default-font cursor-pointer"
+            className="text-sm font-bold text-gray-700 cursor-pointer"
           >
             {t('caseSubmit.patientInfo.urgentCase')}
           </label>
@@ -68,7 +85,12 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
           <div className="ml-7 w-full max-w-xs">
             <TextField
               className="h-auto w-full flex-none"
-              label={t('caseSubmit.patientInfo.deliveryDateLabel')}
+              label={
+                <span className="flex items-center">
+                  {t('caseSubmit.patientInfo.deliveryDateLabel')}
+                  <Required />
+                </span>
+              }
               helpText={t('caseSubmit.patientInfo.deliveryDateHelp')}
             >
               <TextField.Input
@@ -77,9 +99,9 @@ const PatientInformationForm = ({ formData, handleChange, getMinDate }) => {
                 name="urgentDeliveryDate"
                 value={formData.urgentDeliveryDate}
                 onChange={handleChange}
-                min={getMinDate()}
+                min={getMinDate ? getMinDate() : ''}
                 required={formData.isUrgent}
-                className="text-body font-body"
+                className="text-sm"
               />
             </TextField>
           </div>

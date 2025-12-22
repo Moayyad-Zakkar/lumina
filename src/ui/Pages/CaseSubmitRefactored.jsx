@@ -14,6 +14,7 @@ import PatientInformationForm from '../components/case/PatientInformationForm';
 import TreatmentOptionsForm from '../components/case/TreatmentOptionsForm';
 import DiagnosisForm from '../components/case/DiagnosisForm';
 import FileUploadSection from '../components/case/FileUploadSection';
+import { useUserRole } from '../../helper/useUserRole';
 
 const CaseSubmitRefactored = () => {
   const { t } = useTranslation();
@@ -22,7 +23,11 @@ const CaseSubmitRefactored = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-
+  //for more accurate role check, but no need i think as this page isn't for admins!
+  /*
+  const { role, loading: roleLoading } = useUserRole();
+  const isAdmin = role === 'admin';
+*/
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -167,48 +172,43 @@ const CaseSubmitRefactored = () => {
       const validateSubmission = () => {
         const errors = [];
 
-        if (!formData.firstName?.trim()) {
+        // Basic info (Always required)
+        if (!formData.firstName?.trim())
           errors.push(t('caseSubmit.errors.firstNameRequired'));
-        }
-        if (!formData.lastName?.trim()) {
+        if (!formData.lastName?.trim())
           errors.push(t('caseSubmit.errors.lastNameRequired'));
-        }
 
-        if (formData.isUrgent && !formData.urgentDeliveryDate) {
-          errors.push(t('caseSubmit.errors.deliveryDateRequired'));
-        }
+        // Diagnosis Validation (Skipped for Admins)
+        if (!isAdmin) {
+          if (!formData.upperMidline)
+            errors.push(t('caseSubmit.errors.upperMidlineRequired'));
+          if (!formData.lowerMidline)
+            errors.push(t('caseSubmit.errors.lowerMidlineRequired'));
+          if (!formData.canineRightClass)
+            errors.push(t('caseSubmit.errors.canineRightRequired'));
+          if (!formData.canineLeftClass)
+            errors.push(t('caseSubmit.errors.canineLeftRequired'));
+          if (!formData.molarRightClass)
+            errors.push(t('caseSubmit.errors.molarRightRequired'));
+          if (!formData.molarLeftClass)
+            errors.push(t('caseSubmit.errors.molarLeftRequired'));
+          if (!formData.treatmentArch)
+            errors.push(t('caseSubmit.errors.treatmentArchRequired'));
 
-        if (formData.isUrgent && formData.urgentDeliveryDate) {
-          const deliveryDate = new Date(formData.urgentDeliveryDate);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          if (deliveryDate <= today) {
-            errors.push(t('caseSubmit.errors.deliveryDateFuture'));
+          // Conditional shift amount validation
+          if (
+            ['shifted_right', 'shifted_left'].includes(formData.upperMidline) &&
+            !formData.upperMidlineShift
+          ) {
+            errors.push(t('caseSubmit.errors.upperShiftRequired'));
           }
         }
 
+        // File Uploads (Always required)
         if (formData.uploadMethod === 'individual') {
-          const requiredScans = [
-            { key: 'upperJawScan', name: t('caseSubmit.upperJawScan') },
-            { key: 'lowerJawScan', name: t('caseSubmit.lowerJawScan') },
-            { key: 'biteScan', name: t('caseSubmit.biteScan') },
-          ];
-
-          requiredScans.forEach((scan) => {
-            if (!formData[scan.key]) {
-              errors.push(
-                t('caseSubmit.errors.scanRequired', { scan: scan.name })
-              );
-            }
-          });
-        } else if (formData.uploadMethod === 'compressed') {
-          if (!formData.compressedScans) {
-            errors.push(t('caseSubmit.errors.compressedRequired'));
+          if (!formData.upperJawScan || !formData.lowerJawScan) {
+            errors.push(t('caseSubmit.errors.scansRequired'));
           }
-        }
-
-        if (formData.additionalFiles && formData.additionalFiles.length > 5) {
-          errors.push(t('caseSubmit.errors.maxFilesExceeded'));
         }
 
         return errors;
@@ -427,7 +427,11 @@ const CaseSubmitRefactored = () => {
           handleChange={handleChange}
           alignerMaterials={alignerMaterials}
         />
-        <DiagnosisForm formData={formData} handleChange={handleChange} />
+        <DiagnosisForm
+          formData={formData}
+          handleChange={handleChange}
+          isAdmin={false}
+        />
         {/* Dental Chart */}
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">

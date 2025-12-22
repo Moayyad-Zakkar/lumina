@@ -44,12 +44,15 @@ import { checkCaseTreatmentImages } from '../../../helper/caseHasView';
 import TreatmentDetails from '../../components/case/TreatmentDetails';
 import CaseSatisfactionDisplay from '../../components/case/CaseSatisfactionDisplay';
 import InternalNotesSection from '../../components/case/InternalNotesSection';
+import { useUserRole } from '../../../helper/useUserRole';
 
 const AdminCasePageRefactored = () => {
   const { t } = useTranslation();
   const { caseData, error } = useLoaderData();
   const navigate = useNavigate();
   const [caseHasViewer, setCaseHasViewer] = useState(false);
+  const { role, loading: roleLoading } = useUserRole();
+  const isAdmin = role === 'admin';
 
   const [isRefinementDialogOpen, setIsRefinementDialogOpen] = useState(false);
   const [alignerMaterials, setAlignerMaterials] = useState([]);

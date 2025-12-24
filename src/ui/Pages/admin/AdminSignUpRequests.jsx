@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import supabase, { supabaseAdmin } from '../../../helper/supabaseClient';
+import supabase from '../../../helper/supabaseClient';
 import {
   FeatherCheckCircle,
   FeatherClock,
@@ -73,40 +73,32 @@ const AdminSignUpRequests = () => {
     setError(null);
 
     try {
-      // Create user account with all metadata
-      const { data: authData, error: authError } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: selectedRequest.email,
-          password: password,
-          email_confirm: true,
-          user_metadata: {
+      // Call the Edge Function to create the user
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'register-with-profile',
+        {
+          body: {
+            email: selectedRequest.email,
+            password: password,
             full_name: selectedRequest.full_name,
             clinic: selectedRequest.clinic,
             phone: selectedRequest.phone,
             address: selectedRequest.address,
             language_preference: selectedRequest.language_preference || 'en',
           },
-        });
+        }
+      );
 
-      if (authError) throw authError;
+      if (functionError) {
+        throw new Error(functionError.message);
+      }
 
-      // Wait for the profile to be created by database trigger
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      // Update the profile with all the data
-      const { error: profileUpdateError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: selectedRequest.full_name,
-          clinic: selectedRequest.clinic,
-          phone: selectedRequest.phone,
-          address: selectedRequest.address,
-          language_preference: selectedRequest.language_preference || 'en',
-        })
-        .eq('id', authData.user.id);
-
-      if (profileUpdateError) {
-        console.warn('Profile update warning:', profileUpdateError);
+      if (!data.success || !data.user) {
+        throw new Error('User creation failed - no user returned');
       }
 
       // Update signup request status
@@ -115,26 +107,14 @@ const AdminSignUpRequests = () => {
         .update({
           status: 'approved',
           approved_at: new Date().toISOString(),
-          user_id: authData.user.id,
+          user_id: data.user.id,
         })
         .eq('id', selectedRequest.id);
 
       if (updateError) throw updateError;
 
-      // Verify the profile was updated correctly
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(
-          'id, role, full_name, clinic, phone, address, language_preference'
-        )
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError) {
-        console.warn('Profile verification warning:', profileError);
-      } else {
-        console.log('Profile created/updated successfully:', profile);
-      }
+      console.log('User created successfully:', data.user);
+      console.log('Profile created:', data.profile);
 
       alert(
         `${t('signUpRequests.userCreatedSuccess')}\n${t(
@@ -150,7 +130,7 @@ const AdminSignUpRequests = () => {
       fetchRequests();
     } catch (err) {
       console.error('Error approving request:', err);
-      setError(err.message);
+      setError(err.message || 'Failed to create user account');
     } finally {
       setProcessingId(null);
     }
@@ -181,53 +161,37 @@ const AdminSignUpRequests = () => {
 
   const handleCreateUser = async (formData) => {
     try {
-      const { data: authData, error: authError } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: formData.email,
-          password: formData.password,
-          email_confirm: true,
-          user_metadata: {
+      // Call the Edge Function to create the user
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'create-user',
+        {
+          body: {
+            email: formData.email,
+            password: formData.password,
             full_name: formData.full_name,
             clinic: formData.clinic,
             phone: formData.phone,
             address: formData.address,
             language_preference: formData.language_preference || 'en',
           },
-        });
+        }
+      );
 
-      if (authError) throw authError;
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Update the profile with additional data
-      const { error: profileUpdateError } = await supabaseAdmin
-        .from('profiles')
-        .update({
-          full_name: formData.full_name,
-          clinic: formData.clinic,
-          phone: formData.phone,
-          address: formData.address,
-          language_preference: formData.language_preference || 'en',
-        })
-        .eq('id', authData.user.id);
-
-      if (profileUpdateError) {
-        console.warn('Profile update warning:', profileUpdateError);
+      if (functionError) {
+        throw new Error(functionError.message);
       }
 
-      const { data: profile, error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .select('id, role, full_name, language_preference')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError) {
-        console.warn('Profile verification warning:', profileError);
-      } else {
-        console.log('Profile created successfully:', profile);
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      console.log('User created successfully:', authData.user);
+      if (!data.success || !data.user) {
+        throw new Error('User creation failed');
+      }
+
+      console.log('User created successfully:', data.user);
+      console.log('Profile created:', data.profile);
+
       alert(
         `${t('signUpRequests.userCreatedSuccess')}\n${t(
           'signUpRequests.email'
@@ -327,7 +291,6 @@ const AdminSignUpRequests = () => {
             <Table.HeaderCell>{t('signUpRequests.email')}</Table.HeaderCell>
             <Table.HeaderCell>{t('signUpRequests.clinic')}</Table.HeaderCell>
             <Table.HeaderCell>{t('signUpRequests.phone')}</Table.HeaderCell>
-
             <Table.HeaderCell>{t('signUpRequests.status')}</Table.HeaderCell>
             <Table.HeaderCell>{t('signUpRequests.date')}</Table.HeaderCell>
             <Table.HeaderCell>{t('common.actions')}</Table.HeaderCell>
@@ -378,12 +341,6 @@ const AdminSignUpRequests = () => {
                   {request.phone || '-'}
                 </span>
               </Table.Cell>
-              {/*
-                          <Table.Cell>
-                {getLanguageBadge(request.language_preference || 'en')}
-              </Table.Cell>
-              */}
-
               <Table.Cell>{getStatusBadge(request.status)}</Table.Cell>
               <Table.Cell>
                 <span className="whitespace-nowrap text-body font-body text-neutral-500">
@@ -496,7 +453,7 @@ const AdminSignUpRequests = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  {t('signUpRequests.prefferedLanguage')}
+                  Language Preference
                 </label>
                 <div className="mt-1">
                   {getLanguageBadge(

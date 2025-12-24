@@ -25,8 +25,10 @@ export const PrintableInvoice = React.forwardRef(
     const { t, i18n } = useTranslation();
     const isRTL = i18n.dir() === 'rtl';
 
-    const invoiceNumber = `INV-${Date.now()}`;
-    const currentDate = new Date().toLocaleDateString();
+    const invoiceNumber = `TXN-${paymentData.invoiceId}`;
+    const currentDate = paymentData.date
+      ? new Date(paymentData.date).toLocaleDateString()
+      : new Date().toLocaleDateString();
 
     const statusDisplayText = {
       submitted: t('caseStatusBadge.submitted'),
@@ -107,7 +109,14 @@ export const PrintableInvoice = React.forwardRef(
                   <p className="text-xs font-medium text-gray-500 mb-1">
                     {t('casePage.phone')}
                   </p>
-                  <p className="text-sm text-gray-900">{doctorInfo.phone}</p>
+                  <p
+                    className={`text-sm text-gray-900 ${
+                      isRTL ? 'text-right' : ''
+                    }`}
+                    style={{ direction: 'ltr' }}
+                  >
+                    {doctorInfo.phone}
+                  </p>
                 </div>
               )}
             </div>
@@ -339,7 +348,8 @@ const PaymentCollectionDialog = ({
   };
 
   const handleSubmit = async () => {
-    const success = await processPayment({
+    // 1. Capture the actual database record returned from the hook
+    const paymentRecord = await processPayment({
       selectedDoctor,
       paymentAmount,
       selectedCases,
@@ -347,8 +357,8 @@ const PaymentCollectionDialog = ({
       paymentNotes,
     });
 
-    if (success) {
-      // Prepare data for invoice
+    // 2. Only proceed if paymentRecord exists (is an object, not false)
+    if (paymentRecord) {
       const paymentAmountNum = parseFloat(paymentAmount);
       const selectedTotal = calculateSelectedCasesTotal();
       const remainingAmount = Math.max(0, paymentAmountNum - selectedTotal);
@@ -372,10 +382,12 @@ const PaymentCollectionDialog = ({
         });
       }
 
+      // 3. Update the state with the REAL database info
       setLastPaymentData({
         paymentData: {
           amount: paymentAmount,
-          date: new Date().toISOString(),
+          date: paymentRecord.created_at,
+          invoiceId: paymentRecord.id,
         },
         doctorInfo: selectedDoctor,
         selectedCasesData,

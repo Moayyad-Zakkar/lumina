@@ -364,7 +364,7 @@ export const usePaymentProcessor = (refetchBillingData) => {
           refetchBillingData();
         }, 1000);
 
-        return true;
+        return paymentRecord;
       } catch (err) {
         console.error('Payment processing failed:', err);
         toast.error(err.message || 'Failed to process payment');

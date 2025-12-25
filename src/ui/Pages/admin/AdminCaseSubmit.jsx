@@ -540,7 +540,7 @@ const AdminCaseSubmit = () => {
         <DiagnosisForm
           formData={formData}
           handleChange={handleChange}
-          isAdmin
+          isAdmin={true}
         />
 
         {/* Note: Passing isRequired={false} to make file uploads optional for Admin */}

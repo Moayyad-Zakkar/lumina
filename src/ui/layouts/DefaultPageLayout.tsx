@@ -9,11 +9,15 @@
 import React, { useEffect, useState } from 'react';
 import * as SubframeUtils from '../utils';
 import { SidebarWithLargeItems } from '../components/SidebarWithLargeItems';
-import { FeatherHome } from '@subframe/core';
-import { FeatherInbox } from '@subframe/core';
-import { FeatherBarChart2 } from '@subframe/core';
-import { FeatherUser } from '@subframe/core';
-import { FeatherSettings } from '@subframe/core';
+import {
+  FeatherHome,
+  FeatherInbox,
+  FeatherBarChart2,
+  FeatherUser,
+  FeatherSettings,
+  FeatherMenu,
+  FeatherX,
+} from '@subframe/core';
 import { DropdownMenu } from '../components/DropdownMenu';
 import * as SubframeCore from '@subframe/core';
 import { Avatar } from '../components/Avatar';
@@ -48,11 +52,16 @@ const DefaultPageLayoutRoot = React.forwardRef<
   const { t } = useTranslation();
   const [BadgeCount, setBadgeCount] = useState(initialBadgeCount ?? 0);
   const [badgeLoading, setBadgeLoading] = useState(true);
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { hash, pathname, search } = location;
   const navigate = useNavigate();
 
   const [avatarUrl, setAvatarUrl] = useState(null);
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const getProfile = async () => {
@@ -177,29 +186,31 @@ const DefaultPageLayoutRoot = React.forwardRef<
   return (
     <div
       className={SubframeUtils.twClassNames(
-        'flex h-screen w-full items-center',
+        'flex h-screen w-full flex-col md:flex-row items-center', // Stack vertically on mobile
         className
       )}
       ref={ref as any}
     >
+      {/* MOBILE HEADER - Only visible on small screens */}
+      <div className="flex md:hidden w-full items-center justify-between px-4 py-3 border-b border-component-divider bg-default-background z-20">
+        <img className="h-6" src="/logo.png" alt="logo" />
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 text-subtext-color"
+        >
+          {isMobileMenuOpen ? <FeatherX /> : <FeatherMenu />}
+        </button>
+      </div>
+
+      {/* DESKTOP SIDEBAR - Hidden on mobile */}
       <SidebarWithLargeItems
-        className="mobile:hidden"
-        header={
-          <img
-            className="flex-none"
-            src="/logo.png"
-          />
-        }
+        className="hidden md:flex"
+        header={<img className="flex-none" src="/logo.png" />}
         footer={
           <SubframeCore.DropdownMenu.Root>
             <SubframeCore.DropdownMenu.Trigger asChild>
               <div className="cursor-pointer">
-                <Avatar
-                  image={
-                    avatarUrl ||
-                    '/logo.png'
-                  }
-                />
+                <Avatar image={avatarUrl || '/logo.png'} />
               </div>
             </SubframeCore.DropdownMenu.Trigger>
             <SubframeCore.DropdownMenu.Portal>
@@ -284,9 +295,51 @@ const DefaultPageLayoutRoot = React.forwardRef<
           </SidebarWithLargeItems.NavItem>
         </Link>
       </SidebarWithLargeItems>
+
+      {/* MOBILE OVERLAY DRAWER */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-10 flex md:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-overlay-background/50 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Content */}
+          <div className="relative flex w-64 flex-col bg-default-background shadow-xl animate-in slide-in-from-left duration-200">
+            <div className="p-4 flex flex-col gap-2">
+              <Link to="/app/dashboard">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherHome />}
+                  selected={pathname === '/app/dashboard'}
+                >
+                  {t('navigation.home')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
+              <Link to="/app/cases">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherInbox />}
+                  selected={pathname.startsWith('/app/cases')}
+                  rightSlot={
+                    BadgeCount > 0 ? (
+                      <Badge variant="error">{BadgeCount}</Badge>
+                    ) : null
+                  }
+                >
+                  {t('navigation.cases')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
+              {/* Add other links here... */}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Toaster position="top-right" />
+
+      {/* MAIN CONTENT */}
       {children ? (
-        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4 self-stretch overflow-y-auto bg-default-background">
+        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4 self-stretch overflow-y-auto bg-default-background w-full">
           {children}
         </div>
       ) : null}

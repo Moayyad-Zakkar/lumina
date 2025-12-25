@@ -24,10 +24,10 @@ const CaseSubmitRefactored = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   //for more accurate role check, but no need i think as this page isn't for admins!
-  /*
+
   const { role, loading: roleLoading } = useUserRole();
   const isAdmin = role === 'admin';
-*/
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

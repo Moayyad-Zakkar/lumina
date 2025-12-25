@@ -193,7 +193,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
     >
       {/* MOBILE HEADER - Only visible on small screens */}
       <div className="flex md:hidden w-full items-center justify-between px-4 py-3 border-b border-component-divider bg-default-background z-20">
-        <img className="h-6" src="/logo.png" alt="logo" />
+        <img className="h-8" src="/logo.png" alt="logo" />
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-subtext-color"
@@ -298,16 +298,15 @@ const DefaultPageLayoutRoot = React.forwardRef<
 
       {/* MOBILE OVERLAY DRAWER */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-10 flex md:hidden">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-30 flex md:hidden">
           <div
             className="fixed inset-0 bg-overlay-background/50 backdrop-blur-sm"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-
           {/* Drawer Content */}
           <div className="relative flex w-64 flex-col bg-default-background shadow-xl animate-in slide-in-from-left duration-200">
-            <div className="p-4 flex flex-col gap-2">
+            {/* ADDED PADDING TOP HERE so the first item isn't hidden by the header */}
+            <div className="p-4 pt-20 flex flex-col gap-2">
               <Link to="/app/dashboard">
                 <SidebarWithLargeItems.NavItem
                   icon={<FeatherHome />}
@@ -337,7 +336,6 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   {t('navigation.billing')}
                 </SidebarWithLargeItems.NavItem>
               </Link>
-              {/* Add other links here... */}
             </div>
           </div>
         </div>

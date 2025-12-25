@@ -329,6 +329,14 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   {t('navigation.cases')}
                 </SidebarWithLargeItems.NavItem>
               </Link>
+              <Link to="/app/billing">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherBarChart2 />}
+                  selected={pathname.startsWith('/app/billing')}
+                >
+                  {t('navigation.billing')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
               {/* Add other links here... */}
             </div>
           </div>

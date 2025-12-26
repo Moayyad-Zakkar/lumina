@@ -295,7 +295,17 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   {t('navigation.billing')}
                 </SidebarWithLargeItems.NavItem>
               </Link>
+              <Link to="/admin/settings">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherSettings />}
+                  selected={pathname.startsWith('/admin/settings')}
+                >
+                  {t('navigation.settings')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
+
               <hr className="my-2 border-component-divider" />
+
               <button
                 onClick={async () => {
                   await supabase.auth.signOut();

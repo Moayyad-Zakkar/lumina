@@ -146,13 +146,13 @@ export const uploadFile = async (
     }
 
     // Basic validation
-    const maxFileSize = 50 * 1024 * 1024; // 50MB
+    const maxFileSize = 100 * 1024 * 1024; // 100MB
     if (file.size > maxFileSize) {
-      throw new Error('File too large (max 50MB)');
+      throw new Error('File too large (max 100MB)');
     }
 
     // Show upload toast
-    const uploadToast = toast.loading('Uploading & backing up...');
+    const uploadToast = toast.loading('Uploading...');
 
     // NEW: Use Edge Function which handles BOTH Supabase upload AND Telegram backup
     if (!skipTelegramBackup) {
@@ -183,7 +183,7 @@ export const uploadFile = async (
           'Backup failed, uploading to Supabase only:',
           telegramResult.error
         );
-        toast.loading('Backup failed, uploading to Supabase...', {
+        toast.loading('Uploading...', {
           id: uploadToast,
         });
       }
@@ -209,7 +209,7 @@ export const uploadFile = async (
       throw uploadError;
     }
 
-    toast.success('File uploaded to Supabase', { id: uploadToast });
+    toast.success('File uploaded successfully', { id: uploadToast });
 
     return {
       success: true,
@@ -219,7 +219,7 @@ export const uploadFile = async (
     };
   } catch (error) {
     console.error('Upload failed:', error);
-    toast.error(`Upload failed: ${error.message}`);
+    toast.error(`Upload failed, please try again!`);
     return { success: false, error: error.message };
   }
 };
@@ -292,7 +292,7 @@ export const downloadFile = async (storedUrlOrPath) => {
       ? 'Access denied'
       : `Download failed: ${error.message}`;
 
-    toast.error(errorMessage);
+    toast.error('Please try again!');
     return { success: false, error: error.message };
   }
 };

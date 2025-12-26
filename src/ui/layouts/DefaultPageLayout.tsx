@@ -305,7 +305,6 @@ const DefaultPageLayoutRoot = React.forwardRef<
           />
           {/* Drawer Content */}
           <div className="relative flex w-64 flex-col bg-default-background shadow-xl animate-in slide-in-from-left duration-200">
-            {/* ADDED PADDING TOP HERE so the first item isn't hidden by the header */}
             <div className="p-4 pt-20 flex flex-col gap-2">
               <Link to="/app/dashboard">
                 <SidebarWithLargeItems.NavItem
@@ -336,6 +335,34 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   {t('navigation.billing')}
                 </SidebarWithLargeItems.NavItem>
               </Link>
+              <Link to="/app/profile">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherUser />}
+                  selected={pathname.startsWith('/app/profile')}
+                >
+                  {t('navigation.profile')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
+              <Link to="/app/settings">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherSettings />}
+                  selected={pathname.startsWith('/app/settings')}
+                >
+                  {t('navigation.settings')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
+
+              <hr className="my-2 border-component-divider" />
+
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate('/');
+                }}
+                className="flex items-center gap-2 p-3 text-error-color"
+              >
+                <SubframeCore.FeatherLogOut /> {t('navigation.signOut')}
+              </button>
             </div>
           </div>
         </div>

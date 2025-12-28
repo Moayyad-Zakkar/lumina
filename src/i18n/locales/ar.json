@@ -1051,12 +1051,15 @@
       "step": "مرحلة",
       "imageExists": "الصورة موجودة",
       "currentImage": "الصورة الحالية",
-      "noImages": "لم يتم رفع صور بعد"
+      "noImages": "لم يتم رفع صور بعد",
+      "newVideo": "فيديو جديد",
+      "currentVideo": "الفيديو الحالي"
     },
     "buttons": {
       "addImages": "إضافة صور",
       "upload": "رفع الصور",
       "uploading": "جارٍ الرفع...",
+      "replaceVideo": "استبدال الفيديو",
       "replace": "استبدال الصورة",
       "select": "اختر صورة"
     },

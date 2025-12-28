@@ -990,6 +990,8 @@
     "labels": {
       "existing": "Existing Steps",
       "newUploads": "Pending Uploads",
+      "newVideo": "New Video",
+      "currentVideo": "Current Video",
       "step": "Step",
       "imageExists": "Image exists",
       "currentImage": "Current Image",
@@ -999,6 +1001,7 @@
       "addImages": "Add Images",
       "upload": "Upload Images",
       "uploading": "Uploading...",
+      "replaceVideo": "Replace Video",
       "replace": "Replace Image",
       "select": "Select Image"
     },

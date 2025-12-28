@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
 import {
-  FeatherArrowLeft,
   FeatherPlay,
   FeatherPause,
   FeatherSkipBack,
@@ -89,7 +88,7 @@ function CaseViewer() {
         })
       );
 
-      // Organize sequence images
+      // Organize sequence images AND videos
       const sequenceByView = {
         front: [],
         left: [],
@@ -98,10 +97,14 @@ function CaseViewer() {
         lower: [],
       };
 
+      const videosByView = {};
+
       imagesWithUrls
         .filter((img) => img.image_category === 'sequence')
         .forEach((img) => {
-          if (sequenceByView[img.view_type]) {
+          if (img.is_video) {
+            videosByView[img.view_type] = img.url;
+          } else if (sequenceByView[img.view_type]) {
             sequenceByView[img.view_type].push(img);
           }
         });
@@ -127,6 +130,7 @@ function CaseViewer() {
       const organizedData = {
         ...caseInfo,
         sequenceImages: sequenceByView,
+        sequenceVideos: videosByView,
         beforeAfter,
       };
 
@@ -215,7 +219,6 @@ function CaseViewer() {
 
       Promise.all(imagePromises).then(() => {
         setImagesLoaded(true);
-        //console.log(`All ${images.length} images preloaded for ${view} view`);
       });
     }
   }, [view, currentTab, caseData]);
@@ -259,13 +262,27 @@ function CaseViewer() {
     setView(viewName);
   };
 
-  // Check which sequence views have content
+  // Check which sequence views have content (videos OR images)
   const sequenceViewAvailability = {
-    lower: !!(caseData.sequenceImages?.lower?.length > 0),
-    upper: !!(caseData.sequenceImages?.upper?.length > 0),
-    right: !!(caseData.sequenceImages?.right?.length > 0),
-    left: !!(caseData.sequenceImages?.left?.length > 0),
-    front: !!(caseData.sequenceImages?.front?.length > 0),
+    lower: !!(
+      caseData.sequenceVideos?.lower ||
+      caseData.sequenceImages?.lower?.length > 0
+    ),
+    upper: !!(
+      caseData.sequenceVideos?.upper ||
+      caseData.sequenceImages?.upper?.length > 0
+    ),
+    right: !!(
+      caseData.sequenceVideos?.right ||
+      caseData.sequenceImages?.right?.length > 0
+    ),
+    left: !!(
+      caseData.sequenceVideos?.left || caseData.sequenceImages?.left?.length > 0
+    ),
+    front: !!(
+      caseData.sequenceVideos?.front ||
+      caseData.sequenceImages?.front?.length > 0
+    ),
   };
 
   // Check which before after views have content
@@ -277,9 +294,10 @@ function CaseViewer() {
     front: !!caseData.beforeAfter.front,
   };
 
-  // Get current images for the selected view
+  // Get current images/video for the selected view
   const viewKey = view.toLowerCase();
   const sequenceImages = caseData.sequenceImages?.[viewKey] || [];
+  const videoSource = caseData.sequenceVideos?.[viewKey];
   const imgSrc = caseData.beforeAfter[viewKey];
 
   // Slideshow control functions
@@ -321,7 +339,6 @@ function CaseViewer() {
       <Header>
         <LogoContainer>
           <LogoImage src="/logo.png" alt="Lumina Logo" />
-          {/*<LogoText>{t('viewer.title')}</LogoText>*/}
         </LogoContainer>
       </Header>
 
@@ -457,7 +474,14 @@ function CaseViewer() {
         {currentTab === 'videos' ? (
           <>
             <DataContainer>
-              {sequenceImages.length > 0 ? (
+              {videoSource ? (
+                // Show video player
+                <VideoPlayer key={viewKey} controls autoPlay={false} loop>
+                  <source src={videoSource} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </VideoPlayer>
+              ) : sequenceImages.length > 0 ? (
+                // Show image sequence
                 <>
                   {!imagesLoaded && (
                     <LoadingOverlay>
@@ -510,7 +534,8 @@ function CaseViewer() {
               )}
             </DataContainer>
 
-            {sequenceImages.length > 0 && (
+            {/* Only show player controls for image sequences, not videos */}
+            {!videoSource && sequenceImages.length > 0 && (
               <PlayerButtonsContainer>
                 <ControlButton
                   onClick={seekToStart}
@@ -593,7 +618,7 @@ function CaseViewer() {
   );
 }
 
-// Styled Components (unchanged)
+// Styled Components
 const Content = styled.div`
   text-align: center;
   background-color: #f8f9fa;
@@ -628,43 +653,6 @@ const LogoImage = styled.img`
 
   @media (max-width: 768px) {
     height: 40px;
-  }
-`;
-
-const LogoText = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #00adef;
-  margin: 0;
-
-  @media (max-width: 768px) {
-    font-size: 1.4rem;
-  }
-`;
-
-const BackButton = styled.button`
-  position: absolute;
-  left: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #fff;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  color: #495057;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #f8f9fa;
-    border-color: #adb5bd;
-  }
-
-  @media (max-width: 768px) {
-    position: static;
-    margin-bottom: 1rem;
   }
 `;
 
@@ -728,7 +716,6 @@ const TabsContainer = styled.div`
 
 const Tab = styled.button`
   padding: 0.75rem 2rem;
-  //background-color: ${(props) => (props.active ? '#0284c7' : 'transparent')};
   background-color: ${(props) => (props.active ? '#760052' : 'transparent')};
   color: ${(props) => (props.active ? '#fff' : '#495057')};
   border: none;
@@ -782,6 +769,12 @@ const DataImage = styled.img`
   max-width: 100%;
   object-fit: contain;
   transition: opacity 0.3s ease;
+`;
+
+const VideoPlayer = styled.video`
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
 `;
 
 const LoadingOverlay = styled.div`
@@ -968,7 +961,7 @@ const DisclaimerText = styled.ul`
   line-height: 1.6;
   margin: 0;
   padding: 0;
-  list-style-type: none; /* We will add custom bullets */
+  list-style-type: none;
   text-align: ${(props) => (props.isRTL ? 'right' : 'left')};
   direction: ${(props) => (props.isRTL ? 'rtl' : 'ltr')};
 

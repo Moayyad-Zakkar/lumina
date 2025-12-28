@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import DialogWrapper from '../DialogWrapper'; // Updated import based on your files
+import DialogWrapper from '../DialogWrapper';
 import { Button } from '../Button';
 import { Alert } from '../Alert';
 import {
@@ -11,13 +11,14 @@ import {
   FeatherX,
   FeatherFile,
   FeatherPlus,
+  FeatherVideo,
 } from '@subframe/core';
 import supabase from '../../../helper/supabaseClient';
 import toast from 'react-hot-toast';
 
 const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('sequence'); // 'sequence' or 'beforeAfter'
+  const [activeTab, setActiveTab] = useState('sequence');
   const [uploading, setUploading] = useState(false);
   const [_uploadProgress, setUploadProgress] = useState({});
   const [existingImages, setExistingImages] = useState({
@@ -34,6 +35,14 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     lower: [],
   });
 
+  const [sequenceVideos, setSequenceVideos] = useState({
+    front: null,
+    left: null,
+    right: null,
+    upper: null,
+    lower: null,
+  });
+
   const [beforeAfterFiles, setBeforeAfterFiles] = useState({
     front: null,
     left: null,
@@ -42,7 +51,6 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     lower: null,
   });
 
-  // Dynamic View Types with Translations
   const VIEW_TYPES = useMemo(
     () => [
       { value: 'front', label: t('treatmentPlanImages.views.front') },
@@ -53,6 +61,10 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     ],
     [t]
   );
+
+  const isVideoFile = (file) => {
+    return file && file.type.startsWith('video/');
+  };
 
   const loadExistingImages = useCallback(async () => {
     try {
@@ -93,10 +105,29 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
   }, [isOpen, caseId, loadExistingImages]);
 
   const handleSequenceFilesChange = (viewType, files) => {
-    setSequenceFiles((prev) => ({
-      ...prev,
-      [viewType]: [...prev[viewType], ...Array.from(files)],
-    }));
+    const fileArray = Array.from(files);
+    const hasVideo = fileArray.some(isVideoFile);
+
+    if (hasVideo) {
+      const videoFile = fileArray.find(isVideoFile);
+      setSequenceVideos((prev) => ({
+        ...prev,
+        [viewType]: videoFile,
+      }));
+      setSequenceFiles((prev) => ({
+        ...prev,
+        [viewType]: [],
+      }));
+    } else {
+      setSequenceVideos((prev) => ({
+        ...prev,
+        [viewType]: null,
+      }));
+      setSequenceFiles((prev) => ({
+        ...prev,
+        [viewType]: [...prev[viewType], ...fileArray],
+      }));
+    }
   };
 
   const handleBeforeAfterFileChange = (viewType, file) => {
@@ -110,6 +141,13 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     setSequenceFiles((prev) => ({
       ...prev,
       [viewType]: prev[viewType].filter((_, i) => i !== index),
+    }));
+  };
+
+  const removeSequenceVideo = (viewType) => {
+    setSequenceVideos((prev) => ({
+      ...prev,
+      [viewType]: null,
     }));
   };
 
@@ -158,9 +196,48 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Upload sequence images
+      // Upload sequence videos or images
       for (const viewType of Object.keys(sequenceFiles)) {
+        const video = sequenceVideos[viewType];
         const files = sequenceFiles[viewType];
+
+        // Upload video if present
+        if (video) {
+          const fileExt = video.name.split('.').pop();
+          const fileName = `sequence_video.${fileExt}`;
+          const storagePath = `${caseId}/sequence/${viewType}/${fileName}`;
+
+          setUploadProgress((prev) => ({
+            ...prev,
+            [`sequence-video-${viewType}`]: 'uploading',
+          }));
+
+          const { error: uploadError } = await supabase.storage
+            .from('treatment-plans')
+            .upload(storagePath, video, { upsert: true });
+
+          if (uploadError) throw uploadError;
+
+          const { error: dbError } = await supabase
+            .from('treatment_plan_images')
+            .insert({
+              case_id: caseId,
+              image_category: 'sequence',
+              view_type: viewType,
+              is_video: true,
+              sequence_order: 0,
+              storage_path: storagePath,
+              file_name: fileName,
+              file_size: video.size,
+              mime_type: video.type,
+              uploaded_by: user?.id,
+            });
+
+          if (dbError) throw dbError;
+          continue;
+        }
+
+        // Upload images
         if (files.length === 0) continue;
 
         const existingCount = existingImages.sequence[viewType]?.length || 0;
@@ -193,6 +270,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
               image_category: 'sequence',
               view_type: viewType,
               sequence_order: sequenceOrder,
+              is_video: false,
               storage_path: storagePath,
               file_name: fileName,
               file_size: file.size,
@@ -232,6 +310,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
           image_category: 'beforeAfter',
           view_type: viewType,
           image_stage: 'combined',
+          is_video: false,
           storage_path: storagePath,
           file_name: fileName,
           file_size: file.size,
@@ -260,6 +339,13 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
         upper: [],
         lower: [],
       });
+      setSequenceVideos({
+        front: null,
+        left: null,
+        right: null,
+        upper: null,
+        lower: null,
+      });
       setBeforeAfterFiles({
         front: null,
         left: null,
@@ -282,10 +368,13 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
     const hasSequence = Object.values(sequenceFiles).some(
       (files) => files.length > 0
     );
+    const hasVideo = Object.values(sequenceVideos).some(
+      (video) => video !== null
+    );
     const hasBeforeAfter = Object.values(beforeAfterFiles).some(
       (file) => file !== null
     );
-    return hasSequence || hasBeforeAfter;
+    return hasSequence || hasVideo || hasBeforeAfter;
   };
 
   return (
@@ -295,7 +384,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
       title={t('treatmentPlanImages.title')}
       description={t('treatmentPlanImages.subtitle')}
       icon={<FeatherImage />}
-      maxWidth="max-w-[800px]" // Made wider for better gallery view
+      maxWidth="max-w-[800px]"
       loading={uploading}
     >
       <div className="w-full flex flex-col gap-6">
@@ -336,6 +425,9 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
             {VIEW_TYPES.map((view) => {
               const existingList = existingImages.sequence[view.value] || [];
               const pendingList = sequenceFiles[view.value] || [];
+              const pendingVideo = sequenceVideos[view.value];
+              const hasExistingVideo = existingList.some((img) => img.is_video);
+              const existingVideo = existingList.find((img) => img.is_video);
 
               return (
                 <div
@@ -346,87 +438,158 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                     <h3 className="text-body-bold font-body-bold text-default-font">
                       {view.label}
                     </h3>
-                    <div className="text-xs text-subtext-color bg-white px-2 py-1 rounded border border-neutral-border">
-                      {existingList.length + pendingList.length}{' '}
-                      {t('treatmentPlanImages.labels.step')}
+                    <div className="text-xs text-subtext-color bg-white px-2 py-1 rounded border border-neutral-border flex items-center gap-1">
+                      {hasExistingVideo || pendingVideo ? (
+                        <>
+                          <FeatherVideo className="w-3 h-3" />
+                          Video
+                        </>
+                      ) : (
+                        <>
+                          {existingList.length + pendingList.length}{' '}
+                          {t('treatmentPlanImages.labels.step')}
+                        </>
+                      )}
                     </div>
                   </div>
 
                   <div className="p-4 flex flex-col gap-4">
-                    {/* 1. Existing Steps */}
-                    {existingList.length > 0 && (
+                    {/* Show existing video if present */}
+                    {hasExistingVideo && existingVideo && (
                       <div className="flex flex-col gap-2">
                         <span className="text-caption font-caption text-subtext-color uppercase tracking-wider">
-                          {t('treatmentPlanImages.labels.existing')}
+                          Current Video
                         </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                          {existingList.map((img) => (
-                            <div
-                              key={img.id}
-                              className="relative group border border-neutral-border rounded-md p-3 bg-neutral-50 flex flex-col gap-2 items-center justify-center text-center"
-                            >
-                              <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-caption font-bold">
-                                {img.sequence_order}
-                              </div>
-                              <span className="text-caption text-subtext-color truncate w-full">
-                                {img.file_name}
-                              </span>
-                              <button
-                                onClick={() => deleteExistingImage(img.id)}
-                                className="absolute -top-2 -right-2 bg-white border border-error-200 text-error-600 p-1.5 rounded-full shadow-sm hover:bg-error-50 transition-colors opacity-0 group-hover:opacity-100"
-                                title="Delete"
-                              >
-                                <FeatherTrash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
+                        <div className="relative group border border-neutral-border rounded-md p-3 bg-neutral-50 flex flex-col gap-2 items-center">
+                          <FeatherVideo className="w-8 h-8 text-brand-600" />
+                          <span className="text-caption text-subtext-color truncate w-full text-center">
+                            {existingVideo.file_name}
+                          </span>
+                          <button
+                            onClick={() =>
+                              deleteExistingImage(existingVideo.id)
+                            }
+                            className="absolute -top-2 -right-2 bg-white border border-error-200 text-error-600 p-1.5 rounded-full shadow-sm hover:bg-error-50 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Delete"
+                          >
+                            <FeatherTrash2 className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
                     )}
 
-                    {/* 2. Pending Uploads */}
-                    {pendingList.length > 0 && (
+                    {/* Show pending video */}
+                    {pendingVideo && (
                       <div className="flex flex-col gap-2">
                         <span className="text-caption font-caption text-brand-600 uppercase tracking-wider">
-                          {t('treatmentPlanImages.labels.newUploads')}
+                          {t('treatmentPlanImages.labels.newVideo')}
                         </span>
-                        <div className="grid grid-cols-1 gap-2">
-                          {pendingList.map((file, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between bg-brand-50 border border-brand-100 p-2 rounded-md"
-                            >
-                              <div className="flex items-center gap-2 overflow-hidden">
-                                <FeatherFile className="w-4 h-4 text-brand-600 flex-shrink-0" />
-                                <span className="text-sm text-default-font truncate">
-                                  {file.name}
-                                </span>
-                                <span className="text-xs text-brand-600 whitespace-nowrap">
-                                  ({t('treatmentPlanImages.labels.step')}{' '}
-                                  {existingList.length + idx + 1})
-                                </span>
-                              </div>
-                              <Button
-                                variant="neutral-tertiary"
-                                size="small"
-                                icon={<FeatherX />}
-                                onClick={() =>
-                                  removeSequenceFile(view.value, idx)
-                                }
-                              />
-                            </div>
-                          ))}
+                        <div className="flex items-center justify-between bg-brand-50 border border-brand-100 p-2 rounded-md">
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <FeatherVideo className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                            <span className="text-sm text-default-font truncate">
+                              {pendingVideo.name}
+                            </span>
+                          </div>
+                          <Button
+                            variant="neutral-tertiary"
+                            size="small"
+                            icon={<FeatherX />}
+                            onClick={() => removeSequenceVideo(view.value)}
+                          />
                         </div>
                       </div>
                     )}
 
-                    {/* 3. Empty State / Upload Button */}
+                    {/* Show existing/pending images only if no video */}
+                    {!hasExistingVideo && !pendingVideo && (
+                      <>
+                        {/* Existing Steps */}
+                        {existingList.filter((img) => !img.is_video).length >
+                          0 && (
+                          <div className="flex flex-col gap-2">
+                            <span className="text-caption font-caption text-subtext-color uppercase tracking-wider">
+                              {t('treatmentPlanImages.labels.existing')}
+                            </span>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                              {existingList
+                                .filter((img) => !img.is_video)
+                                .map((img) => (
+                                  <div
+                                    key={img.id}
+                                    className="relative group border border-neutral-border rounded-md p-3 bg-neutral-50 flex flex-col gap-2 items-center justify-center text-center"
+                                  >
+                                    <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-caption font-bold">
+                                      {img.sequence_order}
+                                    </div>
+                                    <span className="text-caption text-subtext-color truncate w-full">
+                                      {img.file_name}
+                                    </span>
+                                    <button
+                                      onClick={() =>
+                                        deleteExistingImage(img.id)
+                                      }
+                                      className="absolute -top-2 -right-2 bg-white border border-error-200 text-error-600 p-1.5 rounded-full shadow-sm hover:bg-error-50 transition-colors opacity-0 group-hover:opacity-100"
+                                      title="Delete"
+                                    >
+                                      <FeatherTrash2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Pending Uploads */}
+                        {pendingList.length > 0 && (
+                          <div className="flex flex-col gap-2">
+                            <span className="text-caption font-caption text-brand-600 uppercase tracking-wider">
+                              {t('treatmentPlanImages.labels.newUploads')}
+                            </span>
+                            <div className="grid grid-cols-1 gap-2">
+                              {pendingList.map((file, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between bg-brand-50 border border-brand-100 p-2 rounded-md"
+                                >
+                                  <div className="flex items-center gap-2 overflow-hidden">
+                                    <FeatherFile className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                                    <span className="text-sm text-default-font truncate">
+                                      {file.name}
+                                    </span>
+                                    <span className="text-xs text-brand-600 whitespace-nowrap">
+                                      ({t('treatmentPlanImages.labels.step')}{' '}
+                                      {existingList.filter(
+                                        (img) => !img.is_video
+                                      ).length +
+                                        idx +
+                                        1}
+                                      )
+                                    </span>
+                                  </div>
+                                  <Button
+                                    variant="neutral-tertiary"
+                                    size="small"
+                                    icon={<FeatherX />}
+                                    onClick={() =>
+                                      removeSequenceFile(view.value, idx)
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Upload button */}
                     <div className="mt-2">
                       <input
                         type="file"
                         id={`sequence-${view.value}`}
-                        multiple
-                        accept="image/*"
+                        multiple={!hasExistingVideo && !pendingVideo}
+                        accept="image/*,video/*"
                         className="hidden"
                         onChange={(e) =>
                           handleSequenceFilesChange(view.value, e.target.files)
@@ -445,7 +608,9 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
                             .click()
                         }
                       >
-                        {t('treatmentPlanImages.buttons.addImages')}
+                        {hasExistingVideo || pendingVideo
+                          ? t('treatmentPlanImages.buttons.replaceVideo')
+                          : t('treatmentPlanImages.buttons.addImages')}
                       </Button>
                     </div>
                   </div>
@@ -567,7 +732,7 @@ const TreatmentPlanImagesUpload = ({ isOpen, onClose, caseId }) => {
           </div>
         )}
 
-        {/* Custom Footer for DialogWrapper */}
+        {/* Footer */}
         <div className="flex w-full items-center justify-end gap-3 pt-4 border-t border-neutral-border mt-auto">
           <Button
             variant="neutral-secondary"

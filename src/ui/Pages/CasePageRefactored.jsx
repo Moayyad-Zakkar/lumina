@@ -395,9 +395,11 @@ const CasePageRefactored = () => {
 
               <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
               <div className="flex w-full items-center justify-between">
-                <span className="text-body font-body text-subtext-color">
-                  {getStatusMessage()}
-                </span>
+                {!isMobile && (
+                  <span className="text-body font-body text-subtext-color">
+                    {getStatusMessage()}
+                  </span>
+                )}
                 <div className="flex items-center gap-2">
                   {status === 'awaiting_user_approval' && (
                     <>

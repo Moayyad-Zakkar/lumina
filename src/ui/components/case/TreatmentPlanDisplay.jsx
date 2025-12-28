@@ -28,8 +28,8 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
 
   return (
     <div className="flex w-full flex-col items-start gap-6">
-      <div className="flex w-full flex-wrap items-start gap-6">
-        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+      <div className="w-full md:flex md:gap-6">
+        <div className="w-full md:flex-1 flex flex-col gap-4">
           <DataFieldHorizontal
             icon={<FeatherGrid />}
             label={t('casePage.treatmentPlan.upperJawAligners')}
@@ -58,7 +58,7 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
             </span>
           </DataFieldHorizontal>
         </div>
-        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+        <div className="w-full md:flex-1 flex flex-col gap-4">
           <DataFieldHorizontal
             icon={<FeatherDollarSign />}
             label={t('casePage.treatmentPlan.caseStudyFee')}
@@ -108,11 +108,11 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
 
       {/* View 3DA Viewer Button */}
       {caseHasViewer && (
-        <div className="flex w-full justify-end">
+        <div className="flex w-full md:justify-end">
           <Button
             onClick={handleViewerClick}
             icon={<FeatherEye />}
-            className="w-auto"
+            className="w-full md:w-auto"
           >
             {t('casePage.openViewer')}
           </Button>
@@ -125,7 +125,7 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
           <Button
             onClick={() => setIsIPROpen(true)}
             icon={<FeatherEye />}
-            className="w-auto"
+            className="w-full md:w-auto"
           >
             {t('casePage.treatmentPlan.viewIPRChart')}
           </Button>
@@ -148,7 +148,7 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
           </div>
           <div className="w-full">
             <div className="w-full bg-white border border-neutral-200 rounded-md p-4 shadow-sm">
-              <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+              <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-all md:break-words leading-relaxed">
                 {caseData.admin_note}
               </div>
             </div>

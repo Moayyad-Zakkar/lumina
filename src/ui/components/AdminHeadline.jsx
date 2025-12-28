@@ -16,7 +16,7 @@ export default function AdminHeadline({
         {children}
       </span>
       {submit && (
-        <Link to="/admin/cases/new">
+        <Link to="/admin/cases/new" className="hidden md:block">
           <Button size="large" icon={<FeatherPlus />} className="h-9">
             {t('caseSubmit.submitCaseButton')}
           </Button>

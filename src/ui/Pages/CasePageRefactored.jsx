@@ -41,11 +41,12 @@ import DeclineCaseDialog from '../components/case/DeclineCaseDialog';
 import CaseSatisfactionDisplay from '../components/case/CaseSatisfactionDisplay';
 import RequestEditDialog from '../components/case/RequestEditDialog';
 import TreatmentDetails from '../components/case/TreatmentDetails';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const CasePageRefactored = () => {
   const { t } = useTranslation();
   const { caseData, error } = useLoaderData();
-  const revalidator = useRevalidator(); // [!code change] Initialize revalidator
+  const revalidator = useRevalidator();
   const [actionError, setActionError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [caseHasViewer, setCaseHasViewer] = useState(false);
@@ -57,6 +58,7 @@ const CasePageRefactored = () => {
   const { status, setStatus, alertContent, showPlanSection } = useCaseStatus(
     caseData?.status
   );
+  const isMobile = useIsMobile();
   const { downloadingFiles, downloadSingleFile, downloadAllFiles } =
     useFileDownload();
   const {
@@ -70,7 +72,7 @@ const CasePageRefactored = () => {
     handleSaveNote,
   } = useCaseNotes(caseData);
 
-  // [!code change] Helper to refresh data
+  // Helper to refresh data
   const handleRefresh = () => {
     revalidator.revalidate();
   };
@@ -357,23 +359,25 @@ const CasePageRefactored = () => {
         />
 
         {/* Dental Chart */}
-        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
-          <span className="text-heading-3 font-heading-3 text-default-font">
-            {t('casePage.dentalChart')}
-          </span>
-          <div className="flex w-full justify-center">
-            <DentalChart
-              initialStatus={caseData.tooth_status || {}}
-              onChange={(updated) =>
-                supabase
-                  .from('cases')
-                  .update({ tooth_status: updated })
-                  .eq('id', caseData.id)
-              }
-              readOnly={true}
-            />
+        {!isMobile && (
+          <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+            <span className="text-heading-3 font-heading-3 text-default-font">
+              {t('casePage.dentalChart')}
+            </span>
+            <div className="flex w-full justify-center">
+              <DentalChart
+                initialStatus={caseData.tooth_status || {}}
+                onChange={(updated) =>
+                  supabase
+                    .from('cases')
+                    .update({ tooth_status: updated })
+                    .eq('id', caseData.id)
+                }
+                readOnly={true}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Treatment Plan Section */}
         {showPlanSection && (
@@ -429,10 +433,13 @@ const CasePageRefactored = () => {
           </div>
         )}
         {/* Refinement Section */}
-        <RefinementSection
-          caseData={caseData}
-          onCaseUpdate={handleRefresh} // or revalidator.revalidate
-        />
+        {!isMobile && (
+          <RefinementSection
+            caseData={caseData}
+            onCaseUpdate={handleRefresh} // or revalidator.revalidate
+          />
+        )}
+
         {/* Refinement History */}
         <RefinementHistory caseData={caseData} />
 

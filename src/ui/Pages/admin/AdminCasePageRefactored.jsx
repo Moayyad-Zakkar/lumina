@@ -45,6 +45,7 @@ import TreatmentDetails from '../../components/case/TreatmentDetails';
 import CaseSatisfactionDisplay from '../../components/case/CaseSatisfactionDisplay';
 import InternalNotesSection from '../../components/case/InternalNotesSection';
 import { useUserRole } from '../../../helper/useUserRole';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 
 const AdminCasePageRefactored = () => {
   const { t } = useTranslation();
@@ -53,6 +54,7 @@ const AdminCasePageRefactored = () => {
   const [caseHasViewer, setCaseHasViewer] = useState(false);
   const { role, loading: roleLoading } = useUserRole();
   const isAdmin = role === 'admin';
+  const isMobile = useIsMobile();
 
   const [isRefinementDialogOpen, setIsRefinementDialogOpen] = useState(false);
   const [alignerMaterials, setAlignerMaterials] = useState([]);
@@ -632,23 +634,25 @@ const AdminCasePageRefactored = () => {
         )}
 
         {/* Dental Chart */}
-        <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
-          <span className="text-heading-3 font-heading-3 text-default-font">
-            {t('casePage.dentalChart')}
-          </span>
-          <div className="flex w-full justify-center">
-            <DentalChart
-              initialStatus={caseData.tooth_status || {}}
-              onChange={(updated) =>
-                supabase
-                  .from('cases')
-                  .update({ tooth_status: updated })
-                  .eq('id', caseData.id)
-              }
-              readOnly={true}
-            />
+        {!isMobile && (
+          <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+            <span className="text-heading-3 font-heading-3 text-default-font">
+              {t('casePage.dentalChart')}
+            </span>
+            <div className="flex w-full justify-center">
+              <DentalChart
+                initialStatus={caseData.tooth_status || {}}
+                onChange={(updated) =>
+                  supabase
+                    .from('cases')
+                    .update({ tooth_status: updated })
+                    .eq('id', caseData.id)
+                }
+                readOnly={true}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Case Acceptance Card - Only for submitted cases */}
         <CaseAcceptanceCard

@@ -11,7 +11,7 @@ export default function Headline({ children, submit = true }) {
         {children}
       </span>
       {submit && (
-        <Link to="/app/cases/new">
+        <Link to="/app/cases/new" className="hidden md:block">
           <Button size="large" icon={<FeatherPlus />} className="h-9">
             {t('caseSubmit.submitCaseButton')}
           </Button>

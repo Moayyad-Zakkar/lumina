@@ -18,6 +18,9 @@ import Error from '../components/Error';
 import Headline from '../components/Headline';
 import { useNavigate } from 'react-router';
 import CaseStatusBadge from '../components/CaseStatusBadge';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import MobileCasesList from '../components/MobileDoctorCasesList';
+import DesktopCasesTable from '../components/DesktopCasesTable';
 
 const CASES_PER_PAGE = 10;
 
@@ -62,6 +65,7 @@ const getSortOptions = (t) => [
 
 const CasesPage = () => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   // Filter options using translations
   const STATUS_OPTIONS = [
@@ -109,8 +113,6 @@ const CasesPage = () => {
   const statusDropdownRef = useRef(null);
   const dateDropdownRef = useRef(null);
   const filterPanelRef = useRef(null);
-
-  const navigate = useNavigate();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -551,70 +553,11 @@ const CasesPage = () => {
         </div>
       )}
 
-      <Table
-        header={
-          <Table.HeaderRow>
-            <Table.HeaderCell>{t('cases.patientName')}</Table.HeaderCell>
-            <Table.HeaderCell>{t('cases.status')}</Table.HeaderCell>
-            <Table.HeaderCell>{t('cases.submissionDate')}</Table.HeaderCell>
-            <Table.HeaderCell>{t('cases.caseId')}</Table.HeaderCell>
-          </Table.HeaderRow>
-        }
-      >
-        {loading ? (
-          <Table.Row>
-            <Table.Cell colSpan={4}>
-              <div className="flex w-full h-full min-h-[100px] justify-center items-center">
-                <Loader size="medium" />
-              </div>
-            </Table.Cell>
-          </Table.Row>
-        ) : cases.length === 0 ? (
-          <Table.Row>
-            <Table.Cell colSpan={4}>
-              <div className="text-center py-8">
-                <span className="text-neutral-500">
-                  {hasActiveFilters
-                    ? t('cases.noMatchingCases')
-                    : t('cases.noCases')}
-                </span>
-              </div>
-            </Table.Cell>
-          </Table.Row>
-        ) : (
-          cases.map((caseItem) => (
-            <Table.Row
-              key={caseItem.id}
-              clickable={true}
-              onClick={() => {
-                navigate(`/app/cases/${caseItem.id}`);
-              }}
-            >
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body-bold font-body-bold text-neutral-700">
-                  {capitalizeFirstSafe(caseItem.first_name)}{' '}
-                  {capitalizeFirstSafe(caseItem.last_name)}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <CaseStatusBadge status={caseItem.status} />
-              </Table.Cell>
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
-                  {caseItem.created_at
-                    ? new Date(caseItem.created_at).toLocaleDateString()
-                    : '-'}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="whitespace-nowrap text-body font-body text-neutral-500">
-                  {caseItem.id ? `CASE-${caseItem.id}` : '-'}
-                </span>
-              </Table.Cell>
-            </Table.Row>
-          ))
-        )}
-      </Table>
+      {isMobile ? (
+        <MobileCasesList cases={cases} loading={loading} />
+      ) : (
+        <DesktopCasesTable cases={cases} loading={loading} />
+      )}
 
       <div className="flex w-full items-center justify-between">
         <span className="text-body font-body text-subtext-color">

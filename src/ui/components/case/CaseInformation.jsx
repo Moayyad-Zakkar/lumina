@@ -18,6 +18,7 @@ import {
   FeatherPrinter,
   FeatherFileText,
 } from '@subframe/core';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 
 /* -------------------------------------------------------
    PrintField Component
@@ -405,6 +406,7 @@ const PrintableContent = React.forwardRef(
 ------------------------------------------------------- */
 const CaseInformation = ({ caseData, isAdmin = false }) => {
   const { t, i18n } = useTranslation();
+  const isMobile = useIsMobile();
   const [showPrintDialog, setShowPrintDialog] = useState(false);
 
   const printRef = useRef();
@@ -425,15 +427,16 @@ const CaseInformation = ({ caseData, isAdmin = false }) => {
               ? t('casePage.caseInformation')
               : t('casePage.patientInformation')}
           </span>
-
-          <Button
-            size="small"
-            variant="neutral-secondary"
-            icon={<FeatherPrinter />}
-            onClick={() => setShowPrintDialog(true)}
-          >
-            {t('casePage.printCaseInfo')}
-          </Button>
+          {!isMobile && (
+            <Button
+              size="small"
+              variant="neutral-secondary"
+              icon={<FeatherPrinter />}
+              onClick={() => setShowPrintDialog(true)}
+            >
+              {t('casePage.printCaseInfo')}
+            </Button>
+          )}
         </div>
 
         <div className="flex w-full flex-wrap items-start gap-6">

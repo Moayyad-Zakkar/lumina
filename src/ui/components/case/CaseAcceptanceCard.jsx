@@ -4,6 +4,7 @@ import { TextField } from '../TextField';
 import { Alert } from '../Alert';
 import { FeatherCheck, FeatherX, FeatherDollarSign } from '@subframe/core';
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 
 const CaseAcceptanceCard = ({
   currentStatus,
@@ -16,6 +17,7 @@ const CaseAcceptanceCard = ({
   // Show this card for submitted cases (for acceptance) and accepted cases (for display only)
   //if (currentStatus !== 'submitted' && currentStatus !== 'accepted')
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   if (currentStatus !== 'submitted') return null;
 
   return (
@@ -52,9 +54,12 @@ const CaseAcceptanceCard = ({
             </div>
 
             <div className="flex w-full items-center justify-between">
-              <span className="text-body font-body text-subtext-color">
-                {t('casePage.alerts.submitted.description')}
-              </span>
+              {!isMobile && (
+                <span className="text-body font-body text-subtext-color">
+                  {t('casePage.alerts.submitted.description')}
+                </span>
+              )}
+
               <div className="flex items-center gap-2">
                 <Button
                   variant="destructive-secondary"

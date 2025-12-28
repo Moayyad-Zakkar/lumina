@@ -12,9 +12,11 @@ import { capitalizeFirstSafe } from '../../helper/formatText';
 import CaseStatusBadge from '../components/CaseStatusBadge';
 import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
 import DoctorBillingStats from '../components/billing/DoctorBillingStats';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function UserDashboard() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const {
     totalCases,
     recentCases,
@@ -53,18 +55,21 @@ function UserDashboard() {
 */}
 
       {/* Stats Overview */}
-      {billingLoading ? (
+
+      {!isMobile && billingLoading ? (
         <div className="flex w-full h-full min-h-[150px] justify-center items-center">
           <Loader size="medium" />
         </div>
       ) : (
-        <DoctorBillingStats
-          totalDue={totalDue}
-          isDashboard={true}
-          submittedCases={submittedCases}
-          completedCases={completedCases}
-          totalCases={totalCases}
-        />
+        !isMobile && (
+          <DoctorBillingStats
+            totalDue={totalDue}
+            isDashboard={true}
+            submittedCases={submittedCases}
+            completedCases={completedCases}
+            totalCases={totalCases}
+          />
+        )
       )}
 
       {/* Recent Cases Section */}

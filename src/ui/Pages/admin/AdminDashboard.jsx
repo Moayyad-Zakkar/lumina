@@ -13,9 +13,11 @@ import { useBillingData } from '../../../hooks/useBillingData';
 import { useUserRole } from '../../../helper/useUserRole';
 import { isSuperAdmin } from '../../../helper/auth';
 import Error from '../../components/Error';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 
 function AdminDashboard() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const {
     totalCases,
     recentCases,
@@ -45,50 +47,52 @@ function AdminDashboard() {
       <AdminHeadline submit={true}>{t('dashboard.title')}</AdminHeadline>
 
       {/* Stats Overview */}
-      <div className="flex w-full flex-wrap items-start gap-4">
-        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
-          <span className="text-caption-bold font-caption-bold text-subtext-color">
-            {t('dashboard.totalCases')}
-          </span>
-          <span className="text-heading-2 font-heading-2 text-default-font">
-            {totalCases === null ? (
-              <div className="flex items-center h-8">
-                <Loader size="small" />
-              </div>
-            ) : (
-              totalCases
-            )}
-          </span>
+      {!isMobile && (
+        <div className="flex w-full flex-wrap items-start gap-4">
+          <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
+            <span className="text-caption-bold font-caption-bold text-subtext-color">
+              {t('dashboard.totalCases')}
+            </span>
+            <span className="text-heading-2 font-heading-2 text-default-font">
+              {totalCases === null ? (
+                <div className="flex items-center h-8">
+                  <Loader size="small" />
+                </div>
+              ) : (
+                totalCases
+              )}
+            </span>
+          </div>
+          <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
+            <span className="text-caption-bold font-caption-bold text-subtext-color">
+              {t('dashboard.pendingReview')}
+            </span>
+            <span className="text-heading-2 font-heading-2 text-warning-700">
+              {submittedCases === null ? (
+                <div className="flex items-center h-8">
+                  <Loader size="small" />
+                </div>
+              ) : (
+                submittedCases
+              )}
+            </span>
+          </div>
+          <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
+            <span className="text-caption-bold font-caption-bold text-subtext-color">
+              {t('dashboard.completedBy3DA')}
+            </span>
+            <span className="text-heading-2 font-heading-2 text-success-700">
+              {completedCases === null ? (
+                <div className="flex items-center h-8">
+                  <Loader size="small" />
+                </div>
+              ) : (
+                completedCases
+              )}
+            </span>
+          </div>
         </div>
-        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
-          <span className="text-caption-bold font-caption-bold text-subtext-color">
-            {t('dashboard.pendingReview')}
-          </span>
-          <span className="text-heading-2 font-heading-2 text-warning-700">
-            {submittedCases === null ? (
-              <div className="flex items-center h-8">
-                <Loader size="small" />
-              </div>
-            ) : (
-              submittedCases
-            )}
-          </span>
-        </div>
-        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6">
-          <span className="text-caption-bold font-caption-bold text-subtext-color">
-            {t('dashboard.completedBy3DA')}
-          </span>
-          <span className="text-heading-2 font-heading-2 text-success-700">
-            {completedCases === null ? (
-              <div className="flex items-center h-8">
-                <Loader size="small" />
-              </div>
-            ) : (
-              completedCases
-            )}
-          </span>
-        </div>
-      </div>
+      )}
 
       {/* Recent Cases Section */}
       <div className="flex w-full items-center justify-between gap-4">

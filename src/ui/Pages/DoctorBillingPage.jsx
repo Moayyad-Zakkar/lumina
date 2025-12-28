@@ -11,9 +11,11 @@ import DoctorBillingStats from '../components/billing/DoctorBillingStats';
 import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
 import Headline from '../components/Headline';
 import { Link } from 'react-router';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 function DoctorBillingPage() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
 
   const {
@@ -69,13 +71,15 @@ function DoctorBillingPage() {
         </div>
       ) : (
         <>
-          <DoctorBillingStats
-            totalCases={totalCases}
-            totalDue={totalDue}
-            totalPaid={totalPaid}
-            pendingCases={pendingCases}
-            completedCases={completedCases}
-          />
+          {!isMobile && (
+            <DoctorBillingStats
+              totalCases={totalCases}
+              totalDue={totalDue}
+              totalPaid={totalPaid}
+              pendingCases={pendingCases}
+              completedCases={completedCases}
+            />
+          )}
 
           <div className="flex w-full items-center gap-2">
             <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">

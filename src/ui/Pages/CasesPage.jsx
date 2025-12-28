@@ -318,11 +318,11 @@ const CasesPage = () => {
       {error && <Error error={error} />}
       <Headline>{t('cases.title')}</Headline>
 
-      <div className="flex w-full justify-between items-center gap-4">
+      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
         {/* Left Side: Search + Filters */}
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-2 overflow-x-auto md:overflow-visible md:flex-1 scrollbar-hide">
           {/* Search Bar */}
-          <div className="flex-grow max-w-[300px] min-w-[200px]">
+          <div className="w-full md:flex-grow md:max-w-[300px] md:min-w-[200px]">
             <TextField
               className="w-full"
               variant="filled"
@@ -443,13 +443,15 @@ const CasesPage = () => {
               onClick={clearFilters}
               icon={<FeatherX />}
             >
-              {t('cases.filters.clearFilters')}
+              <span className="hidden md:inline">
+                {t('cases.filters.clearFilters')}
+              </span>
             </Button>
           )}
         </div>
 
         {/* Right Side: Icons */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 self-end md:self-auto">
           <IconButton
             icon={
               <FeatherRefreshCw className={refreshing ? 'animate-spin' : ''} />
@@ -575,12 +577,13 @@ const CasesPage = () => {
               ' ' +
               t('cases.cases')}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 w-full md:w-auto">
           {page > 1 && (
             <Button
               variant="neutral-secondary"
               onClick={() => setPage(page - 1)}
               disabled={loading || refreshing}
+              className="flex-1 md:flex-none"
             >
               {t('common.previous')}
             </Button>
@@ -590,6 +593,7 @@ const CasesPage = () => {
               variant="neutral-secondary"
               onClick={() => setPage(page + 1)}
               disabled={loading || refreshing}
+              className="flex-1 md:flex-none"
             >
               {t('common.next')}
             </Button>

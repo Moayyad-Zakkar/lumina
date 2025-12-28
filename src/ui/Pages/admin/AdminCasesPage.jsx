@@ -442,11 +442,11 @@ const AdminCasesPage = () => {
       {error && <Error error={error} />}
       <AdminHeadline submit={true}>{t('navigation.allCases')}</AdminHeadline>
 
-      <div className="flex w-full justify-between items-center gap-4">
+      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
         {/* Left Side: Search + Filters */}
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-2 overflow-x-auto md:overflow-visible md:flex-1 scrollbar-hide">
           {/* Search Bar with bounded width */}
-          <div className="flex-grow max-w-[300px] min-w-[200px]">
+          <div className="w-full md:flex-grow max-w-[300px] min-w-[200px]">
             <TextField
               className="w-full"
               variant="filled"
@@ -489,11 +489,10 @@ const AdminCasesPage = () => {
             {showStatusDropdown && (
               <div
                 className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[160px]"
-                dir="rtl" // Add dir="rtl" for proper flow context
+                dir="rtl"
               >
                 <div className="py-1">
                   <button
-                    // FIX: Changed text-left to text-right
                     className="w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => {
                       setSelectedStatus('');
@@ -505,7 +504,6 @@ const AdminCasesPage = () => {
                   {statusOptions.map((option) => (
                     <button
                       key={option.value}
-                      // FIX: Changed text-left to text-right
                       className={`w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 ${
                         selectedStatus === option.value
                           ? 'bg-neutral-100 text-neutral-900'
@@ -556,11 +554,10 @@ const AdminCasesPage = () => {
             {showAlignerMaterialDropdown && (
               <div
                 className="absolute top-full left-0 mt-1 bg-white border border-neutral-border rounded-md shadow-lg z-10 min-w-[140px] max-h-[300px] overflow-y-auto"
-                dir="rtl" // Add dir="rtl" for proper flow context
+                dir="rtl"
               >
                 <div className="py-1">
                   <button
-                    // FIX: Changed text-left to text-right
                     className="w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
                     onClick={() => {
                       setSelectedAlignerMaterial('');
@@ -572,7 +569,6 @@ const AdminCasesPage = () => {
                   {alignerMaterialOptions.map((material) => (
                     <button
                       key={material.value}
-                      // FIX: Changed text-left to text-right
                       className={`w-full text-right px-3 py-2 text-sm hover:bg-neutral-50 ${
                         selectedAlignerMaterial === material.value
                           ? 'bg-neutral-100 text-neutral-900'
@@ -657,7 +653,9 @@ const AdminCasesPage = () => {
               onClick={clearFilters}
               icon={<FeatherX />}
             >
-              {t('cases.filters.clearFilters')}
+              <span className="hidden md:inline">
+                {t('cases.filters.clearFilters')}
+              </span>
             </Button>
           )}
         </div>

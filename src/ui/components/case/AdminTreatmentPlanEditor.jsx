@@ -25,6 +25,7 @@ import {
 import TreatmentPlanImagesUpload from './TreatmentPlanImagesUpload';
 import IPRChartDialog from './IPRChartDialog';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 
 /* -------------------------------------------------------
    PrintField Component
@@ -205,6 +206,7 @@ const AdminTreatmentPlanEditor = ({
   onIPRSave,
 }) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isIPRDialogOpen, setIsIPRDialogOpen] = useState(false);
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
@@ -272,13 +274,13 @@ const AdminTreatmentPlanEditor = ({
   return (
     <>
       <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <span className="text-heading-3 font-heading-3 text-default-font">
             {t('casePage.treatmentPlanReview')}
           </span>
 
           {/* Print Button - Only show in read-only mode */}
-          {isReadOnly && (
+          {!isMobile && isReadOnly && (
             <Button
               size="small"
               variant="neutral-secondary"
@@ -290,9 +292,9 @@ const AdminTreatmentPlanEditor = ({
           )}
         </div>
 
-        <div className="flex w-full flex-col items-start gap-6">
-          <div className="flex w-full flex-wrap items-start gap-6">
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+        <div className="flex w-full flex-col gap-6 md:flex-row md:flex-wrap">
+          <div className="w-full md:flex md:gap-6">
+            <div className="w-full md:flex-1 flex flex-col gap-4">
               {isEditingPlan &&
               ![
                 'approved',
@@ -344,31 +346,33 @@ const AdminTreatmentPlanEditor = ({
                   </TextField>
 
                   {/* Action Buttons */}
-                  <div className="flex w-auto flex-col gap-2 text-caption-bold font-caption-bold text-default-font">
-                    {t('adminTreatmentPlan.actionButtons')}:
-                    <Button
-                      variant="neutral-secondary"
-                      icon={<FeatherImage />}
-                      onClick={() => setIsUploadDialogOpen(true)}
-                      size="small"
-                      className="flex-2"
-                    >
-                      {t('adminTreatmentPlan.addViewer')}
-                    </Button>
-                    <Button
-                      variant={
-                        hasIPRData ? 'brand-secondary' : 'neutral-secondary'
-                      }
-                      icon={<FeatherSlice />}
-                      onClick={() => setIsIPRDialogOpen(true)}
-                      size="small"
-                      className="flex-2"
-                    >
-                      {hasIPRData
-                        ? t('adminTreatmentPlan.editIPRChart')
-                        : t('adminTreatmentPlan.addIPRChart')}
-                    </Button>
-                  </div>
+                  {!isMobile && (
+                    <div className="flex w-auto flex-col gap-2 text-caption-bold font-caption-bold text-default-font">
+                      {t('adminTreatmentPlan.actionButtons')}:
+                      <Button
+                        variant="neutral-secondary"
+                        icon={<FeatherImage />}
+                        onClick={() => setIsUploadDialogOpen(true)}
+                        size="small"
+                        className="flex-2"
+                      >
+                        {t('adminTreatmentPlan.addViewer')}
+                      </Button>
+                      <Button
+                        variant={
+                          hasIPRData ? 'brand-secondary' : 'neutral-secondary'
+                        }
+                        icon={<FeatherSlice />}
+                        onClick={() => setIsIPRDialogOpen(true)}
+                        size="small"
+                        className="flex-2"
+                      >
+                        {hasIPRData
+                          ? t('adminTreatmentPlan.editIPRChart')
+                          : t('adminTreatmentPlan.addIPRChart')}
+                      </Button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
@@ -421,7 +425,7 @@ const AdminTreatmentPlanEditor = ({
                 </>
               )}
             </div>
-            <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4">
+            <div className="w-full md:flex-1 flex flex-col gap-4">
               {isEditingPlan &&
               ![
                 'approved',
@@ -516,7 +520,7 @@ const AdminTreatmentPlanEditor = ({
 
             {/* View Viewer Button */}
             {caseHasViewer && (
-              <div className="flex w-full items-center gap-2">
+              <div className="flex w-full flex-col gap-2 md:flex-row md:items-center">
                 <Button
                   onClick={handleViewerClick}
                   icon={<FeatherEye />}
@@ -550,33 +554,36 @@ const AdminTreatmentPlanEditor = ({
           <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
 
           <div className="flex w-full items-center justify-between">
-            <span className="text-body font-body text-subtext-color">
-              {isEditingPlan &&
-              ![
-                'approved',
-                'in_production',
-                'ready_for_delivery',
-                'delivered',
-                'completed',
-                'user_rejected',
-              ].includes(currentStatus)
-                ? t('adminTreatmentPlan.statusMessages.editing')
-                : currentStatus === 'awaiting_user_approval'
-                ? t('adminTreatmentPlan.statusMessages.awaitingApproval')
-                : currentStatus === 'approved'
-                ? t('adminTreatmentPlan.statusMessages.approved')
-                : currentStatus === 'rejected'
-                ? t('adminTreatmentPlan.statusMessages.rejected')
-                : currentStatus === 'in_production'
-                ? t('adminTreatmentPlan.statusMessages.inProduction')
-                : currentStatus === 'ready_for_delivery'
-                ? t('adminTreatmentPlan.statusMessages.readyForDelivery')
-                : currentStatus === 'delivered'
-                ? t('adminTreatmentPlan.statusMessages.delivered')
-                : currentStatus === 'user_rejected'
-                ? t('adminTreatmentPlan.statusMessages.userRejected')
-                : ''}
-            </span>
+            {!isMobile && (
+              <span className="text-body font-body text-subtext-color">
+                {isEditingPlan &&
+                ![
+                  'approved',
+                  'in_production',
+                  'ready_for_delivery',
+                  'delivered',
+                  'completed',
+                  'user_rejected',
+                ].includes(currentStatus)
+                  ? t('adminTreatmentPlan.statusMessages.editing')
+                  : currentStatus === 'awaiting_user_approval'
+                  ? t('adminTreatmentPlan.statusMessages.awaitingApproval')
+                  : currentStatus === 'approved'
+                  ? t('adminTreatmentPlan.statusMessages.approved')
+                  : currentStatus === 'rejected'
+                  ? t('adminTreatmentPlan.statusMessages.rejected')
+                  : currentStatus === 'in_production'
+                  ? t('adminTreatmentPlan.statusMessages.inProduction')
+                  : currentStatus === 'ready_for_delivery'
+                  ? t('adminTreatmentPlan.statusMessages.readyForDelivery')
+                  : currentStatus === 'delivered'
+                  ? t('adminTreatmentPlan.statusMessages.delivered')
+                  : currentStatus === 'user_rejected'
+                  ? t('adminTreatmentPlan.statusMessages.userRejected')
+                  : ''}
+              </span>
+            )}
+
             <div className="flex items-center gap-2">
               {isEditingPlan &&
               ![

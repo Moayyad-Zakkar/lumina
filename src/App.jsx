@@ -75,6 +75,11 @@ const router = createBrowserRouter([
     path: '/update-password',
   },
   {
+    // Case Viewer Route - accessible to everyone!
+    path: '/case-viewer/:caseId',
+    element: <CaseViewer />,
+  },
+  {
     element: (
       <ProtectedRoute>
         <RequireRole role="user">
@@ -176,15 +181,6 @@ const router = createBrowserRouter([
         element: <AdminTransactionLogPage />,
       },
     ],
-  },
-  {
-    // Case Viewer Route - accessible to both users and admins
-    element: (
-      <ProtectedRoute>
-        <CaseViewer />
-      </ProtectedRoute>
-    ),
-    path: '/case-viewer/:caseId',
   },
   {
     path: '/app',

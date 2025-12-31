@@ -15,14 +15,11 @@ export const useFileDownload = () => {
     setDownloadingFiles((prev) => new Set([...prev, storedUrl]));
 
     try {
-      //console.log('Starting download for:', fileName);
-
       const result = await downloadFile(storedUrl);
 
-      if (result.success) {
-        toast.success(`${fileName} downloaded successfully`);
-      } else {
-        toast.error(`Failed to download ${fileName}: ${result.error}`);
+      // Don't show another success toast - downloadFile already shows one
+      if (!result.success) {
+        toast.error(`Failed to download ${fileName}`);
       }
     } catch (error) {
       console.error('Download error:', error);
@@ -81,17 +78,25 @@ export const useFileDownload = () => {
 
     // Show initial toast
     const downloadToast = toast.loading(
-      `Downloading ${filesToDownload.length} file(s)...`
+      `Starting download of ${filesToDownload.length} file(s)...`
     );
 
     let successCount = 0;
     let failCount = 0;
 
-    // Download files with error tracking
+    // Download files sequentially with progress updates
     for (let i = 0; i < filesToDownload.length; i++) {
       const file = filesToDownload[i];
 
       try {
+        // Update progress toast
+        toast.loading(
+          `Downloading file ${i + 1} of ${filesToDownload.length}: ${
+            file.name
+          }`,
+          { id: downloadToast }
+        );
+
         // Add to downloading set
         setDownloadingFiles((prev) => new Set([...prev, file.url]));
 
@@ -99,14 +104,13 @@ export const useFileDownload = () => {
 
         if (result.success) {
           successCount++;
-          //console.log(`✓ Downloaded: ${file.name}`);
         } else {
           failCount++;
-          console.error(`✗ Failed: ${file.name} - ${result.error}`);
+          console.error(`Failed: ${file.name} - ${result.error}`);
         }
       } catch (error) {
         failCount++;
-        console.error(`✗ Failed: ${file.name} - ${error.message}`);
+        console.error(`Failed: ${file.name} - ${error.message}`);
       } finally {
         // Remove from downloading set
         setDownloadingFiles((prev) => {
@@ -116,9 +120,9 @@ export const useFileDownload = () => {
         });
       }
 
-      // Small delay between downloads to avoid overwhelming browser
+      // Small delay between downloads
       if (i < filesToDownload.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 

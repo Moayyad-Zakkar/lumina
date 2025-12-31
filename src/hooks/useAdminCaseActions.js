@@ -57,7 +57,11 @@ export const useAdminCaseActions = (caseData) => {
   useEffect(() => {
     const fetchDefaults = async () => {
       // Only fetch defaults if no existing pricing data
-      if (!caseData?.case_study_fee) {
+      const hasNoFeeRecord =
+        caseData?.case_study_fee === undefined ||
+        caseData?.case_study_fee === null;
+
+      if (hasNoFeeRecord) {
         // 1. Case Study Fee
         const { data: feeData } = await supabase
           .from('services')
@@ -86,7 +90,11 @@ export const useAdminCaseActions = (caseData) => {
 
   // Auto-calculate aligners price
   useEffect(() => {
-    if (!caseData?.aligners_price) {
+    const hasNoAlignerRecord =
+      caseData?.aligners_price === undefined ||
+      caseData?.aligners_price === null;
+
+    if (hasNoAlignerRecord) {
       const totalAligners =
         parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
       const totalPrice = totalAligners * alignerUnitPrice;

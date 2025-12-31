@@ -58,7 +58,7 @@ const TreatmentDetails = ({ caseData }) => {
             <span className="text-body-bold font-body-bold text-default-font mb-2 block">
               {t('caseSubmit.diagnosis.chiefComplaint')}
             </span>
-            <div className="bg-neutral-50 dark:bg-neutral-900 rounded-md p-4 border border-neutral-border">
+            <div className="bg-white rounded-md p-4 border border-neutral-border">
               <p className="text-body font-body text-default-font whitespace-pre-wrap">
                 {caseData.chief_complaint}
               </p>

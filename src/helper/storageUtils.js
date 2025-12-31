@@ -1,4 +1,4 @@
-// storageUtils.js - Updated with Telegram backup integration via Edge Function
+// storageUtils.js - Updated download with visible progress
 import supabase from './supabaseClient';
 import toast from 'react-hot-toast';
 
@@ -11,9 +11,6 @@ export const STORAGE_BUCKET = 'case-files';
 const TELEGRAM_API_URL = `${
   import.meta.env.VITE_SUPABASE_URL
 }/functions/v1/telegram-backup`;
-
-// Log the API URL for debugging (remove this later)
-//console.log('Telegram Edge Function URL:', TELEGRAM_API_URL);
 
 /**
  * Parse storage URL to extract the file path
@@ -61,18 +58,9 @@ export const parseStorageUrl = (urlOrPath) => {
 
 /**
  * Upload file to Telegram via Edge Function as backup
- * DEFINED FIRST so uploadFile can use it
  */
 const uploadToTelegram = async (file, metadata = {}) => {
   try {
-    /*
-    console.log('🔄 Starting Telegram backup via Edge Function...', {
-      filename: file.name,
-      size: file.size,
-      type: file.type,
-      edgeFunction: TELEGRAM_API_URL,
-    });
-*/
     // Get current session for authentication
     const {
       data: { session },
@@ -96,43 +84,29 @@ const uploadToTelegram = async (file, metadata = {}) => {
     formData.append('fileType', metadata.fileType || '');
     formData.append('userId', userId);
 
-    //console.log('📤 Calling Edge Function with auth token');
-
     const response = await fetch(TELEGRAM_API_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${session.access_token}`, // Use session token, not anon key
+        Authorization: `Bearer ${session.access_token}`,
       },
       body: formData,
     });
 
-    //console.log('📥 Response status:', response.status);
-
     const result = await response.json();
-    //console.log('📥 Response data:', result);
 
     if (!result.success) {
       throw new Error(result.error || 'Backup failed');
     }
 
-    //console.log('✅ Backup successful');
     return { success: true, data: result };
   } catch (error) {
     console.error('❌ Backup error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-    });
     return { success: false, error: error.message };
   }
 };
 
 /**
  * Upload file to storage WITH automatic Telegram backup via Edge Function
- * @param {File} file - The file to upload
- * @param {string} folderPath - The folder path in Supabase storage
- * @param {object} metadata - Optional metadata (caseId, patientName, fileType, doctorName, clinicName)
- * @param {boolean} skipTelegramBackup - Skip Telegram backup if true (default: false)
  */
 export const uploadFile = async (
   file,
@@ -154,7 +128,7 @@ export const uploadFile = async (
     // Show upload toast
     const uploadToast = toast.loading('Uploading...');
 
-    // NEW: Use Edge Function which handles BOTH Supabase upload AND Telegram backup
+    // Use Edge Function which handles BOTH Supabase upload AND Telegram backup
     if (!skipTelegramBackup) {
       const telegramResult = await uploadToTelegram(file, {
         folderPath,
@@ -170,7 +144,6 @@ export const uploadFile = async (
           id: uploadToast,
         });
 
-        // Return the file path from Edge Function
         return {
           success: true,
           filePath: telegramResult.data.filePath,
@@ -178,7 +151,6 @@ export const uploadFile = async (
           originalName: telegramResult.data.originalName,
         };
       } else {
-        // Fallback: Upload only to Supabase if Telegram fails
         console.warn(
           'Backup failed, uploading to Supabase only:',
           telegramResult.error
@@ -189,7 +161,7 @@ export const uploadFile = async (
       }
     }
 
-    // Fallback: Direct Supabase upload (if Telegram skipped or failed)
+    // Fallback: Direct Supabase upload
     const fileExt = file.name.split('.').pop().toLowerCase();
     const fileName = `${Date.now()}_${Math.random()
       .toString(36)
@@ -225,8 +197,8 @@ export const uploadFile = async (
 };
 
 /**
- * SIMPLIFIED: Direct download function - no initialization needed!
- * Just click button → download file. That's it.
+ * IMPROVED: Download with visible browser progress
+ * Shows the file in browser's download manager with progress bar
  */
 export const downloadFile = async (storedUrlOrPath) => {
   try {
@@ -243,46 +215,85 @@ export const downloadFile = async (storedUrlOrPath) => {
       return { success: false, error: 'Invalid file path' };
     }
 
-    // Method 1: Try Supabase client download (most reliable)
+    // Extract filename for better UX
+    const filename = parsed.objectPath.split('/').pop() || 'download';
+
+    // Show preparing toast
+    const downloadToast = toast.loading(`Preparing ${filename}...`);
+
     try {
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .download(parsed.objectPath);
-
-      if (!downloadError && fileData) {
-        // Create blob URL and trigger download
-        const url = URL.createObjectURL(fileData);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = parsed.objectPath.split('/').pop() || 'download';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        toast.success('Download started');
-        return { success: true };
-      }
-    } catch (downloadError) {
-      // console.log('Direct download failed, trying signed URL:', downloadError);
-    }
-
-    // Method 2: Fallback to signed URL
-    try {
+      // Get a signed URL first (this is fast)
       const { data: signedUrlData, error: signError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .createSignedUrl(parsed.objectPath, 3600);
+        .createSignedUrl(parsed.objectPath, 3600); // 1 hour expiry
 
-      if (!signError && signedUrlData?.signedUrl) {
-        window.open(signedUrlData.signedUrl, '_blank');
-        toast.success('Download started');
-        return { success: true };
+      if (signError || !signedUrlData?.signedUrl) {
+        throw new Error('Failed to generate download link');
       }
 
-      throw signError;
-    } catch (signError) {
-      console.error('All download methods failed:', signError);
-      throw signError;
+      // Update toast to show download starting
+      toast.loading(`Starting download...`, { id: downloadToast });
+
+      // Use fetch with response streaming for progress tracking
+      const response = await fetch(signedUrlData.signedUrl);
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.statusText}`);
+      }
+
+      // Get the total size if available
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+      // Create a reader to stream the response
+      const reader = response.body.getReader();
+      const chunks = [];
+      let receivedLength = 0;
+
+      // Read the stream and track progress
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        chunks.push(value);
+        receivedLength += value.length;
+
+        // Update progress in toast if we know the total size
+        if (total > 0) {
+          const percentComplete = Math.round((receivedLength / total) * 100);
+          toast.loading(`Downloading ${filename}... ${percentComplete}%`, {
+            id: downloadToast,
+          });
+        }
+      }
+
+      // Combine chunks into a single blob
+      const blob = new Blob(chunks);
+
+      // Create object URL and trigger download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+
+      // Success toast
+      toast.success(`Download started`, { id: downloadToast });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.dismiss(downloadToast);
+      throw error;
     }
   } catch (error) {
     console.error('Download failed:', error);
@@ -290,9 +301,9 @@ export const downloadFile = async (storedUrlOrPath) => {
       ? 'File not found'
       : error.message.includes('permission')
       ? 'Access denied'
-      : `Download failed: ${error.message}`;
+      : 'Download failed';
 
-    toast.error('Please try again!');
+    toast.error(`${errorMessage}. Please try again!`);
     return { success: false, error: error.message };
   }
 };

@@ -240,7 +240,6 @@ const AdminCasesPage = () => {
         return null;
     }
   };
-
   const fetchCases = useCallback(
     async (isRefresh = false) => {
       try {
@@ -250,76 +249,86 @@ const AdminCasesPage = () => {
           setLoading(true);
         }
 
-        let baseQuery = supabase.from('cases').select(
+        // Build base query WITHOUT search first
+        let countQuery = supabase
+          .from('cases')
+          .select('*, profiles!inner(id, full_name)', {
+            count: 'exact',
+            head: true,
+          });
+
+        let dataQuery = supabase.from('cases').select(
           `
             *,
-            profiles (
+            profiles!inner (
               id,
               full_name,
               phone,
               clinic,
               avatar_url
             )
-          `,
-          { count: 'exact' }
+          `
         );
 
-        // Apply search filter
-        if (search.length >= 3) {
-          baseQuery = baseQuery.or(
-            `first_name.ilike.%${search}%,last_name.ilike.%${search}%,profiles.full_name.ilike.%${search}%`
-          );
-        }
-
-        // Apply status filter
+        // Apply filters to both queries
+        // Status filter
         if (selectedStatus) {
-          baseQuery = baseQuery.eq('status', selectedStatus);
+          countQuery = countQuery.eq('status', selectedStatus);
+          dataQuery = dataQuery.eq('status', selectedStatus);
         }
 
-        // Apply aligner material filter (string comparison)
+        // Aligner material filter
         if (selectedAlignerMaterial) {
-          baseQuery = baseQuery.eq('aligner_material', selectedAlignerMaterial);
+          countQuery = countQuery.eq(
+            'aligner_material',
+            selectedAlignerMaterial
+          );
+          dataQuery = dataQuery.eq('aligner_material', selectedAlignerMaterial);
         }
 
-        // Apply date range filter
+        // Date range filter
         if (selectedDateRange) {
           const dateRange = getDateRange(selectedDateRange);
           if (dateRange) {
-            baseQuery = baseQuery
+            countQuery = countQuery
+              .gte('created_at', dateRange.start.toISOString())
+              .lt('created_at', dateRange.end.toISOString());
+            dataQuery = dataQuery
               .gte('created_at', dateRange.start.toISOString())
               .lt('created_at', dateRange.end.toISOString());
           }
         }
 
+        // Apply search filter (patient name or case ID only - doctor name filtered client-side)
+        if (search.length >= 3) {
+          const searchConditions = [
+            `first_name.ilike.%${search}%`,
+            `last_name.ilike.%${search}%`,
+          ];
+
+          // Include ID search if the input is a number
+          if (!isNaN(search) && search.trim() !== '') {
+            searchConditions.push(`id.eq.${search}`);
+          }
+
+          countQuery = countQuery.or(searchConditions.join(','));
+          dataQuery = dataQuery.or(searchConditions.join(','));
+        }
+
         // Get total count
-        const { count: total, error: countError } = await baseQuery;
+        const { count: total, error: countError } = await countQuery;
         if (countError) throw countError;
-        setTotalCases(total || 0);
 
         // Apply sorting
         const sortOption = sortOptions.find((opt) => opt.value === sortBy);
         const sortColumn = sortOption?.column || 'created_at';
         const sortAscending = sortOption?.ascending || false;
 
-        // For doctor name sorting, we need to handle it differently
-        let sortedQuery = baseQuery.select(
-          `
-          *,
-          profiles (
-            id,
-            full_name,
-            phone,
-            clinic,
-            avatar_url
-          )
-        `
-        );
-
+        // For doctor name sorting, we'll sort on the client side
         if (sortColumn.includes('profiles')) {
-          // For profile-related sorting, we'll sort on the client side after fetching
-          sortedQuery = sortedQuery.order('created_at', { ascending: false });
+          dataQuery = dataQuery.order('created_at', { ascending: false });
         } else {
-          sortedQuery = sortedQuery.order(sortColumn, {
+          dataQuery = dataQuery.order(sortColumn, {
             ascending: sortAscending,
           });
         }
@@ -327,7 +336,7 @@ const AdminCasesPage = () => {
         // Fetch paginated cases
         const from = (page - 1) * CASES_PER_PAGE;
         const to = from + CASES_PER_PAGE - 1;
-        const { data, error } = await sortedQuery.range(from, to);
+        const { data, error } = await dataQuery.range(from, to);
 
         if (error) throw error;
 
@@ -342,6 +351,29 @@ const AdminCasesPage = () => {
               }
             : c.profiles,
         }));
+
+        // Apply doctor name filter on client side if searching
+        if (search.length >= 3) {
+          const searchLower = search.toLowerCase();
+          processedData = processedData.filter((c) => {
+            const patientFirstName = c.first_name?.toLowerCase() || '';
+            const patientLastName = c.last_name?.toLowerCase() || '';
+            const doctorName = c.profiles?.full_name?.toLowerCase() || '';
+            const caseId = c.id?.toString() || '';
+
+            return (
+              patientFirstName.includes(searchLower) ||
+              patientLastName.includes(searchLower) ||
+              doctorName.includes(searchLower) ||
+              caseId === search
+            );
+          });
+
+          // Update total count after client-side filtering
+          setTotalCases(processedData.length);
+        } else {
+          setTotalCases(total || 0);
+        }
 
         // Client-side sorting for profile-related fields
         if (sortColumn.includes('profiles')) {
@@ -455,7 +487,7 @@ const AdminCasesPage = () => {
               icon={<FeatherSearch />}
             >
               <TextField.Input
-                placeholder={t('cases.searchPatientOrDoctor')}
+                placeholder={t('cases.searchPatientOrID')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />

@@ -517,18 +517,18 @@ const AdminTreatmentPlanEditor = ({
                 </>
               )}
             </div>
-
-            {/* View Viewer Button */}
-            {caseHasViewer && (
-              <div className="flex w-full flex-col gap-2 md:flex-row md:items-center">
-                <Button
-                  onClick={handleViewerClick}
-                  icon={<FeatherEye />}
-                  className="flex-shrink-0 w-auto"
-                >
-                  {t('adminTreatmentPlan.openViewer')}
-                </Button>
-
+          </div>
+          {/* View Viewer Button */}
+          {caseHasViewer && (
+            <div className="flex w-full flex-col gap-2 md:flex-row md:items-center">
+              <Button
+                onClick={handleViewerClick}
+                icon={<FeatherEye />}
+                className="flex-shrink-0 w-auto"
+              >
+                {t('adminTreatmentPlan.openViewer')}
+              </Button>
+              <div className="flex w-full gap-2">
                 <TextField className="flex flex-grow">
                   <TextField.Input
                     type="text"
@@ -548,8 +548,8 @@ const AdminTreatmentPlanEditor = ({
                   className="flex-shrink-0"
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
 

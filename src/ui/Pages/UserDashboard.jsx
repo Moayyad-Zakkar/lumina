@@ -77,7 +77,8 @@ function UserDashboard() {
         <span className="text-heading-2 font-heading-2 text-default-font">
           {t('dashboard.recentCases')}
         </span>
-        <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
+        {/*
+                  <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
           <TextField
             variant="filled"
             label=""
@@ -90,6 +91,7 @@ function UserDashboard() {
             />
           </TextField>
         </div>
+          */}
       </div>
 
       <Table

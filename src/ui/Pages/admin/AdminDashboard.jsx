@@ -99,6 +99,7 @@ function AdminDashboard() {
         <span className="text-heading-2 font-heading-2 text-default-font">
           {t('dashboard.recentCases')}
         </span>
+        {/*
         <div className="flex-shrink-0 max-w-[300px] min-w-[200px]">
           <TextField
             variant="filled"
@@ -108,10 +109,12 @@ function AdminDashboard() {
           >
             <TextField.Input
               placeholder={t('dashboard.searchCases')}
-              value=""
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           </TextField>
         </div>
+        */}
       </div>
 
       <Table

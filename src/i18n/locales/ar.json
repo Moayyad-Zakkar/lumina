@@ -67,7 +67,7 @@
     "caseId": "مُعرِّف الحالة",
     "noCases": "لم يتم العثور على أي حالات.",
     "noMatchingCases": "لا توجد حالات تطابق الفلاتر.",
-    "searchPatientOrDoctor": "البحث عن مريض أو طبيب...",
+    "searchPatientOrID": "البحث بحسب اسم المريض أو رقمه...",
     "showing": "عرض",
     "of": "من",
     "cases": "الحالات",

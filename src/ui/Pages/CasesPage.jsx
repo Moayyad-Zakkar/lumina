@@ -205,19 +205,31 @@ const CasesPage = () => {
         let query = supabase
           .from('cases')
           .select('*', { count: 'exact' })
+          .eq('user_id', user.id) // Only fetch cases for this doctor
           .order(sortColumn, { ascending: sortAscending })
           .range(from, to);
 
+        // Apply search filter - patient name or case ID
         if (search.length >= 3) {
-          query = query.or(
-            `first_name.ilike.%${search}%,last_name.ilike.%${search}%`
-          );
+          const searchConditions = [
+            `first_name.ilike.%${search}%`,
+            `last_name.ilike.%${search}%`,
+          ];
+
+          // Include ID search if the input is a number
+          if (!isNaN(search) && search.trim() !== '') {
+            searchConditions.push(`id.eq.${search}`);
+          }
+
+          query = query.or(searchConditions.join(','));
         }
 
+        // Apply status filter
         if (selectedStatus) {
           query = query.eq('status', selectedStatus);
         }
 
+        // Apply date range filter
         if (selectedDateRange) {
           const dateRange = getDateRange(selectedDateRange);
           if (dateRange) {
@@ -248,7 +260,6 @@ const CasesPage = () => {
     },
     [page, search, selectedStatus, selectedDateRange, sortBy, t]
   );
-
   useEffect(() => {
     fetchCases();
   }, [fetchCases]);
@@ -331,7 +342,7 @@ const CasesPage = () => {
               icon={<FeatherSearch />}
             >
               <TextField.Input
-                placeholder={t('cases.searchPatientOrDoctor')}
+                placeholder={t('cases.searchPatientOrID')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />

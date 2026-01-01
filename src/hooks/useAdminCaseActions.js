@@ -90,22 +90,11 @@ export const useAdminCaseActions = (caseData) => {
 
   // Auto-calculate aligners price
   useEffect(() => {
-    const hasNoAlignerRecord =
-      caseData?.aligners_price === undefined ||
-      caseData?.aligners_price === null;
-
-    if (hasNoAlignerRecord) {
-      const totalAligners =
-        parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
-      const totalPrice = totalAligners * alignerUnitPrice;
-      setAlignersPrice(totalPrice.toFixed(2));
-    }
-  }, [
-    upperJawAligners,
-    lowerJawAligners,
-    alignerUnitPrice,
-    caseData?.aligners_price,
-  ]);
+    const totalAligners =
+      parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
+    const totalPrice = totalAligners * alignerUnitPrice;
+    setAlignersPrice(totalPrice.toFixed(2));
+  }, [upperJawAligners, lowerJawAligners, alignerUnitPrice]);
 
   // Update case in database
   const updateCase = async (updates) => {
@@ -231,8 +220,8 @@ export const useAdminCaseActions = (caseData) => {
       Number.isNaN(u) ||
       Number.isNaN(l) ||
       Number.isNaN(d) ||
-      u <= 0 ||
-      l <= 0 ||
+      u < 0 ||
+      l < 0 ||
       d <= 0
     ) {
       setActionError('Please enter valid positive numbers for all fields');

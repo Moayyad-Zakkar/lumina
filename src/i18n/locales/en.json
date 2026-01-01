@@ -67,7 +67,7 @@
     "caseId": "Case ID",
     "noCases": "No cases found.",
     "noMatchingCases": "No cases match your filters.",
-    "searchPatientOrDoctor": "Search patient or doctor...",
+    "searchPatientOrID": "Search by patient's name or ID...",
     "showing": "Showing",
     "of": "of",
     "cases": "cases",

@@ -2,9 +2,10 @@ import { useNavigate } from 'react-router';
 import { capitalizeFirstSafe } from '../../helper/formatText';
 import { useTranslation } from 'react-i18next';
 import { Table } from './Table';
-import { Loader } from '@subframe/core';
+
 import { Avatar } from './Avatar';
 import CaseStatusBadge from './CaseStatusBadge';
+import { Loader } from './Loader';
 
 const AdminCasesTable = ({ cases, loading, hasActiveFilters }) => {
   const navigate = useNavigate();

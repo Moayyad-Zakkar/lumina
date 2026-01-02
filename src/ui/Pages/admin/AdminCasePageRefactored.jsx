@@ -233,10 +233,14 @@ const AdminCasePageRefactored = () => {
       toast.error(t('adminCasePage.toast.iprFailed'));
     }
   };
-
+  // Admin Approve plan button sets the total cost and the billable approved total cost to the final value
   const approvePlan = async () => {
     try {
-      await updateCase({ status: 'approved' });
+      await updateCase({
+        status: 'approved',
+        total_cost: parseFloat(caseData?.total_cost || 0),
+        approved_total_cost: parseFloat(caseData?.total_cost || 0),
+      });
       toast.success(t('casePage.toast.planApproved'));
     } catch (e) {
       toast.error(e.message || t('casePage.toast.approveFailed'));

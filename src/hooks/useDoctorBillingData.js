@@ -3,7 +3,7 @@ import supabase from '../helper/supabaseClient';
 
 // Helper function to calculate case payment info (reused from your admin hook)
 const calculateCasePaymentInfo = (case_, allPayments = []) => {
-  const totalCost = parseFloat(case_.total_cost || 0);
+  const totalCost = parseFloat(case_.approved_total_cost || 0);
 
   if (totalCost <= 0) {
     return {
@@ -74,7 +74,7 @@ export const useDoctorBillingData = () => {
           id,
           first_name,
           last_name,
-          total_cost,
+          approved_total_cost,
           created_at,
           status,
           payment_status,
@@ -125,7 +125,7 @@ export const useDoctorBillingData = () => {
             `${case_.first_name || ''} ${case_.last_name || ''}`.trim() ||
             'Unknown Patient',
           case_date: case_.created_at,
-          amount: parseFloat(case_.total_cost || 0),
+          amount: parseFloat(case_.approved_total_cost || 0),
           treatment_type: `${case_.aligner_material || 'Standard'} - ${
             case_.treatment_arch
               ? case_.treatment_arch === 'both'

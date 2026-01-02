@@ -93,7 +93,7 @@ function DoctorBillingPage() {
                 icon={<FeatherSearch />}
               >
                 <TextField.Input
-                  placeholder={t('cases.searchPatientOrDoctor')}
+                  placeholder={t('cases.searchPatientOrID')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />

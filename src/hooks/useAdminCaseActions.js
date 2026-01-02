@@ -128,6 +128,7 @@ export const useAdminCaseActions = (caseData) => {
       status: 'accepted',
       case_study_fee: caseStudyFeeAmount,
       total_cost: caseStudyFeeAmount, // Update total cost when case study fee is set
+      approved_total_cost: caseStudyFeeAmount,
     });
     toast.success('Case accepted successfully');
   };
@@ -153,6 +154,7 @@ export const useAdminCaseActions = (caseData) => {
           declined_by: user?.id,
           case_study_fee: 0,
           total_cost: 0,
+          approved_total_cost: 0,
         })
         .eq('id', caseData.id);
 
@@ -245,6 +247,7 @@ export const useAdminCaseActions = (caseData) => {
       aligners_price: newAlignersPrice,
       delivery_charges: newDeliveryCharges,
       total_cost: totalCost,
+      //// Don't update approved_total_cost here - it will be set when doctor approves
     });
     setIsEditingPlan(false);
     setEditBackup(null);

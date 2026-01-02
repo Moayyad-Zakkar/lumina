@@ -129,7 +129,11 @@ const CasePageRefactored = () => {
       setActionError(null);
       const { error: updateError } = await supabase
         .from('cases')
-        .update({ status: 'approved' })
+        .update({
+          status: 'approved',
+          total_cost: parseFloat(caseData?.total_cost || 0),
+          approved_total_cost: parseFloat(caseData?.total_cost || 0),
+        })
         .eq('id', caseData.id);
       if (updateError) throw updateError;
 
@@ -146,7 +150,7 @@ const CasePageRefactored = () => {
       setSaving(false);
     }
   };
-
+  // when user decline treatment plan he is billed with case study fees only, but the calculated total cost is still as it is
   const declinePlan = async (reason) => {
     const CaseStudyFee = parseFloat(caseData?.case_study_fee || 0);
 
@@ -157,7 +161,7 @@ const CasePageRefactored = () => {
         .from('cases')
         .update({
           status: 'user_rejected',
-          total_cost: CaseStudyFee,
+          approved_total_cost: CaseStudyFee,
           decline_reason: reason,
         })
         .eq('id', caseData.id);
@@ -167,7 +171,7 @@ const CasePageRefactored = () => {
       setIsDeclineDialogOpen(false);
       toast.success(t('casePage.toast.planDeclined'));
 
-      // [!code change] Refresh data from server
+      // Refresh data from server
       handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.declineFailed'));
@@ -215,7 +219,7 @@ const CasePageRefactored = () => {
 
       setIsRequestEditOpen(false);
 
-      // [!code change] Refresh data from server
+      // Refresh data from server
       handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.updateMaterialFailed'));

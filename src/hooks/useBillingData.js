@@ -5,7 +5,7 @@ import supabase from '../helper/supabaseClient';
 
 // Enhanced helper function to calculate case payment info and status
 const calculateCasePaymentInfo = (case_, allPayments = []) => {
-  const totalCost = parseFloat(case_.total_cost || 0);
+  const totalCost = parseFloat(case_.approved_total_cost || 0);
 
   if (totalCost <= 0) {
     return {
@@ -75,7 +75,7 @@ export const useBillingData = () => {
           clinic,
           cases:cases!user_id (
             id,
-            total_cost,
+            approved_total_cost,
             created_at,
             status,
             first_name,

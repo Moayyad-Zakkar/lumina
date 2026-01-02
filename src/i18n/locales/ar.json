@@ -825,7 +825,8 @@
     "allTime": "كل الوقت",
     "outstanding": "متأخرة",
     "receivePayment": "استلام دفعة",
-    "recordExpense": "تسجيل نفقة"
+    "recordExpense": "تسجيل نفقة",
+    "addCredit": "إضافة رصيد"
   },
   "doctorBillingStats": {
     "amountDue": "المبلغ المستحق",
@@ -1153,5 +1154,21 @@
     "statusPending": "بانتظار القبول",
     "statusApproved": "مقبول",
     "statusRejected": "مرفوض"
+  },
+  "creditDialog": {
+    "title": "إضافة رصيد",
+    "subtitle": "تسجيل معاملة رصيد أو دخل جديد",
+    "creditAmount": "مبلغ الرصيد",
+    "description": "الوصف (اختياري)",
+    "descriptionPlaceholder": "أدخل تفاصيل عن هذا الرصيد...",
+    "recordCredit": "تسجيل الرصيد",
+    "recording": "جاري التسجيل...",
+    "success": {
+      "creditRecorded": "تم تسجيل الرصيد بنجاح"
+    },
+    "errors": {
+      "validCredit": "يرجى إدخال مبلغ رصيد صحيح",
+      "recordFailed": "فشل تسجيل الرصيد"
+    }
   }
 }

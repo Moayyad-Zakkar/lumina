@@ -15,12 +15,14 @@ import AdminHeadline from '../../components/AdminHeadline';
 import { Link } from 'react-router';
 import { isSuperAdmin } from '../../../helper/auth';
 import { useUserRole } from '../../../helper/useUserRole';
+import CreditDialog from '../../components/billing/CreditDialog';
 
 function AdminBillingPage() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showExpensesDialog, setShowExpensesDialog] = useState(false);
+  const [showCreditDialog, setShowCreditDialog] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   const { role } = useUserRole();
@@ -42,6 +44,14 @@ function AdminBillingPage() {
       doctor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doctor.clinic?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleAddCredit = () => {
+    setShowCreditDialog(true);
+  };
+
+  const handleCloseCreditDialog = () => {
+    setShowCreditDialog(false);
+  };
 
   const handleCollectPayment = (doctor) => {
     setSelectedDoctor(doctor);
@@ -103,6 +113,7 @@ function AdminBillingPage() {
             totalExpenses={isSuperAdminUser ? totalExpenses : null}
             onReceivePayment={handleReceivePayment}
             onMakePayment={isSuperAdminUser ? handleMakePayment : null}
+            onAddCredit={isSuperAdminUser ? handleAddCredit : null}
           />
 
           <div className="flex w-full items-center gap-2">
@@ -145,6 +156,15 @@ function AdminBillingPage() {
         <ExpensesDialog
           isOpen={showExpensesDialog}
           onClose={handleCloseExpensesDialog}
+          refetchBillingData={refetchBillingData}
+        />
+      )}
+
+      {/* Only render add credit dialog for super admin */}
+      {isSuperAdminUser && (
+        <CreditDialog
+          isOpen={showCreditDialog}
+          onClose={handleCloseCreditDialog}
           refetchBillingData={refetchBillingData}
         />
       )}

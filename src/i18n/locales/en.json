@@ -336,7 +336,8 @@
     "allTime": "all time",
     "outstanding": "outstanding",
     "receivePayment": "Receive Payment",
-    "recordExpense": "Record Expense"
+    "recordExpense": "Record Expense",
+    "addCredit": "Add Credit"
   },
 
   "casePage": {
@@ -1149,6 +1150,22 @@
         "The number of aligners may increase depending on the case requirements",
         "The treating doctor is solely responsible for the treatment plan"
       ]
+    }
+  },
+  "creditDialog": {
+    "title": "Add Credit/Income",
+    "subtitle": "Record a credit or income transaction",
+    "creditAmount": "Credit Amount",
+    "description": "Description (Optional)",
+    "descriptionPlaceholder": "Enter details about this credit...",
+    "recordCredit": "Record Credit",
+    "recording": "Recording...",
+    "success": {
+      "creditRecorded": "Credit recorded successfully"
+    },
+    "errors": {
+      "validCredit": "Please enter a valid credit amount",
+      "recordFailed": "Failed to record credit"
     }
   }
 }

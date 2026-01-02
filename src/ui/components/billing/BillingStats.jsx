@@ -4,6 +4,7 @@ import { Button } from '../Button';
 import {
   FeatherArrowDown,
   FeatherArrowUp,
+  FeatherPlus,
   FeatherTrendingDown,
 } from '@subframe/core';
 
@@ -13,6 +14,7 @@ const BillingStats = ({
   totalExpenses,
   onReceivePayment,
   onMakePayment,
+  onAddCredit,
   withButtons = true,
 }) => {
   return (
@@ -33,6 +35,7 @@ const BillingStats = ({
         <div className="flex w-full flex-wrap items-start gap-4">
           <PaymentButton onReceivePayment={onReceivePayment} />
           {onMakePayment && <ExpenseButton onMakePayment={onMakePayment} />}
+          {onAddCredit && <CreditButton onAddCredit={onAddCredit} />}
         </div>
       )}
     </>
@@ -143,6 +146,21 @@ const ExpenseButton = ({ onMakePayment }) => {
       onClick={onMakePayment}
     >
       {t('billingStats.recordExpense')}
+    </Button>
+  );
+};
+
+const CreditButton = ({ onAddCredit }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Button
+      className="h-10 w-auto flex-none"
+      icon={<FeatherPlus />}
+      onClick={onAddCredit}
+      variant="brand-primary"
+    >
+      {t('billingStats.addCredit')}
     </Button>
   );
 };

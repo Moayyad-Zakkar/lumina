@@ -88,13 +88,15 @@ export const useAdminCaseActions = (caseData) => {
     fetchDefaults();
   }, [caseData?.aligner_material, caseData?.case_study_fee]);
 
-  // Auto-calculate aligners price
   useEffect(() => {
-    const totalAligners =
-      parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
-    const totalPrice = totalAligners * alignerUnitPrice;
-    setAlignersPrice(totalPrice.toFixed(2));
-  }, [upperJawAligners, lowerJawAligners, alignerUnitPrice]);
+    // Only recalculate if we have a backup (meaning user started editing)
+    if (editBackup !== null) {
+      const totalAligners =
+        parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
+      const totalPrice = totalAligners * alignerUnitPrice;
+      setAlignersPrice(totalPrice.toFixed(2));
+    }
+  }, [upperJawAligners, lowerJawAligners, alignerUnitPrice, editBackup]);
 
   // Update case in database
   const updateCase = async (updates) => {
@@ -252,6 +254,9 @@ export const useAdminCaseActions = (caseData) => {
     setIsEditingPlan(false);
     setEditBackup(null);
     toast.success('Sent for doctor approval');
+
+    // Reload the page to get fresh data
+    window.location.reload();
   };
 
   // Status transitions

@@ -236,10 +236,12 @@ const AdminCasePageRefactored = () => {
   // Admin Approve plan button sets the total cost and the billable approved total cost to the final value
   const approvePlan = async () => {
     try {
+      const totalCost = parseFloat(caseData?.total_cost || 0);
+
       await updateCase({
         status: 'approved',
-        total_cost: parseFloat(caseData?.total_cost || 0),
-        approved_total_cost: parseFloat(caseData?.total_cost || 0),
+        total_cost: totalCost,
+        approved_total_cost: totalCost,
       });
       toast.success(t('casePage.toast.planApproved'));
     } catch (e) {

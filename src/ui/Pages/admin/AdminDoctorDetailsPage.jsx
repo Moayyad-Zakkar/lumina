@@ -50,7 +50,7 @@ const PaymentStatusBadge = ({ paymentStatus, paymentPercentage = 0 }) => {
 
 // Helper function to calculate case payment info (same as in your hook)
 const calculateCasePaymentInfo = (case_, allPayments = []) => {
-  const totalCost = parseFloat(case_.total_cost || 0);
+  const totalCost = parseFloat(case_.approved_total_cost || 0);
 
   if (totalCost <= 0) {
     return {
@@ -435,7 +435,7 @@ export default function AdminDoctorDetailsPage() {
                   </Table.Cell>
                   <Table.Cell>
                     <span className="whitespace-nowrap text-body font-body text-neutral-500">
-                      ${parseFloat(c.total_cost || 0).toFixed(2)}
+                      ${parseFloat(c.approved_total_cost || 0).toFixed(2)}
                     </span>
                   </Table.Cell>
                   <Table.Cell>

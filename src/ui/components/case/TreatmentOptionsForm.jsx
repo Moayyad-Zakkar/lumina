@@ -93,15 +93,15 @@ const TreatmentOptionsForm = ({ formData, handleChange, alignerMaterials }) => {
                   {mat.name}
                 </span>
                 <span className="text-body-bold font-body-bold text-brand-600">
-                  ${Number(mat.price || 0).toFixed(2)}
+                  ${Number(mat.price || 0).toFixed(2)}/
+                  {t('caseSubmit.treatmentOptions.perAligner')}
                 </span>
               </div>
               <p
                 className="text-caption font-caption text-subtext-color"
                 dir={isRTL ? 'rtl' : 'ltr'}
               >
-                {(isRTL ? mat.description_ar : mat.description_en) ||
-                  t('common.noDescription', 'No description available.')}
+                {(isRTL ? mat.description_ar : mat.description_en) || ''}
               </p>
             </div>
           ))}

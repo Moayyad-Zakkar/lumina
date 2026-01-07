@@ -206,7 +206,8 @@
       "bothArches": "Both arches",
       "alignerMaterial": "Preferred Aligners System",
       "materialDetails": "Aligners Systems & Pricing",
-      "materialDesc": "Compare our available aligner systems and features."
+      "materialDesc": "Compare our available aligner systems and features.",
+      "perAligner": "Aligner"
     },
 
     "fileUpload": {

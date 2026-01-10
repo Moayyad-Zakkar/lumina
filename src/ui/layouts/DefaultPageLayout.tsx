@@ -210,7 +210,10 @@ const DefaultPageLayoutRoot = React.forwardRef<
           <SubframeCore.DropdownMenu.Root>
             <SubframeCore.DropdownMenu.Trigger asChild>
               <div className="cursor-pointer">
-                <Avatar image={avatarUrl || '/logo.png'} />
+                <Avatar
+                  image={avatarUrl || '/favicon.png'}
+                  className="shadow-md shadow-brand-300/50"
+                />
               </div>
             </SubframeCore.DropdownMenu.Trigger>
             <SubframeCore.DropdownMenu.Portal>

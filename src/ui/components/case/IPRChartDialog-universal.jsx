@@ -3,44 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { FeatherX, FeatherSave } from '@subframe/core';
 import { Button } from '../Button';
 
-// Mapping from Universal to FDI numbering (for display only)
-const UNIVERSAL_TO_FDI = {
-  // Upper jaw
-  1: 18,
-  2: 17,
-  3: 16,
-  4: 15,
-  5: 14,
-  6: 13,
-  7: 12,
-  8: 11,
-  9: 21,
-  10: 22,
-  11: 23,
-  12: 24,
-  13: 25,
-  14: 26,
-  15: 27,
-  16: 28,
-  // Lower jaw
-  17: 38,
-  18: 37,
-  19: 36,
-  20: 35,
-  21: 34,
-  22: 33,
-  23: 32,
-  24: 31,
-  25: 41,
-  26: 42,
-  27: 43,
-  28: 44,
-  29: 45,
-  30: 46,
-  31: 47,
-  32: 48,
-};
-
 // Dialog component for IPR input - Mesial and Distal per tooth
 const IPRChartDialog = ({
   isOpen,
@@ -52,10 +14,9 @@ const IPRChartDialog = ({
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
 
-  // Initialize IPR data using Universal numbers (for data storage)
+  // Initialize IPR data - each tooth has mesial and distal values
   const [iprData, setIprData] = useState(() => {
     const initialIpr = {};
-    // Initialize with Universal tooth numbers 1-32
     for (let i = 1; i <= 32; i++) {
       initialIpr[i] = {
         mesial: initialData[i]?.mesial || '',
@@ -136,16 +97,14 @@ const IPRChartDialog = ({
 
   if (!isOpen) return null;
 
-  const renderTooth = (universalNum, isUpper) => {
-    const fdiNum = UNIVERSAL_TO_FDI[universalNum]; // Get FDI number for display
-
+  const renderTooth = (toothNum, isUpper) => {
     return (
       <div
-        key={universalNum}
+        key={toothNum}
         className="flex flex-col items-center gap-1"
         style={{ width: '48px' }}
       >
-        <div className="text-xs font-bold text-gray-700 mb-1">#{fdiNum}</div>
+        <div className="text-xs font-bold text-gray-700 mb-1">#{toothNum}</div>
 
         {/* Mesial input */}
         <div className="flex flex-col items-center w-full">
@@ -153,9 +112,9 @@ const IPRChartDialog = ({
           <input
             type="text"
             inputMode="decimal"
-            value={iprData[universalNum]?.mesial || ''}
+            value={iprData[toothNum]?.mesial || ''}
             onChange={(e) =>
-              handleInputChange(universalNum, 'mesial', e.target.value)
+              handleInputChange(toothNum, 'mesial', e.target.value)
             }
             placeholder="0.0"
             className="w-full px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -168,9 +127,9 @@ const IPRChartDialog = ({
           <input
             type="text"
             inputMode="decimal"
-            value={iprData[universalNum]?.distal || ''}
+            value={iprData[toothNum]?.distal || ''}
             onChange={(e) =>
-              handleInputChange(universalNum, 'distal', e.target.value)
+              handleInputChange(toothNum, 'distal', e.target.value)
             }
             placeholder="0.0"
             className="w-full px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -184,21 +143,22 @@ const IPRChartDialog = ({
     );
   };
 
-  // Render upper teeth: store as Universal 1-16, display as FDI
+  // Helper to render teeth in correct order based on language direction
   const renderUpperTeeth = () => {
     const teeth = [...Array(16)].map((_, i) => {
-      const universalNum = i + 1; // 1 to 16
-      return renderTooth(universalNum, true);
+      const toothNum = i + 1;
+      return renderTooth(toothNum, true);
     });
+    // Always keep LTR order for teeth (1-16 from left to right)
     return teeth;
   };
 
-  // Render lower teeth: store as Universal 17-32, display as FDI
   const renderLowerTeeth = () => {
     const teeth = [...Array(16)].map((_, i) => {
-      const universalNum = 32 - i; // 32 to 17
-      return renderTooth(universalNum, false);
+      const toothNum = 32 - i;
+      return renderTooth(toothNum, false);
     });
+    // Always keep LTR order for teeth (32-17 from left to right)
     return teeth;
   };
 

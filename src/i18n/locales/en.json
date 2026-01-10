@@ -960,7 +960,7 @@
       "enterValues": "Enter mesial (M) and distal (D) IPR values in millimeters for each tooth",
       "enterMillimeters": "Enter values in millimeters (e.g., 0.2, 0.5)",
       "leaveEmpty": "Leave fields empty for surfaces with no IPR",
-      "combineValues": "The viewer will combine adjacent values (e.g., mesial of #8 + mesial of #9)",
+      "combineValues": "The viewer will combine adjacent values (e.g., mesial of #11 + mesial of #21)",
       "clickSave": "Click Save to store the IPR chart with the treatment plan"
     },
     "saveButton": "Save IPR Chart"

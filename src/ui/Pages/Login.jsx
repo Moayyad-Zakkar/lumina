@@ -35,15 +35,17 @@ function Login() {
 
       if (error) throw error;
 
+      // Keep loading state active during navigation
       const userRole = data.user?.app_metadata?.role || 'user';
       if (isAdminRole(userRole)) {
         navigate('/admin/dashboard');
       } else {
         navigate('/app/dashboard');
       }
+      // Don't set loading to false here - let the component unmount
     } catch (error) {
       setError(error.message);
-    } finally {
+      // Only set loading to false if there's an error
       setLoading(false);
     }
   };

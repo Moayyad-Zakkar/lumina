@@ -43,6 +43,19 @@ const PrintField = ({ label, value }) => {
   );
 };
 
+const printStyles = `
+  @media print {
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    
+    .print-container {
+      padding: 0 !important;
+    }
+  }
+`;
+
 /* -------------------------------------------------------
    PrintableTreatmentPlan Component
 ------------------------------------------------------- */
@@ -57,122 +70,129 @@ const PrintableTreatmentPlan = React.forwardRef(
     },
     ref
   ) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+
+    const isRTL = i18n.dir() === 'rtl';
     const hasIPRData = iprData && Object.keys(iprData).length > 0;
 
     return (
-      <div ref={ref} className="p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
-          <div>
-            <img
-              className="h-10 flex-none object-cover"
-              src={`${window.location.origin}/logo.png`}
-            />
-            <p className="text-sm text-gray-600">
-              {t('adminTreatmentPlan.print.treatmentPlanDetails')}
-            </p>
+      <>
+        <style>{printStyles}</style>
+        <div
+          ref={ref}
+          dir={isRTL ? 'rtl' : 'ltr'}
+          className="p-8 print-container"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
+            <div>
+              <p className="text-sm text-gray-600">
+                {t('adminTreatmentPlan.print.treatmentPlanDetails')}
+              </p>
+              <p className="text-sm text-gray-600">
+                {t('cases.caseId')}: <strong>CASE-{caseData.id}</strong>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-600">
+                {new Date().toLocaleDateString()}
+              </p>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600">
-              {t('cases.caseId')}: <strong>CASE-{caseData.id}</strong>
-            </p>
-            <p className="text-sm text-gray-600">
-              {new Date().toLocaleDateString()}
-            </p>
-          </div>
-        </div>
 
-        {/* Patient Information */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            {t('casePage.patientInformation')}
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <PrintField
-                label={t('casePage.firstName')}
-                value={capitalizeFirstSafe(caseData.first_name) || 'N/A'}
-              />
-              <PrintField
-                label={t('casePage.lastName')}
-                value={capitalizeFirstSafe(caseData.last_name) || 'N/A'}
-              />
-            </div>
-            <div className="space-y-3">
-              <PrintField
-                label={t('casePage.doctorName')}
-                value={
-                  capitalizeFirstSafe(caseData.profiles?.full_name) || 'N/A'
-                }
-              />
-              <PrintField
-                label={t('casePage.clinic')}
-                value={caseData.profiles?.clinic || 'N/A'}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Treatment Plan Details */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            {t('casePage.treatmentPlanReview')}
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <PrintField
-                label={t('casePage.alignerMaterial')}
-                value={caseData.aligner_material || t('casePage.notSpecified')}
-              />
-              <PrintField
-                label={t('casePage.treatmentPlan.upperJawAligners')}
-                value={`${upperJawAligners || '—'} ${t(
-                  'casePage.treatmentPlan.aligners'
-                )}`}
-              />
-            </div>
-            <div className="space-y-3">
-              <PrintField
-                label={t('casePage.treatmentPlan.lowerJawAligners')}
-                value={`${lowerJawAligners || '—'} ${t(
-                  'casePage.treatmentPlan.aligners'
-                )}`}
-              />
-              <PrintField
-                label={t('casePage.treatmentPlan.estimatedDuration')}
-                value={`${estimatedDurationMonths || '—'} ${t(
-                  'casePage.treatmentPlan.months'
-                )}`}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* IPR Chart Section */}
-        {hasIPRData && (
-          <div className="mb-6 page-break-inside-avoid">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              {t('adminTreatmentPlan.iprChart')}
+          {/* Patient Information */}
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800 text-start">
+              {t('casePage.patientInformation')}
             </h2>
-            <div className="border border-gray-300 rounded-lg p-4 bg-white overflow-hidden flex justify-center">
-              <PrintableIPRChart
-                toothStatus={caseData.tooth_status || {}}
-                iprData={iprData}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <PrintField
+                  label={t('casePage.firstName')}
+                  value={capitalizeFirstSafe(caseData.first_name) || 'N/A'}
+                />
+                <PrintField
+                  label={t('casePage.lastName')}
+                  value={capitalizeFirstSafe(caseData.last_name) || 'N/A'}
+                />
+              </div>
+              <div className="space-y-3">
+                <PrintField
+                  label={t('casePage.doctorName')}
+                  value={
+                    capitalizeFirstSafe(caseData.profiles?.full_name) || 'N/A'
+                  }
+                />
+                <PrintField
+                  label={t('casePage.clinic')}
+                  value={caseData.profiles?.clinic || 'N/A'}
+                />
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
-          <p>
-            {t('adminTreatmentPlan.print.footer', {
-              date: new Date().toLocaleString(),
-            })}
-          </p>
+          {/* Treatment Plan Details */}
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800 text-start">
+              {t('casePage.treatmentPlanReview')}
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <PrintField
+                  label={t('casePage.alignerMaterial')}
+                  value={
+                    caseData.aligner_material || t('casePage.notSpecified')
+                  }
+                />
+                <PrintField
+                  label={t('casePage.treatmentPlan.upperJawAligners')}
+                  value={`${upperJawAligners || '—'} ${t(
+                    'casePage.treatmentPlan.aligners'
+                  )}`}
+                />
+              </div>
+              <div className="space-y-3">
+                <PrintField
+                  label={t('casePage.treatmentPlan.lowerJawAligners')}
+                  value={`${lowerJawAligners || '—'} ${t(
+                    'casePage.treatmentPlan.aligners'
+                  )}`}
+                />
+                <PrintField
+                  label={t('casePage.treatmentPlan.estimatedDuration')}
+                  value={`${estimatedDurationMonths || '—'} ${t(
+                    'casePage.treatmentPlan.months'
+                  )}`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* IPR Chart Section */}
+          {hasIPRData && (
+            <div className="mb-6 page-break-inside-avoid">
+              <h2 className="text-xl font-semibold mb-4 text-gray-800 text-start">
+                {t('adminTreatmentPlan.iprChart')}
+              </h2>
+              <div className="border border-gray-300 rounded-lg p-4 bg-white overflow-hidden flex justify-center">
+                <PrintableIPRChart
+                  toothStatus={caseData.tooth_status || {}}
+                  iprData={iprData}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
+            <p>
+              {t('adminTreatmentPlan.print.footer', {
+                date: new Date().toLocaleString(),
+              })}
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 );

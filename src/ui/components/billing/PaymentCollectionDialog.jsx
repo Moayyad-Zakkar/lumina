@@ -53,11 +53,6 @@ export const PrintableInvoice = React.forwardRef(
           className={`flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6`}
         >
           <div>
-            <img
-              className="h-10 flex-none object-cover"
-              src={`${window.location.origin}/logo.png`}
-              alt="Logo"
-            />
             <p className="text-sm text-gray-600 mt-2">
               {t('paymentCollectionDialog.paymentReceipt')}
             </p>

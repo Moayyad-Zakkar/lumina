@@ -34,7 +34,11 @@ export default function ProtectedRoute({ children }) {
   }, []);
 
   if (loading) {
-    return <Loader size="large" />;
+    return (
+      <div className="flex flex-col items-center">
+        <Loader size="large" />
+      </div>
+    );
   }
 
   if (!user) {

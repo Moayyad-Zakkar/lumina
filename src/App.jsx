@@ -43,6 +43,7 @@ import AdminTransactionLogPage from './ui/Pages/admin/ِAdminTransactionLogPage'
 import DoctorTransactionLogPage from './ui/Pages/DoctorTransactionLogPage';
 import CaseViewer from './ui/Pages/CaseViewer';
 import AdminSignUpRequests from './ui/Pages/admin/AdminSignUpRequests';
+import TermsAndConditions from './ui/Pages/TermsAndConditions';
 
 const router = createBrowserRouter([
   {
@@ -123,6 +124,10 @@ const router = createBrowserRouter([
       {
         path: '/app/settings',
         element: <SettingsPage />,
+      },
+      {
+        path: '/app/terms',
+        element: <TermsAndConditions />,
       },
     ],
   },

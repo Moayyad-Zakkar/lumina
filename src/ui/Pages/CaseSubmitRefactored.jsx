@@ -63,7 +63,8 @@ const CaseSubmitRefactored = () => {
       const { data, error } = await supabase
         .from('services')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('id', { ascending: true });
 
       if (error) {
         console.error('Error fetching services:', error);
@@ -133,6 +134,12 @@ const CaseSubmitRefactored = () => {
         }));
       }
     }
+  };
+
+  const handleTermsClick = () => {
+    // Open the Terms page in a new tab
+    const termsUrl = `/app/terms`;
+    window.open(termsUrl, '_blank');
   };
 
   const handleSubmit = async (e) => {
@@ -443,6 +450,19 @@ const CaseSubmitRefactored = () => {
         </div>
 
         <FileUploadSection formData={formData} handleChange={handleChange} />
+
+        {/* Consent Line */}
+        <div className="flex w-full flex-col items-start gap-2 rounded-md border border-solid border-neutral-border bg-subtext-color/5 px-4 py-3">
+          <p className="text-body text-subtext-color">
+            {t('caseSubmit.consent.text')}{' '}
+            <a
+              onClick={handleTermsClick}
+              className="text-brand-solid underline hover:text-brand-solid-hover hover:cursor-pointer"
+            >
+              {t('caseSubmit.consent.learnMore')}
+            </a>
+          </p>
+        </div>
 
         {error && <Error error={error} />}
         {successMessage && <SuccessMessage successMessage={successMessage} />}

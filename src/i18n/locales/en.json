@@ -186,7 +186,10 @@
     "biteScan": "Bite Scan",
     "compressedScans": "Compressed Scans Archive",
     "additionalFile": "Additional File {{number}}",
-
+    "consent": {
+      "text": "Case submission means full agreement to begin the case study and treatment in cooperation with Lumina according to the terms governing the relationship between the company and the doctor.",
+      "learnMore": "View full terms"
+    },
     "patientInfo": {
       "firstNameLabel": "First Name (required)",
       "firstNamePlaceholder": "Enter patient's first name",
@@ -1168,5 +1171,8 @@
       "validCredit": "Please enter a valid credit amount",
       "recordFailed": "Failed to record credit"
     }
+  },
+  "terms": {
+    "title": "Terms and Conditions"
   }
 }

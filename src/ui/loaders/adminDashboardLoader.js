@@ -39,8 +39,7 @@ export async function adminDashboardLoader() {
       .select(
         `id, first_name, last_name, status, created_at, user_id, profiles:user_id (full_name, avatar_url, clinic, phone)`
       )
-      .order('created_at', { ascending: false })
-      .limit(5),
+      .order('created_at', { ascending: false }),
   ]);
 
   const { count: totalCount, error: countError } = countRes;

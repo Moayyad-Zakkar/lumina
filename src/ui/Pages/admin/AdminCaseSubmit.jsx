@@ -68,7 +68,8 @@ const AdminCaseSubmit = () => {
       const { data: servicesData, error: servicesError } = await supabase
         .from('services')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('id', { ascending: true });
 
       if (servicesError) {
         console.error('Error fetching services:', servicesError);

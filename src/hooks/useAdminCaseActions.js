@@ -10,14 +10,14 @@ export const useAdminCaseActions = (caseData) => {
 
   // Pricing state
   const [caseStudyFee, setCaseStudyFee] = useState(
-    caseData?.case_study_fee?.toFixed(2) || '0.00'
+    caseData?.case_study_fee?.toFixed(2) || '10.00'
   );
   const [alignerUnitPrice, setAlignerUnitPrice] = useState(0);
   const [alignersPrice, setAlignersPrice] = useState(
     caseData?.aligners_price?.toFixed(2) || '0.00'
   );
   const [deliveryCharges, setDeliveryCharges] = useState(
-    caseData?.delivery_charges?.toFixed(2) || '25.00'
+    caseData?.delivery_charges?.toFixed(2) || '0.00'
   );
 
   // Treatment plan editing state
@@ -52,6 +52,28 @@ export const useAdminCaseActions = (caseData) => {
       ].includes(currentStatus),
     [currentStatus]
   );
+
+  // Auto-calculate aligners price
+  // Auto-calculate aligners price
+  useEffect(() => {
+    const hasNoAlignerRecord =
+      caseData?.aligners_price === 0.0 ||
+      caseData?.aligners_price === undefined ||
+      caseData?.aligners_price === null;
+
+    if (hasNoAlignerRecord) {
+      // ← This condition prevents recalculation
+      const totalAligners =
+        parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
+      const totalPrice = totalAligners * alignerUnitPrice;
+      setAlignersPrice(totalPrice.toFixed(2));
+    }
+  }, [
+    upperJawAligners,
+    lowerJawAligners,
+    alignerUnitPrice,
+    caseData?.aligners_price,
+  ]);
 
   // Fetch pricing defaults
   useEffect(() => {

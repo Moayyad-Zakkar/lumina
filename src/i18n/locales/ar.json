@@ -45,13 +45,13 @@
   },
   "dashboard": {
     "title": "الرئيسية",
-    "hello": "مرحباً، د.",
+    "hello": "مرحبًا، د.",
     "totalCases": "إجمالي الحالات",
-    "pendingReview": "قيد المراجعة",
-    "completedBy3DA": "حالات مكتملة",
+    "pendingReview": "الحالات الجديدة",
+    "completedBy3DA": "الحالات المكتملة",
     "recentCases": "آخر الحالات",
     "paymentOverview": "نظرة عامة على المعاملات المالية",
-    "noCases": "لا توجد حالات حديثة.",
+    "noCases": "لا توجد حالات جديدة.",
     "searchCases": "البحث في الحالات..."
   },
   "cases": {
@@ -675,17 +675,21 @@
     "biteScan": "مسح العضة",
     "compressedScans": "أرشيف المسح المضغوط",
     "additionalFile": "ملف إضافي {{number}}",
+    "consent": {
+      "text": "إرسال الحالة يعني الموافقة الكاملة على البدء بدراسة الحالة وعلاجها بالتعاون مع شركة Lumina وفق البنود الناظمة للعلاقة بين الشركة والطبيب.",
+      "learnMore": "اطلع على الشروط الكاملة"
+    },
 
     "patientInfo": {
       "firstNameLabel": "الاسم الأول",
       "firstNamePlaceholder": "أدخل الاسم الأول للمريض",
       "lastNameLabel": "اسم العائلة",
       "lastNamePlaceholder": "أدخل اسم العائلة للمريض",
-      "urgentCase": "حالة عاجلة",
+      "urgentCase": "حالة مستعجلة",
       "deliveryDateLabel": "تاريخ التسليم المطلوب",
       "deliveryDateHelp": "اختر آخر موعد مقبول للتسليم",
-      "urgentNoticeTitle": "إشعار الحالة العاجلة",
-      "urgentNoticeDescription": "قد تتطلب الحالات العاجلة رسومًا إضافية وتخضع للتوافر. سنتصل بك لتأكيد الجدول الزمني للتسليم وأي رسوم إضافية."
+      "urgentNoticeTitle": "إشعار الحالة المستعجلة",
+      "urgentNoticeDescription": "قد تتطلب الحالات المستعجلة رسومًا إضافية وتخضع للتوافر. سنتصل بك لتأكيد الجدول الزمني للتسليم وأي رسوم إضافية."
     },
 
     "treatmentOptions": {
@@ -746,7 +750,7 @@
       "authRequired": "يجب أن تسجل الدخول لتقديم حالة",
       "firstNameRequired": "الاسم الأول مطلوب",
       "lastNameRequired": "اسم العائلة مطلوب",
-      "deliveryDateRequired": "تاريخ التسليم مطلوب للحالات العاجلة",
+      "deliveryDateRequired": "تاريخ التسليم مطلوب للحالات المستعجلة",
       "deliveryDateFuture": "يجب أن يكون تاريخ التسليم في المستقبل",
       "scanRequired": "{{scan}} مطلوب",
       "compressedRequired": "ملف المسح المضغوط مطلوب",
@@ -1171,5 +1175,8 @@
       "validCredit": "يرجى إدخال مبلغ رصيد صحيح",
       "recordFailed": "فشل تسجيل الرصيد"
     }
+  },
+  "terms": {
+    "title": "الشروط والأحكام"
   }
 }

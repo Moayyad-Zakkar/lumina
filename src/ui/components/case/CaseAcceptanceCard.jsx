@@ -45,7 +45,7 @@ const CaseAcceptanceCard = ({
                 <TextField.Input
                   type="number"
                   min={0}
-                  step="0.01"
+                  step="1.00"
                   value={caseStudyFee}
                   onChange={(e) => setCaseStudyFee(e.target.value)}
                   placeholder="0.00"

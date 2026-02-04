@@ -279,7 +279,7 @@
       "totalTransactions": "إجمالي المعاملات",
       "totalRevenue": "إجمالي الإيرادات",
       "totalExpenses": "إجمالي المصروفات",
-      "netIncome": "صافي الدخل"
+      "netIncome": "الصندوق"
     },
     "filters": {
       "allTypes": "جميع الأنواع",
@@ -824,7 +824,7 @@
     }
   },
   "billingStats": {
-    "netIncome": "صافي الدخل",
+    "netIncome": "الصندوق",
     "duePayments": "المستحقات",
     "totalExpenses": "إجمالي النفقات",
     "allTime": "كل الوقت",

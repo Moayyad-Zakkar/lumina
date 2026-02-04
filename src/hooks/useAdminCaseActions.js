@@ -10,7 +10,7 @@ export const useAdminCaseActions = (caseData) => {
 
   // Pricing state
   const [caseStudyFee, setCaseStudyFee] = useState(
-    caseData?.case_study_fee?.toFixed(2) || '10.00'
+    caseData?.case_study_fee?.toFixed(2) || '0.00'
   );
   const [alignerUnitPrice, setAlignerUnitPrice] = useState(0);
   const [alignersPrice, setAlignersPrice] = useState(
@@ -54,7 +54,6 @@ export const useAdminCaseActions = (caseData) => {
   );
 
   // Auto-calculate aligners price
-  // Auto-calculate aligners price
   useEffect(() => {
     const hasNoAlignerRecord =
       caseData?.aligners_price === 0.0 ||
@@ -80,8 +79,8 @@ export const useAdminCaseActions = (caseData) => {
     const fetchDefaults = async () => {
       // Only fetch defaults if no existing pricing data
       const hasNoFeeRecord =
-        caseData?.case_study_fee === undefined ||
-        caseData?.case_study_fee === null;
+  caseData?.case_study_fee === undefined ||
+  caseData?.case_study_fee === null;
 
       if (hasNoFeeRecord) {
         // 1. Case Study Fee

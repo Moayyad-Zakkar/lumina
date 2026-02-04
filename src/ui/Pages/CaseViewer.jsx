@@ -10,6 +10,7 @@ import {
   FeatherSkipForward,
   FeatherChevronsLeft,
   FeatherChevronsRight,
+  FeatherDownload,
 } from '@subframe/core';
 import supabase from '../../helper/supabaseClient';
 import { capitalizeFirst } from '../../helper/formatText';
@@ -49,8 +50,23 @@ function CaseViewer() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const slideShowInterval = useRef(null);
 
+  // Set default language to Arabic on component mount
+  useEffect(() => {
+    if (i18n.language !== 'ar') {
+      i18n.changeLanguage('ar');
+    }
+  }, [i18n]);
+
   // Check if current language is Arabic
   const isRTL = i18n.language === 'ar';
+
+  // Handler for PDF download
+  const handleDownloadPDF = () => {
+    const link = document.createElement('a');
+    link.href = '/info-ar.pdf';
+    link.download = 'info-ar.pdf';
+    link.click();
+  };
 
   const fetchCaseData = useCallback(async () => {
     try {
@@ -355,6 +371,16 @@ function CaseViewer() {
           </InfoItem>
         </PatientInfo>
 
+        {/* PDF Download Button - Only visible when Arabic is the language */}
+        {i18n.language === 'ar' && (
+          <DownloadPDFContainer>
+            <DownloadButton onClick={handleDownloadPDF}>
+              <FeatherDownload />
+              <span>تحميل دليل الاستخدام</span>
+            </DownloadButton>
+          </DownloadPDFContainer>
+        )}
+
         {/* Tabs */}
         <TabsContainer>
           <Tab
@@ -586,13 +612,17 @@ function CaseViewer() {
 
         {/* Aligners Info */}
         <AlignersInfo>
+        {caseData.upper_jaw_aligners !== 0 ?
           <AlignerBox>
             <JawView
               upperCount={caseData.upper_jaw_aligners || 0}
-              jawImg={maxilla}
-              name={t('viewer.upperAligners')}
-            />
+                jawImg={maxilla}
+                name={t('viewer.upperAligners')}
+              />
           </AlignerBox>
+          : null}
+
+          {caseData.lower_jaw_aligners !== 0 ?
           <AlignerBox>
             <JawView
               upperCount={caseData.lower_jaw_aligners || 0}
@@ -600,6 +630,8 @@ function CaseViewer() {
               name={t('viewer.lowerAligners')}
             />
           </AlignerBox>
+          : null}
+          
         </AlignersInfo>
 
         {/* Disclaimer Section */}
@@ -703,6 +735,49 @@ const Value = styled.span`
   font-size: 1rem;
   color: #212529;
   font-weight: 600;
+`;
+
+const DownloadPDFContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+`;
+
+const DownloadButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background-color: #760052;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(118, 0, 82, 0.2);
+
+  &:hover {
+    background-color: #a72181;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(118, 0, 82, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(118, 0, 82, 0.2);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const TabsContainer = styled.div`
@@ -978,13 +1053,6 @@ const DisclaimerText = styled.ul`
       font-weight: bold;
     }
   }
-`;
-
-const DisclaimerDivider = styled.div`
-  height: 1px;
-  background-color: #ffc107;
-  margin: 1rem 0;
-  opacity: 0.5;
 `;
 
 const LoadingSpinner = styled.div`

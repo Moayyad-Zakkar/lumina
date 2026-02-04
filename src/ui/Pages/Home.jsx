@@ -30,7 +30,7 @@ function Home() {
       <div className="flex w-full flex-col items-center bg-default-background px-6 py-24">
         <img
           className="h-144 w-full max-w-[1280px] flex-none object-cover"
-          src="https://res.cloudinary.com/subframe/image/upload/v1724690087/uploads/302/w2ra2yihpofsdy1h4uhy.png"
+          src="./logo.png"
         />
       </div>
       <div className="flex w-full flex-col items-center justify-center gap-2 bg-brand-300 px-6 py-24">

@@ -192,14 +192,16 @@ const DefaultPageLayoutRoot = React.forwardRef<
       ref={ref as any}
     >
       {/* MOBILE HEADER - Only visible on small screens */}
-      <div className="flex md:hidden w-full items-center justify-between px-4 py-3 border-b border-component-divider bg-default-background z-20">
-        <img className="h-8" src="/logo.png" alt="logo" />
+      <div className="flex md:hidden w-full px-4 py-3 items-center justify-between border-b border-component-divider bg-default-background z-20">
+      
+                  <img className="h-8" src="/logo.png" alt="logo" />
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-subtext-color"
         >
           {isMobileMenuOpen ? <FeatherX /> : <FeatherMenu />}
         </button>
+
       </div>
 
       {/* DESKTOP SIDEBAR - Hidden on mobile */}

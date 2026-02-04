@@ -67,6 +67,7 @@ function Login() {
   return (
     <div className="flex w-full min-h-screen items-stretch bg-default-background">
       {/* Left Section - Hidden on Mobile */}
+      {/*
       <div className="hidden md:flex grow shrink-0 basis-0 flex-col items-start justify-between bg-brand-600 px-12 py-12">
         <Link to="/">
           <img
@@ -89,6 +90,16 @@ function Login() {
           alt="Illustration"
         />
       </div>
+      */
+      }
+      <div className="hidden md:flex h-screen grow shrink-0 basis-0 flex-col items-end justify-between bg-brand-600">
+      <img
+          className="object-cover h-full w-full object-center"
+            src="./bg-intro.png"
+            alt="Logo"
+        />
+      </div>
+
 
       {/* Right Section - Main Login Form */}
       <div className="flex grow shrink-0 basis-0 items-center justify-center px-6 py-8 md:px-12">

@@ -35,7 +35,7 @@ import { useIsMobile } from '../../../hooks/useIsMobile';
 import AdminCasesTable from '../../components/AdminCasesTable';
 import MobileAdminCasesList from '../../components/MobileAdminCasesList';
 
-const CASES_PER_PAGE = 10;
+const CASES_PER_PAGE = 50;
 
 const getStatusOptions = (t) => [
   { value: 'submitted', label: t('cases.filters.submitted') },

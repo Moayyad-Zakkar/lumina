@@ -23,7 +23,7 @@ import {
 import supabase from '../../../helper/supabaseClient';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 
-const DOCTORS_PER_PAGE = 10;
+const DOCTORS_PER_PAGE = 50;
 
 const getSortOptions = (t) => [
   {

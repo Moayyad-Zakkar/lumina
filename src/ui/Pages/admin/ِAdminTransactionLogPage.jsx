@@ -119,7 +119,39 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
           {t('paymentCollectionDialog.paymentSummary')}
         </h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className={`flex justify-between items-center mb-2`}>
+          {transaction.originalAmount && transaction.originalAmount > 0 && (
+            <div className={`flex justify-between items-center mb-2`}>
+              <span className="text-sm font-medium text-gray-700">
+                {t('paymentCollectionDialog.originalAmount', {
+                  defaultValue: 'Original Amount',
+                })}
+              </span>
+              <span className="text-sm font-medium text-gray-900">
+                ${parseFloat(transaction.originalAmount).toFixed(2)}
+              </span>
+            </div>
+          )}
+          {transaction.discountAmount &&
+            parseFloat(transaction.discountAmount) > 0 && (
+              <div className={`flex justify-between items-center mb-2`}>
+                <span className="text-sm font-medium text-gray-700">
+                  {t('paymentCollectionDialog.discountLabel', {
+                    defaultValue: 'Discount',
+                  })}
+                </span>
+                <span className="text-sm font-bold text-green-600">
+                  -${parseFloat(transaction.discountAmount).toFixed(2)}
+                </span>
+              </div>
+            )}
+          <div
+            className={`flex justify-between items-center ${
+              transaction.discountAmount &&
+              parseFloat(transaction.discountAmount) > 0
+                ? 'mt-2 pt-2 border-t border-gray-300'
+                : ''
+            }`}
+          >
             <span className="text-sm font-medium text-gray-700">
               {t('paymentCollectionDialog.paymentAmount')}
             </span>
@@ -324,7 +356,7 @@ function AdminTransactionLogPage() {
 
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('payments')
-        .select('id, amount, type, notes, created_at, doctor_id, admin_id')
+        .select('id, amount, discount_amount, type, notes, created_at, doctor_id, admin_id')
         .order('created_at', { ascending: false });
 
       if (paymentsError) throw paymentsError;
@@ -382,6 +414,7 @@ function AdminTransactionLogPage() {
           email: doctor?.email || '-',
           clinic: doctor?.clinic || '-',
           amount: parseFloat(payment.amount || 0),
+          discountAmount: parseFloat(payment.discount_amount || 0),
           status: 'completed',
           processedBy: admin?.full_name || 'System',
         };
@@ -437,6 +470,18 @@ function AdminTransactionLogPage() {
           paymentApplied: parseFloat(item.allocated_amount),
         }));
         setFetchedCasesData(formattedCases);
+        
+        // Calculate original amount from cases (sum of all allocated amounts)
+        // This represents what should have been paid before discount
+        const originalAmount = formattedCases.reduce(
+          (sum, case_) => sum + parseFloat(case_.paymentApplied || 0),
+          0
+        );
+        // Update transaction with original amount for invoice display
+        setTransactionToPrint((prev) => ({
+          ...prev,
+          originalAmount: originalAmount,
+        }));
       }
     } catch (err) {
       console.error('Error fetching invoice details:', err);

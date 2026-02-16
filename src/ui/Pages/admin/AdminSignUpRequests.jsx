@@ -163,7 +163,7 @@ const AdminSignUpRequests = () => {
     try {
       // Call the Edge Function to create the user
       const { data, error: functionError } = await supabase.functions.invoke(
-        'create-user',
+        'register-with-profile',
         {
           body: {
             email: formData.email,

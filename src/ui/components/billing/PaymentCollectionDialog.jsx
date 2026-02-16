@@ -124,7 +124,39 @@ export const PrintableInvoice = React.forwardRef(
             {t('paymentCollectionDialog.paymentSummary')}
           </h2>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className={`flex justify-between items-center mb-2`}>
+            {paymentData.originalAmount && paymentData.originalAmount > 0 && (
+              <div className={`flex justify-between items-center mb-2`}>
+                <span className="text-sm font-medium text-gray-700">
+                  {t('paymentCollectionDialog.originalAmount', {
+                    defaultValue: 'Original Amount',
+                  })}
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  ${parseFloat(paymentData.originalAmount).toFixed(2)}
+                </span>
+              </div>
+            )}
+            {paymentData.discountAmount &&
+              parseFloat(paymentData.discountAmount) > 0 && (
+                <div className={`flex justify-between items-center mb-2`}>
+                  <span className="text-sm font-medium text-gray-700">
+                    {t('paymentCollectionDialog.discountLabel', {
+                      defaultValue: 'Discount',
+                    })}
+                  </span>
+                  <span className="text-sm font-bold text-green-600">
+                    -${parseFloat(paymentData.discountAmount).toFixed(2)}
+                  </span>
+                </div>
+              )}
+            <div
+              className={`flex justify-between items-center ${
+                paymentData.discountAmount &&
+                parseFloat(paymentData.discountAmount) > 0
+                  ? 'mt-2 pt-2 border-t border-gray-300'
+                  : ''
+              }`}
+            >
               <span className="text-sm font-medium text-gray-700">
                 {t('paymentCollectionDialog.paymentAmount')}
               </span>
@@ -278,6 +310,7 @@ const PaymentCollectionDialog = ({
   const { t } = useTranslation();
   const [selectedDoctor, setSelectedDoctor] = useState(initialDoctor);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [discountAmount, setDiscountAmount] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [selectedCases, setSelectedCases] = useState(new Set());
   const [showPrintPreview, setShowPrintPreview] = useState(false);
@@ -300,6 +333,7 @@ const PaymentCollectionDialog = ({
       setSelectedDoctor(initialDoctor);
       setSelectedCases(new Set());
       setPaymentAmount('');
+      setDiscountAmount('');
       setPaymentNotes('');
       setShowPrintPreview(false);
       setLastPaymentData(null);
@@ -324,6 +358,16 @@ const PaymentCollectionDialog = ({
       newSelectedCases.delete(caseId);
     }
     setSelectedCases(newSelectedCases);
+    
+    // Auto-fill payment amount with selected cases total
+    if (newSelectedCases.size > 0) {
+      const selectedTotal = doctorCases
+        .filter((case_) => newSelectedCases.has(case_.id))
+        .reduce((sum, case_) => sum + case_.remainingAmount, 0);
+      setPaymentAmount(selectedTotal.toFixed(2));
+    } else {
+      setPaymentAmount('');
+    }
   };
 
   const calculateSelectedCasesTotal = () => {
@@ -335,7 +379,19 @@ const PaymentCollectionDialog = ({
   const calculateRemainingAmount = () => {
     const selectedTotal = calculateSelectedCasesTotal();
     const paymentAmountNum = parseFloat(paymentAmount || 0);
-    return Math.max(0, paymentAmountNum - selectedTotal);
+    const discountAmountNum = parseFloat(discountAmount || 0);
+    const finalPaymentAmount = paymentAmountNum - discountAmountNum;
+    return Math.max(0, finalPaymentAmount - selectedTotal);
+  };
+
+  const calculateOriginalAmount = () => {
+    return calculateSelectedCasesTotal();
+  };
+
+  const calculateFinalPaymentAmount = () => {
+    const paymentAmountNum = parseFloat(paymentAmount || 0);
+    const discountAmountNum = parseFloat(discountAmount || 0);
+    return Math.max(0, paymentAmountNum - discountAmountNum);
   };
 
   const getUnselectedCases = () => {
@@ -347,6 +403,7 @@ const PaymentCollectionDialog = ({
     const paymentRecord = await processPayment({
       selectedDoctor,
       paymentAmount,
+      discountAmount,
       selectedCases,
       doctorCases,
       paymentNotes,
@@ -355,15 +412,17 @@ const PaymentCollectionDialog = ({
     // 2. Only proceed if paymentRecord exists (is an object, not false)
     if (paymentRecord) {
       const paymentAmountNum = parseFloat(paymentAmount);
+      const discountAmountNum = parseFloat(discountAmount || 0);
+      const finalPaymentAmount = Math.max(0, paymentAmountNum - discountAmountNum);
       const selectedTotal = calculateSelectedCasesTotal();
-      const remainingAmount = Math.max(0, paymentAmountNum - selectedTotal);
+      const remainingAmount = Math.max(0, finalPaymentAmount - selectedTotal);
       const unselectedCases = getUnselectedCases();
 
       const selectedCasesData = doctorCases
         .filter((case_) => selectedCases.has(case_.id))
         .map((case_) => ({
           ...case_,
-          paymentApplied: Math.min(case_.remainingAmount, paymentAmountNum),
+          paymentApplied: Math.min(case_.remainingAmount, finalPaymentAmount),
         }));
 
       // Add unselected cases if there's remaining amount
@@ -380,7 +439,9 @@ const PaymentCollectionDialog = ({
       // 3. Update the state with the REAL database info
       setLastPaymentData({
         paymentData: {
-          amount: paymentAmount,
+          amount: finalPaymentAmount,
+          originalAmount: selectedTotal,
+          discountAmount: discountAmountNum,
           date: paymentRecord.created_at,
           invoiceId: paymentRecord.id,
         },
@@ -457,10 +518,20 @@ const PaymentCollectionDialog = ({
           selectedDoctor={selectedDoctor}
           onDoctorChange={handleDoctorChange}
         />
-        <PaymentAmountInput
-          paymentAmount={paymentAmount}
-          setPaymentAmount={setPaymentAmount}
-        />
+        {selectedDoctor && selectedCases.size > 0 && (
+          <>
+            <PaymentAmountInput
+              paymentAmount={paymentAmount}
+              setPaymentAmount={setPaymentAmount}
+            />
+            <DiscountAmountInput
+              discountAmount={discountAmount}
+              setDiscountAmount={setDiscountAmount}
+              originalAmount={calculateOriginalAmount()}
+              finalPaymentAmount={calculateFinalPaymentAmount()}
+            />
+          </>
+        )}
         <PaymentNotesInput
           paymentNotes={paymentNotes}
           setPaymentNotes={setPaymentNotes}
@@ -472,8 +543,10 @@ const PaymentCollectionDialog = ({
             selectedCases={selectedCases}
             handleCaseSelection={handleCaseSelection}
             paymentAmount={paymentAmount}
+            discountAmount={discountAmount}
             calculateSelectedCasesTotal={calculateSelectedCasesTotal}
             calculateRemainingAmount={calculateRemainingAmount}
+            calculateFinalPaymentAmount={calculateFinalPaymentAmount}
             getUnselectedCases={getUnselectedCases}
           />
         )}
@@ -526,7 +599,9 @@ const PaymentAmountInput = ({ paymentAmount, setPaymentAmount }) => {
   return (
     <div className="flex flex-col gap-2">
       <label className="text-body-bold font-body-bold text-default-font">
-        {t('paymentCollectionDialog.paymentAmountLabel')} *
+        {t('paymentCollectionDialog.invoiceAmountLabel', {
+          defaultValue: 'Invoice Amount (USD)',
+        })} *
       </label>
       <TextField>
         <TextField.Input
@@ -538,6 +613,54 @@ const PaymentAmountInput = ({ paymentAmount, setPaymentAmount }) => {
           placeholder={t('paymentCollectionDialog.paymentAmountPlaceholder')}
         />
       </TextField>
+      <p className="text-caption font-caption text-subtext-color">
+        {t('paymentCollectionDialog.invoiceAmountHelp', {
+          defaultValue: 'Amount will be auto-filled based on selected cases. You can edit if needed.',
+        })}
+      </p>
+    </div>
+  );
+};
+
+const DiscountAmountInput = ({
+  discountAmount,
+  setDiscountAmount,
+  originalAmount,
+  finalPaymentAmount,
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-body-bold font-body-bold text-default-font">
+        {t('paymentCollectionDialog.discountAmountLabel', {
+          defaultValue: 'Discount Amount',
+        })}
+      </label>
+      <TextField>
+        <TextField.Input
+          type="number"
+          min="0"
+          step="0.01"
+          max={originalAmount}
+          value={discountAmount}
+          onChange={(e) => {
+            const value = e.target.value;
+            const numValue = parseFloat(value || 0);
+            if (numValue <= originalAmount) {
+              setDiscountAmount(value);
+            }
+          }}
+          placeholder={t('paymentCollectionDialog.discountAmountPlaceholder', {
+            defaultValue: '0.00',
+          })}
+        />
+      </TextField>
+      {discountAmount && parseFloat(discountAmount) > 0 && (
+        <div className="text-sm text-subtext-color">
+        {t('paymentCollectionDialog.originalAmount')}: ${originalAmount.toFixed(2)} | {t('paymentCollectionDialog.finalPaymentAmount')} : ${finalPaymentAmount.toFixed(2)}
+        </div>
+      )}
     </div>
   );
 };
@@ -567,8 +690,10 @@ const CasesSection = ({
   selectedCases,
   handleCaseSelection,
   paymentAmount,
+  discountAmount,
   calculateSelectedCasesTotal,
   calculateRemainingAmount,
+  calculateFinalPaymentAmount,
   getUnselectedCases,
 }) => (
   <div className="space-y-4">
@@ -588,7 +713,9 @@ const CasesSection = ({
       <PaymentSummary
         calculateSelectedCasesTotal={calculateSelectedCasesTotal}
         paymentAmount={paymentAmount}
+        discountAmount={discountAmount}
         calculateRemainingAmount={calculateRemainingAmount}
+        calculateFinalPaymentAmount={calculateFinalPaymentAmount}
         getUnselectedCases={getUnselectedCases}
       />
     )}
@@ -759,27 +886,64 @@ const CaseItem = ({ case_, isSelected, onSelectionChange }) => {
 };
 
 const PaymentSummary = ({
-  calculateSelectedCasesTotal,
   paymentAmount,
+  discountAmount,
   calculateRemainingAmount,
+  calculateFinalPaymentAmount,
   getUnselectedCases,
 }) => {
   const { t } = useTranslation();
+  const discountAmountNum = parseFloat(discountAmount || 0);
+  const finalPaymentAmount = calculateFinalPaymentAmount();
 
   return (
     <div className="bg-neutral-50 border border-neutral-border rounded-md p-4 space-y-2">
       <div className="flex justify-between text-body font-body">
-        <span>{t('paymentCollectionDialog.selectedCasesTotal')}</span>
-        <span className="font-bold">
-          ${calculateSelectedCasesTotal().toFixed(2)}
+        <span>
+          {t('paymentCollectionDialog.invoiceAmountLabel', {
+            defaultValue: 'Invoice Amount',
+          })}
         </span>
-      </div>
-      <div className="flex justify-between text-body font-body">
-        <span>{t('paymentCollectionDialog.paymentAmount')}</span>
         <span className="font-bold">
           ${parseFloat(paymentAmount || 0).toFixed(2)}
         </span>
       </div>
+      {discountAmountNum > 0 && (
+        <>
+          <div className="flex justify-between text-body font-body">
+            <span>
+              {t('paymentCollectionDialog.discountLabel', {
+                defaultValue: 'Discount',
+              })}
+            </span>
+            <span className="font-bold text-success-600">
+              -${discountAmountNum.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex justify-between text-body font-body border-t border-neutral-border pt-2">
+            <span>
+              {t('paymentCollectionDialog.finalPaymentAmount', {
+                defaultValue: 'Final Payment Amount',
+              })}
+            </span>
+            <span className="font-bold">
+              ${finalPaymentAmount.toFixed(2)}
+            </span>
+          </div>
+        </>
+      )}
+      {discountAmountNum === 0 && (
+        <div className="flex justify-between text-body font-body border-t border-neutral-border pt-2">
+          <span>
+            {t('paymentCollectionDialog.finalPaymentAmount', {
+              defaultValue: 'Final Payment Amount',
+            })}
+          </span>
+          <span className="font-bold">
+            ${parseFloat(paymentAmount || 0).toFixed(2)}
+          </span>
+        </div>
+      )}
       <div className="flex justify-between text-body font-body border-t border-neutral-border pt-2">
         <span>{t('paymentCollectionDialog.remainingAmount')}</span>
         <span

@@ -258,6 +258,7 @@ export const usePaymentProcessor = (refetchBillingData) => {
       const {
         selectedDoctor,
         paymentAmount,
+        discountAmount,
         selectedCases,
         doctorCases,
         paymentNotes,
@@ -277,6 +278,15 @@ export const usePaymentProcessor = (refetchBillingData) => {
         setProcessingPayment(true);
 
         const paymentAmountNum = parseFloat(paymentAmount);
+        const discountAmountNum = parseFloat(discountAmount || 0);
+        const finalPaymentAmount = Math.max(0, paymentAmountNum - discountAmountNum);
+
+        // Validate discount doesn't exceed payment amount
+        if (discountAmountNum > paymentAmountNum) {
+          toast.error('Discount cannot exceed payment amount');
+          return false;
+        }
+
         const {
           data: { user },
         } = await supabase.auth.getUser();
@@ -286,7 +296,8 @@ export const usePaymentProcessor = (refetchBillingData) => {
           .from('payments')
           .insert({
             doctor_id: selectedDoctor?.id || null,
-            amount: paymentAmountNum,
+            amount: finalPaymentAmount,
+            discount_amount: discountAmountNum > 0 ? discountAmountNum : null,
             admin_id: user.id,
             notes: paymentNotes.trim() || null,
             type: 'payment', // Explicitly mark as received payment
@@ -304,29 +315,34 @@ export const usePaymentProcessor = (refetchBillingData) => {
 
           const remainingAmount = Math.max(
             0,
-            paymentAmountNum - selectedCasesTotal
+            finalPaymentAmount - selectedCasesTotal
           );
           const unselectedCases = doctorCases.filter(
             (case_) => !selectedCases.has(case_.id)
           );
           const allocations = [];
 
-          // Allocate proportionally to selected cases
+          // Allocate payment amount + discount amount proportionally to selected cases
+          // This ensures the remaining due is correctly calculated (accounting for discount)
           if (selectedCasesTotal > 0) {
+            const totalToAllocate = finalPaymentAmount + discountAmountNum;
+            
             for (const caseId of selectedCases) {
               const case_ = doctorCases.find((c) => c.id === caseId);
               if (case_) {
                 const caseShare = case_.remainingAmount / selectedCasesTotal;
-                const allocationAmount = Math.min(
-                  paymentAmountNum * caseShare,
+                const totalAllocation = Math.min(
+                  totalToAllocate * caseShare,
                   case_.remainingAmount
                 );
 
-                allocations.push({
-                  payment_id: paymentRecord.id,
-                  case_id: caseId,
-                  allocated_amount: allocationAmount,
-                });
+                if (totalAllocation > 0) {
+                  allocations.push({
+                    payment_id: paymentRecord.id,
+                    case_id: caseId,
+                    allocated_amount: totalAllocation,
+                  });
+                }
               }
             }
           }
@@ -339,11 +355,13 @@ export const usePaymentProcessor = (refetchBillingData) => {
                 amountPerCase,
                 case_.remainingAmount
               );
-              allocations.push({
-                payment_id: paymentRecord.id,
-                case_id: case_.id,
-                allocated_amount: allocationAmount,
-              });
+              if (allocationAmount > 0) {
+                allocations.push({
+                  payment_id: paymentRecord.id,
+                  case_id: case_.id,
+                  allocated_amount: allocationAmount,
+                });
+              }
             }
           }
 

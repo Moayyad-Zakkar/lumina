@@ -61,12 +61,18 @@ function CaseViewer() {
   const isRTL = i18n.language === 'ar';
 
   // Handler for PDF download
-  const handleDownloadPDF = () => {
-    const link = document.createElement('a');
-    link.href = '/info-ar.pdf';
-    link.download = 'info-ar.pdf';
-    link.click();
-  };
+const handleDownloadPDF = () => {
+  const { data } = supabase.storage
+    .from('public-docs')
+    .getPublicUrl('info-ar.pdf');
+
+  const link = document.createElement('a');
+  link.href = data.publicUrl;
+  link.download = 'info-ar.pdf';
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.click();
+};
 
   const fetchCaseData = useCallback(async () => {
     try {

@@ -47,7 +47,7 @@
     "title": "Dashboard",
     "hello": "Hello, Dr.",
     "totalCases": "TOTAL CASES",
-    "pendingReview": "PENDING REVIEW",
+    "pendingReview": "Pending Review (New or Accepted cases pending treatment plan)",
     "completedBy3DA": "COMPLETED",
     "recentCases": "Recent Cases",
     "paymentOverview": "Payment Overview",
@@ -341,7 +341,8 @@
     "outstanding": "outstanding",
     "receivePayment": "Receive Payment",
     "recordExpense": "Record Expense",
-    "addCredit": "Add Credit"
+    "addCredit": "Add Credit",
+    "withdrawProfits": "Withdraw Profits"
   },
 
   "casePage": {
@@ -1181,5 +1182,22 @@
   },
   "terms": {
     "title": "Terms and Conditions"
+  },
+  "withdrawalDialog": {
+  "title": "Withdraw Profits",
+  "subtitle": "Record a profit withdrawal. This will reduce net income but is not counted as a business expense.",
+  "amount": "Withdrawal Amount *",
+  "description": "Description/Notes",
+  "descriptionPlaceholder": "Describe the withdrawal (e.g., monthly profit distribution, owner withdrawal)...",
+  "willBeRecorded": "Will be recorded as -${{amount}} withdrawal",
+  "recordWithdrawal": "Record Withdrawal",
+  "recording": "Recording...",
+  "errors": {
+    "validAmount": "Please enter a valid withdrawal amount",
+    "recordFailed": "Failed to record withdrawal"
+  },
+  "success": {
+    "recorded": "Withdrawal recorded successfully!"
   }
+}
 }

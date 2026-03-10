@@ -16,6 +16,7 @@ import { Link } from 'react-router';
 import { isSuperAdmin } from '../../../helper/auth';
 import { useUserRole } from '../../../helper/useUserRole';
 import CreditDialog from '../../components/billing/CreditDialog';
+import WithdrawalDialog from '../../components/billing/WithdrawalDialog';
 
 function AdminBillingPage() {
   const { t } = useTranslation();
@@ -23,6 +24,7 @@ function AdminBillingPage() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showExpensesDialog, setShowExpensesDialog] = useState(false);
   const [showCreditDialog, setShowCreditDialog] = useState(false);
+  const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   const { role } = useUserRole();
@@ -76,6 +78,14 @@ function AdminBillingPage() {
     setShowExpensesDialog(false);
   };
 
+  const handleWithdrawProfits = () => {
+    setShowWithdrawalDialog(true);
+  };
+
+  const handleCloseWithdrawalDialog = () => {
+    setShowWithdrawalDialog(false);
+  };
+
   return (
     <>
       {error && <Error error={error} />}
@@ -114,6 +124,7 @@ function AdminBillingPage() {
             onReceivePayment={handleReceivePayment}
             onMakePayment={isSuperAdminUser ? handleMakePayment : null}
             onAddCredit={isSuperAdminUser ? handleAddCredit : null}
+            onWithdrawProfits={isSuperAdminUser ? handleWithdrawProfits : null} 
           />
 
           <div className="flex w-full items-center gap-2">
@@ -168,6 +179,14 @@ function AdminBillingPage() {
           refetchBillingData={refetchBillingData}
         />
       )}
+
+      {isSuperAdminUser && (
+  <WithdrawalDialog
+    isOpen={showWithdrawalDialog}
+    onClose={handleCloseWithdrawalDialog}
+    refetchBillingData={refetchBillingData}
+  />
+)}
     </>
   );
 }

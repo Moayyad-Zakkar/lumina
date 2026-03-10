@@ -15,6 +15,7 @@ const BillingStats = ({
   onReceivePayment,
   onMakePayment,
   onAddCredit,
+  onWithdrawProfits,
   withButtons = true,
 }) => {
   return (
@@ -36,6 +37,9 @@ const BillingStats = ({
           <PaymentButton onReceivePayment={onReceivePayment} />
           {onMakePayment && <ExpenseButton onMakePayment={onMakePayment} />}
           {onAddCredit && <CreditButton onAddCredit={onAddCredit} />}
+          {onWithdrawProfits && (
+            <WithdrawProfitsButton onWithdrawProfits={onWithdrawProfits} />
+          )}
         </div>
       )}
     </>
@@ -161,6 +165,21 @@ const CreditButton = ({ onAddCredit }) => {
       variant="brand-primary"
     >
       {t('billingStats.addCredit')}
+    </Button>
+  );
+};
+
+const WithdrawProfitsButton = ({ onWithdrawProfits }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Button
+      className="h-10 w-auto flex-none bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600"
+      icon={<FeatherArrowUp />}
+      onClick={onWithdrawProfits}
+      variant="brand-primary"
+    >
+      {t('billingStats.withdrawProfits')}
     </Button>
   );
 };

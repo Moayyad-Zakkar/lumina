@@ -47,7 +47,7 @@
     "title": "الرئيسية",
     "hello": "مرحبًا، د.",
     "totalCases": "إجمالي الحالات",
-    "pendingReview": "الحالات الجديدة",
+    "pendingReview": "الحالات المعلّقة (حالات جديدة أو مقبولة بانتظار خطّة المعالجة)",
     "completedBy3DA": "الحالات المكتملة",
     "recentCases": "آخر الحالات",
     "paymentOverview": "نظرة عامة على المعاملات المالية",
@@ -831,7 +831,8 @@
     "outstanding": "متأخرة",
     "receivePayment": "استلام دفعة",
     "recordExpense": "تسجيل نفقة",
-    "addCredit": "إضافة رصيد"
+    "addCredit": "إضافة رصيد",
+    "withdrawProfits": "سحب أرباح"
   },
   "doctorBillingStats": {
     "amountDue": "المبلغ المستحق",
@@ -1185,5 +1186,22 @@
   },
   "terms": {
     "title": "الشروط والأحكام"
+  },
+  "withdrawalDialog": {
+  "title": "سحب أرباح",
+  "subtitle": "تسجيل عملية سحب أرباح. سيتم خصمها من الصندوق ولا تُحتسب كمصروف تشغيلي.",
+  "amount": "مبلغ السحب *",
+  "description": "الوصف / ملاحظات",
+  "descriptionPlaceholder": "صف عملية السحب (مثال: توزيع الأرباح الشهرية، سحب المالك)...",
+  "willBeRecorded": "سيتم تسجيلها كـ -${{amount}} سحب",
+  "recordWithdrawal": "تسجيل السحب",
+  "recording": "جارٍ التسجيل...",
+  "errors": {
+    "validAmount": "يرجى إدخال مبلغ سحب صحيح",
+    "recordFailed": "فشل تسجيل السحب"
+  },
+  "success": {
+    "recorded": "تم تسجيل السحب بنجاح!"
   }
+}
 }

@@ -41,10 +41,9 @@ function AdminDashboard() {
 
   // Filter cases by status
   const submittedCasesList = recentCases.filter(
-    (c) => c.status === 'submitted'
+    (c) => c.status === 'submitted' || c.status === 'accepted'
   );
   const approvedCasesList = recentCases.filter((c) => c.status === 'approved');
-
   // Mobile component for cases
   const MobileCasesList = ({ cases, emptyMessage }) => (
     <div className="flex flex-col gap-3 w-full">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../Button';
 import { TextField } from '../TextField';
-import { FeatherDollarSign, FeatherCheck } from '@subframe/core';
+import { FeatherTrendingDown, FeatherCheck } from '@subframe/core';
 import supabase from '../../../helper/supabaseClient';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -64,7 +64,7 @@ const ExpensesDialog = ({ isOpen, onClose, refetchBillingData }) => {
       onClose={handleClose}
       title={t('expenseDialog.title')}
       description={t('expenseDialog.subtitle')}
-      icon={<FeatherDollarSign />}
+      icon={<FeatherTrendingDown />}
       iconColor="text-error-600"
       iconBgColor="bg-error-100"
       maxWidth="max-w-lg"

@@ -396,24 +396,35 @@ function AdminTransactionLogPage() {
         const doctor = payment.doctor_id ? doctorsMap[payment.doctor_id] : null;
         const admin = payment.admin_id ? adminsMap[payment.admin_id] : null;
 
+        // Map DB type to display type
+        const typeMap = {
+          payment: 'payment_received',
+          expense: 'expense',
+          withdrawal: 'withdrawal',
+        };
+
         return {
           id: `TXN-${payment.id.toString().slice(0, 8)}`,
           fullId: payment.id,
           date: new Date(payment.created_at).toLocaleDateString('en-GB'),
           datetime: payment.created_at,
-          type: payment.type === 'payment' ? 'payment_received' : 'expense',
+          type: typeMap[payment.type] || 'expense',
           description:
             payment.notes ||
             (payment.type === 'payment'
               ? `Payment from ${doctor?.full_name || 'Unknown'}`
+              : payment.type === 'withdrawal'
+              ? t('withdrawalDialog.title')
               : 'Expense'),
           from:
             payment.type === 'payment'
               ? doctor?.full_name || 'Unknown Doctor'
+              : payment.type === 'withdrawal'
+              ? t('withdrawalDialog.title')
               : payment.notes || 'Expense',
           email: doctor?.email || '-',
           clinic: doctor?.clinic || '-',
-          amount: parseFloat(payment.amount || 0),
+          amount: Math.abs(parseFloat(payment.amount || 0)),
           discountAmount: parseFloat(payment.discount_amount || 0),
           status: 'completed',
           processedBy: admin?.full_name || 'System',
@@ -470,7 +481,7 @@ function AdminTransactionLogPage() {
           paymentApplied: parseFloat(item.allocated_amount),
         }));
         setFetchedCasesData(formattedCases);
-        
+
         // Calculate original amount from cases (sum of all allocated amounts)
         // This represents what should have been paid before discount
         const originalAmount = formattedCases.reduce(
@@ -616,22 +627,27 @@ function AdminTransactionLogPage() {
       (t) => t.type === 'payment_received'
     );
     const expenses = filteredTransactions.filter((t) => t.type === 'expense');
+    const withdrawals = filteredTransactions.filter(
+      (t) => t.type === 'withdrawal'
+    );
 
     const totalRevenue = paymentsReceived.reduce((sum, t) => sum + t.amount, 0);
     const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+    // Withdrawals reduce net income but are NOT counted as business expenses
+    const totalWithdrawals = withdrawals.reduce((sum, t) => sum + t.amount, 0);
 
     return {
       total: filteredTransactions.length,
       revenue: totalRevenue,
       expenses: totalExpenses,
-      netIncome: totalRevenue - totalExpenses,
+      netIncome: totalRevenue - totalExpenses - totalWithdrawals,
     };
   }, [filteredTransactions]);
 
   const getTypeLabel = (type) => {
-    return type === 'payment_received'
-      ? t('transactions.paymentReceived')
-      : t('transactions.expense');
+    if (type === 'payment_received') return t('transactions.paymentReceived');
+    if (type === 'withdrawal') return t('withdrawalDialog.title');
+    return t('transactions.expense');
   };
 
   const exportToCSV = () => {
@@ -655,7 +671,10 @@ function AdminTransactionLogPage() {
       txn.email,
       txn.clinic,
       txn.description,
-      txn.amount.toFixed(2),
+      // Show negative for expense and withdrawal in CSV
+      txn.type === 'payment_received'
+        ? txn.amount.toFixed(2)
+        : `-${txn.amount.toFixed(2)}`,
       txn.processedBy,
     ]);
 
@@ -820,6 +839,9 @@ function AdminTransactionLogPage() {
                 <option value="expense">
                   {t('transactions.filters.expenses')}
                 </option>
+                <option value="withdrawal">
+                  {t('withdrawalDialog.title')}
+                </option>
               </select>
 
               <select
@@ -943,6 +965,8 @@ function AdminTransactionLogPage() {
                     Type:{' '}
                     {typeFilter === 'payment_received'
                       ? 'Payments'
+                      : typeFilter === 'withdrawal'
+                      ? t('withdrawalDialog.title')
                       : 'Expenses'}
                     <button
                       onClick={() => setTypeFilter('all')}
@@ -1080,7 +1104,15 @@ function AdminTransactionLogPage() {
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge variant={txn.type === 'expense' ? 'error' : 'brand'}>
+                    <Badge
+                      variant={
+                        txn.type === 'expense'
+                          ? 'error'
+                          : txn.type === 'withdrawal'
+                          ? 'warning'
+                          : 'brand'
+                      }
+                    >
                       {getTypeLabel(txn.type)}
                     </Badge>
                   </Table.Cell>
@@ -1089,19 +1121,25 @@ function AdminTransactionLogPage() {
                       className={`whitespace-nowrap text-body-bold font-body-bold ${
                         txn.type === 'expense'
                           ? 'text-error-600'
+                          : txn.type === 'withdrawal'
+                          ? 'text-warning-600'
                           : 'text-success-600'
                       }`}
                     >
-                      {txn.type === 'expense' && '-'}${txn.amount.toFixed(2)}
+                      {txn.type !== 'payment_received' && '-'}$
+                      {txn.amount.toFixed(2)}
                     </span>
                   </Table.Cell>
                   <Table.Cell>
                     <div className="flex items-center gap-2">
-                      <IconButton
-                        icon={<FeatherPrinter />}
-                        onClick={() => handlePrintClick(txn)}
-                        variant="neutral"
-                      />
+                      {/* Only show print button for received payments (they have invoices) */}
+                      {txn.type === 'payment_received' && (
+                        <IconButton
+                          icon={<FeatherPrinter />}
+                          onClick={() => handlePrintClick(txn)}
+                          variant="neutral"
+                        />
+                      )}
                       {isSuperAdminUser && (
                         <IconButton
                           icon={<FeatherTrash />}
@@ -1197,7 +1235,11 @@ function AdminTransactionLogPage() {
                 </span>
                 <Badge
                   variant={
-                    transactionToDelete.type === 'expense' ? 'error' : 'brand'
+                    transactionToDelete.type === 'expense'
+                      ? 'error'
+                      : transactionToDelete.type === 'withdrawal'
+                      ? 'warning'
+                      : 'brand'
                   }
                 >
                   {getTypeLabel(transactionToDelete.type)}
@@ -1211,10 +1253,12 @@ function AdminTransactionLogPage() {
                   className={`text-body-bold font-body-bold ${
                     transactionToDelete.type === 'expense'
                       ? 'text-error-600'
+                      : transactionToDelete.type === 'withdrawal'
+                      ? 'text-warning-600'
                       : 'text-success-600'
                   }`}
                 >
-                  {transactionToDelete.type === 'expense' && '-'}$
+                  {transactionToDelete.type !== 'payment_received' && '-'}$
                   {transactionToDelete.amount.toFixed(2)}
                 </span>
               </div>

@@ -151,7 +151,7 @@ export const useBillingData = () => {
         (sum, doctor) => sum + doctor.totalDueAmount,
         0
       );
-
+/*
       const totalExpensesAmount = (paymentRecords || [])
         .filter((payment) => payment.type === 'expense')
         .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
@@ -163,6 +163,25 @@ export const useBillingData = () => {
 
       // Net earnings = payments - expenses
       const totalEarningsAmount = totalPaymentsAmount - totalExpensesAmount;
+*/
+
+// Calculate total expenses (type === 'expense' only, withdrawals excluded)
+const totalExpensesAmount = (paymentRecords || [])
+  .filter((payment) => payment.type === 'expense')
+  .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
+
+// Calculate total withdrawals
+const totalWithdrawalsAmount = (paymentRecords || [])
+  .filter((payment) => payment.type === 'withdrawal')
+  .reduce((sum, payment) => sum + Math.abs(parseFloat(payment.amount || 0)), 0);
+
+// Calculate total payments received
+const totalPaymentsAmount = (paymentRecords || [])
+  .filter((payment) => payment.type === 'payment')
+  .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
+
+// Net earnings = payments - expenses - withdrawals
+const totalEarningsAmount = totalPaymentsAmount - totalExpensesAmount - totalWithdrawalsAmount;
 
       setTotalEarnings(totalEarningsAmount);
       setTotalDue(totalDueAmount);

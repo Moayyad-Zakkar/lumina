@@ -3,7 +3,6 @@ import './App.css';
 
 import Home from './ui/Pages/Home';
 import About from './ui/Pages/About';
-import Register /*, { action as registerUserAction } */ from './ui/Pages/Register';
 import Login from './ui/Pages/Login';
 import Layout from './ui/Pages/Layout';
 import Features from './ui/Pages/Features';

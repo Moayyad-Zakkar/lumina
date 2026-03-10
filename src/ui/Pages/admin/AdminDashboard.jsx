@@ -41,9 +41,10 @@ function AdminDashboard() {
 
   // Filter cases by status
   const submittedCasesList = recentCases.filter(
-    (c) => c.status === 'submitted' || c.status === 'accepted'
+    (c) => c.status === 'submitted' 
   );
   const approvedCasesList = recentCases.filter((c) => c.status === 'approved');
+  const acceptedCasesList = recentCases.filter((c) => c.status === 'accepted');
   // Mobile component for cases
   const MobileCasesList = ({ cases, emptyMessage }) => (
     <div className="flex flex-col gap-3 w-full">
@@ -242,6 +243,36 @@ function AdminDashboard() {
         )}
       </div>
 
+      
+                    {/* Admin Accepted Cases Section */}
+      <div className="flex w-full flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <span className="text-heading-2 font-heading-2 text-default-font">
+           {t('dashboard.adminAcceptedCases')}
+          </span>
+          <span className="text-body font-body text-subtext-color">
+            {acceptedCasesList.length}{' '}
+            {acceptedCasesList.length === 1 ? 'case' : 'cases'}
+          </span>
+        </div>
+
+        {isMobile ? (
+          <MobileCasesList
+            cases={acceptedCasesList}
+            emptyMessage={
+              isRTL ? 'لا توجد حالات بانتظار خطة المعالجة' : 'No approved cases'
+            }
+          />
+        ) : (
+          <DesktopCasesTable
+            cases={acceptedCasesList}
+            emptyMessage={
+              isRTL ? 'لا توجد حالات بانتظار خطة المعالجة' : 'No approved cases'
+            }
+          />
+        )}
+      </div>
+
       {/* Approved Cases Section */}
       <div className="flex w-full flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -253,6 +284,8 @@ function AdminDashboard() {
             {approvedCasesList.length === 1 ? 'case' : 'cases'}
           </span>
         </div>
+
+
 
         {isMobile ? (
           <MobileCasesList
@@ -270,6 +303,7 @@ function AdminDashboard() {
           />
         )}
       </div>
+
 
       {/* Payment Overview Section - Only visible to Super Admin */}
       {isSuperAdminUser && (

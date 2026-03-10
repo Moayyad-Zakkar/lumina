@@ -184,7 +184,8 @@ const CaseSubmitRefactored = () => {
           errors.push(t('caseSubmit.errors.firstNameRequired'));
         if (!formData.lastName?.trim())
           errors.push(t('caseSubmit.errors.lastNameRequired'));
-
+if (!formData.alignerMaterial?.trim())
+          errors.push(t('caseSubmit.errors.alignerMaterialRequired'));
         // Diagnosis Validation (Skipped for Admins)
         if (!isAdmin) {
           if (!formData.upperMidline)
@@ -391,7 +392,7 @@ const CaseSubmitRefactored = () => {
       navigate('/app/cases');
     } catch (error) {
       console.error('Submit error:', error);
-      setError(error.message || t('caseSubmit.errors.unexpected'));
+      setError(t('caseSubmit.errors.unexpected'));
     } finally {
       setLoading(false);
     }

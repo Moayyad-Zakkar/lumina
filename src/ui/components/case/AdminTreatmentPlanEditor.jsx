@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
 import { Button } from '../Button';
@@ -7,10 +7,12 @@ import { DataFieldHorizontal } from '../DataFieldHorizontal';
 import { Badge } from '../Badge';
 import { IconButton } from '../IconButton';
 import { Dialog } from '../Dialog';
+import { Loader } from '../Loader';
 import IPRChartViewer, { PrintableIPRChart } from '../IPRChartViewer';
 import {
   FeatherGrid,
   FeatherClock,
+  FeatherCalculator,
   FeatherDollarSign,
   FeatherFileText,
   FeatherTruck,
@@ -26,15 +28,11 @@ import TreatmentPlanImagesUpload from './TreatmentPlanImagesUpload';
 import IPRChartDialog from './IPRChartDialog';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 import { useIsMobile } from '../../../hooks/useIsMobile';
+import supabase from '../../../helper/supabaseClient';
 
-/* -------------------------------------------------------
-   PrintField Component
-------------------------------------------------------- */
 const PrintField = ({ label, value }) => {
   const { i18n } = useTranslation();
-  // i18n.dir() returns 'rtl' or 'ltr' based on the active language
   const isRTL = i18n.dir() === 'rtl';
-
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="text-start">
       <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
@@ -45,20 +43,11 @@ const PrintField = ({ label, value }) => {
 
 const printStyles = `
   @media print {
-    body {
-      margin: 0;
-      padding: 0;
-    }
-    
-    .print-container {
-      padding: 0 !important;
-    }
+    body { margin: 0; padding: 0; }
+    .print-container { padding: 0 !important; }
   }
 `;
 
-/* -------------------------------------------------------
-   PrintableTreatmentPlan Component
-------------------------------------------------------- */
 const PrintableTreatmentPlan = React.forwardRef(
   (
     {
@@ -68,13 +57,11 @@ const PrintableTreatmentPlan = React.forwardRef(
       estimatedDurationMonths,
       iprData,
     },
-    ref
+    ref,
   ) => {
     const { t, i18n } = useTranslation();
-
     const isRTL = i18n.dir() === 'rtl';
     const hasIPRData = iprData && Object.keys(iprData).length > 0;
-
     return (
       <>
         <style>{printStyles}</style>
@@ -83,7 +70,6 @@ const PrintableTreatmentPlan = React.forwardRef(
           dir={isRTL ? 'rtl' : 'ltr'}
           className="p-8 print-container"
         >
-          {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
             <div>
               <p className="text-sm text-gray-600">
@@ -99,8 +85,6 @@ const PrintableTreatmentPlan = React.forwardRef(
               </p>
             </div>
           </div>
-
-          {/* Patient Information */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-800 text-start">
               {t('casePage.patientInformation')}
@@ -130,8 +114,6 @@ const PrintableTreatmentPlan = React.forwardRef(
               </div>
             </div>
           </div>
-
-          {/* Treatment Plan Details */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-800 text-start">
               {t('casePage.treatmentPlanReview')}
@@ -139,36 +121,22 @@ const PrintableTreatmentPlan = React.forwardRef(
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
                 <PrintField
-                  label={t('casePage.alignerMaterial')}
-                  value={
-                    caseData.aligner_material || t('casePage.notSpecified')
-                  }
-                />
-                <PrintField
                   label={t('casePage.treatmentPlan.upperJawAligners')}
-                  value={`${upperJawAligners || '—'} ${t(
-                    'casePage.treatmentPlan.aligners'
-                  )}`}
+                  value={`${upperJawAligners || '—'} ${t('casePage.treatmentPlan.aligners')}`}
                 />
               </div>
               <div className="space-y-3">
                 <PrintField
                   label={t('casePage.treatmentPlan.lowerJawAligners')}
-                  value={`${lowerJawAligners || '—'} ${t(
-                    'casePage.treatmentPlan.aligners'
-                  )}`}
+                  value={`${lowerJawAligners || '—'} ${t('casePage.treatmentPlan.aligners')}`}
                 />
                 <PrintField
                   label={t('casePage.treatmentPlan.estimatedDuration')}
-                  value={`${estimatedDurationMonths || '—'} ${t(
-                    'casePage.treatmentPlan.months'
-                  )}`}
+                  value={`${estimatedDurationMonths || '—'} ${t('casePage.treatmentPlan.months')}`}
                 />
               </div>
             </div>
           </div>
-
-          {/* IPR Chart Section */}
           {hasIPRData && (
             <div className="mb-6 page-break-inside-avoid">
               <h2 className="text-xl font-semibold mb-4 text-gray-800 text-start">
@@ -182,8 +150,6 @@ const PrintableTreatmentPlan = React.forwardRef(
               </div>
             </div>
           )}
-
-          {/* Footer */}
           <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
             <p>
               {t('adminTreatmentPlan.print.footer', {
@@ -194,8 +160,38 @@ const PrintableTreatmentPlan = React.forwardRef(
         </div>
       </>
     );
-  }
+  },
 );
+
+// Purely controlled — no internal useEffect. Parent owns all state.
+const MaterialPriceRow = ({ material, price, onChange }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 min-w-0">
+        <span className="text-body-bold font-body-bold text-default-font truncate block">
+          {material.name}
+        </span>
+        <span className="text-caption font-caption text-subtext-color">
+          ${parseFloat(material.price || 0).toFixed(2)}{' '}
+          {t('adminTreatmentPlan.perAligner')}
+        </span>
+      </div>
+      <div className="w-32 flex-shrink-0">
+        <TextField>
+          <TextField.Input
+            type="number"
+            min={0}
+            step="0.01"
+            value={price ?? ''}
+            placeholder="0.00"
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </TextField>
+      </div>
+    </div>
+  );
+};
 
 const AdminTreatmentPlanEditor = ({
   caseData,
@@ -208,11 +204,9 @@ const AdminTreatmentPlanEditor = ({
   estimatedDurationMonths,
   setEstimatedDurationMonths,
   caseStudyFee,
-  alignersPrice,
-  setAlignersPrice,
+  setCaseStudyFee,
   deliveryCharges,
   setDeliveryCharges,
-  alignerUnitPrice,
   isDisabled,
   handleStartEdit,
   handleCancelEdit,
@@ -221,7 +215,6 @@ const AdminTreatmentPlanEditor = ({
   caseHasViewer,
   handleViewerClick,
   viewerLink,
-  // New IPR props
   iprData = {},
   onIPRSave,
 }) => {
@@ -233,7 +226,79 @@ const AdminTreatmentPlanEditor = ({
   const [isIPRViewerOpen, setIsIPRViewerOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Per-material prices: { [materialName]: string }
+  const [materialPrices, setMaterialPrices] = useState(
+    caseData?.material_prices || {},
+  );
+  // Track which materials the admin has manually typed a price for
+  const [manuallyEdited, setManuallyEdited] = useState(new Set());
+
+  const [alignerMaterials, setAlignerMaterials] = useState([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+
   const printRef = useRef();
+
+  // Fetch aligner materials once
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      setLoadingMaterials(true);
+      try {
+        const { data, error } = await supabase
+          .from('services')
+          .select('*')
+          .eq('is_active', true)
+          .eq('type', 'aligners_material')
+          .order('id', { ascending: true });
+        if (!error && data) setAlignerMaterials(data);
+      } catch (err) {
+        console.error('Error fetching materials:', err);
+      } finally {
+        setLoadingMaterials(false);
+      }
+    };
+    fetchMaterials();
+  }, []);
+
+  // When caseData loads with existing material_prices, populate state and
+  // mark all as manually edited so auto-calc does not overwrite them.
+  useEffect(() => {
+    if (
+      caseData?.material_prices &&
+      Object.keys(caseData.material_prices).length > 0
+    ) {
+      setMaterialPrices(caseData.material_prices);
+      setManuallyEdited(new Set(Object.keys(caseData.material_prices)));
+    }
+  }, [caseData?.material_prices]);
+
+  const totalAligners =
+    (parseInt(upperJawAligners) || 0) + (parseInt(lowerJawAligners) || 0);
+
+  // Auto-recalculate prices for materials the admin has NOT manually edited.
+  // Runs whenever totalAligners or the materials list changes.
+  useEffect(() => {
+    if (alignerMaterials.length === 0) return;
+    setMaterialPrices((prev) => {
+      const updated = { ...prev };
+      alignerMaterials.forEach((mat) => {
+        if (!manuallyEdited.has(mat.name)) {
+          updated[mat.name] =
+            totalAligners > 0
+              ? (totalAligners * parseFloat(mat.price || 0)).toFixed(2)
+              : '';
+        }
+      });
+      return updated;
+    });
+    // manuallyEdited intentionally omitted — we only want this on count/material changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalAligners, alignerMaterials]);
+
+  // Admin manually changes a price — mark it so auto-calc leaves it alone
+  const handleMaterialPriceChange = useCallback((materialName, value) => {
+    setManuallyEdited((prev) => new Set(prev).add(materialName));
+    setMaterialPrices((prev) => ({ ...prev, [materialName]: value }));
+  }, []);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -251,12 +316,13 @@ const AdminTreatmentPlanEditor = ({
   };
 
   const handleIPRSave = async (data) => {
-    if (onIPRSave) {
-      await onIPRSave(data);
-    }
+    if (onIPRSave) await onIPRSave(data);
   };
 
-  // Only show for accepted cases and beyond
+  const handleSendForApprovalWithPrices = () => {
+    handleSendForApproval({ materialPrices });
+  };
+
   if (
     ![
       'accepted',
@@ -272,14 +338,8 @@ const AdminTreatmentPlanEditor = ({
     return null;
   }
 
-  const totalCost =
-    parseFloat(caseStudyFee || 0) +
-    parseFloat(alignersPrice || 0) +
-    parseFloat(deliveryCharges || 0);
-
   const hasIPRData = Object.keys(iprData).length > 0;
 
-  // Check if we're in read-only mode
   const isReadOnly = isEditingPlan
     ? [
         'approved',
@@ -291,6 +351,17 @@ const AdminTreatmentPlanEditor = ({
       ].includes(currentStatus)
     : true;
 
+  const isActiveEdit =
+    isEditingPlan &&
+    ![
+      'approved',
+      'in_production',
+      'ready_for_delivery',
+      'delivered',
+      'completed',
+      'user_rejected',
+    ].includes(currentStatus);
+
   return (
     <>
       <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
@@ -298,8 +369,6 @@ const AdminTreatmentPlanEditor = ({
           <span className="text-heading-3 font-heading-3 text-default-font">
             {t('casePage.treatmentPlanReview')}
           </span>
-
-          {/* Print Button - Only show in read-only mode */}
           {!isMobile && isReadOnly && (
             <Button
               size="small"
@@ -312,26 +381,12 @@ const AdminTreatmentPlanEditor = ({
           )}
         </div>
 
-        <div className="flex w-full flex-col gap-6 md:flex-row md:flex-wrap">
+        <div className="flex w-full flex-col gap-6">
           <div className="w-full md:flex md:gap-6">
+            {/* Left — aligner counts & duration */}
             <div className="w-full md:flex-1 flex flex-col gap-4">
-              {isEditingPlan &&
-              ![
-                'approved',
-                'in_production',
-                'ready_for_delivery',
-                'delivered',
-                'completed',
-                'user_rejected',
-              ].includes(currentStatus) ? (
+              {isActiveEdit ? (
                 <>
-                  <div className="flex items-center gap-2 text-caption-bold font-caption-bold text-default-font">
-                    {t('casePage.alignerMaterial')}:
-                    <Badge>
-                      {caseData.aligner_material} ({alignerUnitPrice}$)
-                    </Badge>
-                  </div>
-
                   <TextField
                     label={t('casePage.treatmentPlan.upperJawAligners')}
                   >
@@ -364,8 +419,6 @@ const AdminTreatmentPlanEditor = ({
                       }
                     />
                   </TextField>
-
-                  {/* Action Buttons */}
                   {!isMobile && (
                     <div className="flex w-auto flex-col gap-2 text-caption-bold font-caption-bold text-default-font">
                       {t('adminTreatmentPlan.actionButtons')}:
@@ -374,7 +427,6 @@ const AdminTreatmentPlanEditor = ({
                         icon={<FeatherImage />}
                         onClick={() => setIsUploadDialogOpen(true)}
                         size="small"
-                        className="flex-2"
                       >
                         {t('adminTreatmentPlan.addViewer')}
                       </Button>
@@ -385,7 +437,6 @@ const AdminTreatmentPlanEditor = ({
                         icon={<FeatherSlice />}
                         onClick={() => setIsIPRDialogOpen(true)}
                         size="small"
-                        className="flex-2"
                       >
                         {hasIPRData
                           ? t('adminTreatmentPlan.editIPRChart')
@@ -445,16 +496,10 @@ const AdminTreatmentPlanEditor = ({
                 </>
               )}
             </div>
+
+            {/* Right — fees */}
             <div className="w-full md:flex-1 flex flex-col gap-4">
-              {isEditingPlan &&
-              ![
-                'approved',
-                'in_production',
-                'ready_for_delivery',
-                'delivered',
-                'completed',
-                'user_rejected',
-              ].includes(currentStatus) ? (
+              {isActiveEdit ? (
                 <>
                   <TextField
                     label={t('casePage.treatmentPlan.caseStudyFee')}
@@ -469,16 +514,6 @@ const AdminTreatmentPlanEditor = ({
                       disabled
                     />
                   </TextField>
-                  <TextField label={t('casePage.treatmentPlan.alignersPrice')}>
-                    <TextField.Input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={alignersPrice}
-                      onChange={(e) => setAlignersPrice(e.target.value)}
-                      placeholder="0.00"
-                    />
-                  </TextField>
                   <TextField
                     label={t('casePage.treatmentPlan.deliveryCharges')}
                   >
@@ -491,14 +526,6 @@ const AdminTreatmentPlanEditor = ({
                       placeholder="0.00"
                     />
                   </TextField>
-                  <DataFieldHorizontal
-                    icon={<FeatherDollarSign />}
-                    label={t('casePage.treatmentPlan.totalCost')}
-                  >
-                    <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
-                      ${totalCost.toFixed(2)}
-                    </span>
-                  </DataFieldHorizontal>
                 </>
               ) : (
                 <>
@@ -511,14 +538,6 @@ const AdminTreatmentPlanEditor = ({
                     </span>
                   </DataFieldHorizontal>
                   <DataFieldHorizontal
-                    icon={<FeatherGrid />}
-                    label={t('casePage.treatmentPlan.alignersPrice')}
-                  >
-                    <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
-                      ${parseFloat(alignersPrice || 0).toFixed(2)}
-                    </span>
-                  </DataFieldHorizontal>
-                  <DataFieldHorizontal
                     icon={<FeatherTruck />}
                     label={t('casePage.treatmentPlan.deliveryCharges')}
                   >
@@ -526,19 +545,89 @@ const AdminTreatmentPlanEditor = ({
                       ${parseFloat(deliveryCharges || 0).toFixed(2)}
                     </span>
                   </DataFieldHorizontal>
-                  <DataFieldHorizontal
-                    icon={<FeatherDollarSign />}
-                    label={t('casePage.treatmentPlan.totalCost')}
-                  >
-                    <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
-                      ${totalCost.toFixed(2)}
-                    </span>
-                  </DataFieldHorizontal>
+                  {caseData.status !== 'awaiting_user_approval' &&
+                    parseFloat(caseData.total_cost || 0) > 0 && (
+                      <DataFieldHorizontal
+                        icon={<FeatherCalculator />}
+                        label={t('casePage.treatmentPlan.totalCost')}
+                      >
+                        <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
+                          ${parseFloat(caseData.total_cost).toFixed(2)}
+                        </span>
+                      </DataFieldHorizontal>
+                    )}
                 </>
               )}
             </div>
           </div>
-          {/* View Viewer Button */}
+
+          {/* Per-material pricing */}
+          <div className="flex w-full flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <FeatherDollarSign className="w-4 h-4 text-subtext-color" />
+              <span className="text-body-bold font-body-bold text-default-font">
+                {t('adminTreatmentPlan.materialPricing')}
+              </span>
+            </div>
+
+            {loadingMaterials ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader size="small" />
+              </div>
+            ) : alignerMaterials.length === 0 ? (
+              <p className="text-body font-body text-subtext-color">
+                {t('adminTreatmentPlan.noMaterials')}
+              </p>
+            ) : isActiveEdit ? (
+              <div className="flex flex-col gap-3 rounded-md border border-neutral-border p-4">
+                <p className="text-caption font-caption text-subtext-color">
+                  {t('adminTreatmentPlan.materialPricingHelp')}
+                </p>
+                <div className="flex flex-col gap-3">
+                  {alignerMaterials.map((mat) => (
+                    <MaterialPriceRow
+                      key={mat.id}
+                      material={mat}
+                      price={materialPrices[mat.name]}
+                      onChange={(val) =>
+                        handleMaterialPriceChange(mat.name, val)
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {alignerMaterials.map((mat) => {
+                  const price = caseData?.material_prices?.[mat.name];
+                  if (!price) return null;
+                  const isChosen = caseData?.aligner_material === mat.name;
+                  return (
+                    <div
+                      key={mat.id}
+                      className={`flex items-center justify-between rounded-md border px-4 py-2 ${isChosen ? 'border-brand-300 bg-brand-50' : 'border-neutral-border bg-neutral-50'}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-body-bold font-body-bold text-default-font">
+                          {mat.name}
+                        </span>
+                        {isChosen && (
+                          <Badge variant="brand">
+                            {t('adminTreatmentPlan.doctorChoice')}
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-body-bold font-body-bold text-default-font">
+                        ${parseFloat(price).toFixed(2)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Viewer link */}
           {caseHasViewer && (
             <div className="flex w-full flex-col gap-2 md:flex-row md:items-center">
               <Button
@@ -576,44 +665,31 @@ const AdminTreatmentPlanEditor = ({
           <div className="flex w-full items-center justify-between">
             {!isMobile && (
               <span className="text-body font-body text-subtext-color">
-                {isEditingPlan &&
-                ![
-                  'approved',
-                  'in_production',
-                  'ready_for_delivery',
-                  'delivered',
-                  'completed',
-                  'user_rejected',
-                ].includes(currentStatus)
+                {isActiveEdit
                   ? t('adminTreatmentPlan.statusMessages.editing')
                   : currentStatus === 'awaiting_user_approval'
-                  ? t('adminTreatmentPlan.statusMessages.awaitingApproval')
-                  : currentStatus === 'approved'
-                  ? t('adminTreatmentPlan.statusMessages.approved')
-                  : currentStatus === 'rejected'
-                  ? t('adminTreatmentPlan.statusMessages.rejected')
-                  : currentStatus === 'in_production'
-                  ? t('adminTreatmentPlan.statusMessages.inProduction')
-                  : currentStatus === 'ready_for_delivery'
-                  ? t('adminTreatmentPlan.statusMessages.readyForDelivery')
-                  : currentStatus === 'delivered'
-                  ? t('adminTreatmentPlan.statusMessages.delivered')
-                  : currentStatus === 'user_rejected'
-                  ? t('adminTreatmentPlan.statusMessages.userRejected')
-                  : ''}
+                    ? t('adminTreatmentPlan.statusMessages.awaitingApproval')
+                    : currentStatus === 'approved'
+                      ? t('adminTreatmentPlan.statusMessages.approved')
+                      : currentStatus === 'rejected'
+                        ? t('adminTreatmentPlan.statusMessages.rejected')
+                        : currentStatus === 'in_production'
+                          ? t('adminTreatmentPlan.statusMessages.inProduction')
+                          : currentStatus === 'ready_for_delivery'
+                            ? t(
+                                'adminTreatmentPlan.statusMessages.readyForDelivery',
+                              )
+                            : currentStatus === 'delivered'
+                              ? t('adminTreatmentPlan.statusMessages.delivered')
+                              : currentStatus === 'user_rejected'
+                                ? t(
+                                    'adminTreatmentPlan.statusMessages.userRejected',
+                                  )
+                                : ''}
               </span>
             )}
-
             <div className="flex items-center gap-2">
-              {isEditingPlan &&
-              ![
-                'approved',
-                'in_production',
-                'ready_for_delivery',
-                'delivered',
-                'completed',
-                'user_rejected',
-              ].includes(currentStatus) ? (
+              {isActiveEdit ? (
                 <>
                   <Button
                     variant="destructive-secondary"
@@ -625,14 +701,14 @@ const AdminTreatmentPlanEditor = ({
                   <Button
                     icon={<FeatherCheck />}
                     disabled={isDisabled}
-                    onClick={handleSendForApproval}
+                    onClick={handleSendForApprovalWithPrices}
                   >
                     {t('adminTreatmentPlan.sendForApproval')}
                   </Button>
                 </>
               ) : currentStatus !== 'rejected' &&
                 ['accepted', 'submitted', 'awaiting_user_approval'].includes(
-                  currentStatus
+                  currentStatus,
                 ) ? (
                 <IconButton
                   icon={<FeatherEdit2 />}
@@ -645,14 +721,11 @@ const AdminTreatmentPlanEditor = ({
         </div>
       </div>
 
-      {/* Upload Dialog */}
       <TreatmentPlanImagesUpload
         isOpen={isUploadDialogOpen}
         onClose={() => setIsUploadDialogOpen(false)}
         caseId={caseData.id}
       />
-
-      {/* IPR Chart Dialog (for editing) */}
       <IPRChartDialog
         isOpen={isIPRDialogOpen}
         onClose={() => setIsIPRDialogOpen(false)}
@@ -660,23 +733,18 @@ const AdminTreatmentPlanEditor = ({
         initialData={iprData}
         caseId={caseData.id}
       />
-
-      {/* IPR Chart Viewer (for viewing) */}
       <IPRChartViewer
         isOpen={isIPRViewerOpen}
         onClose={() => setIsIPRViewerOpen(false)}
         toothStatus={caseData.tooth_status || {}}
         iprData={iprData}
       />
-
-      {/* Print Dialog */}
       <Dialog open={isPrintDialogOpen} onOpenChange={setIsPrintDialogOpen}>
         <Dialog.Content className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between px-1 py-3 w-full">
             <span className="text-heading-2 font-heading-2 text-default-font">
               {t('adminTreatmentPlan.printDialogTitle')}
             </span>
-
             <Button
               variant="brand-primary"
               icon={<FeatherPrinter />}
@@ -684,14 +752,11 @@ const AdminTreatmentPlanEditor = ({
                 handlePrint();
                 setIsPrintDialogOpen(false);
               }}
-              className="w-auto"
             >
               {t('adminTreatmentPlan.printButton')}
             </Button>
           </div>
-
           <div className="border border-neutral-border rounded-lg bg-white">
-            {/* Print Content */}
             <PrintableTreatmentPlan
               ref={printRef}
               caseData={caseData}
@@ -706,4 +771,5 @@ const AdminTreatmentPlanEditor = ({
     </>
   );
 };
+
 export default AdminTreatmentPlanEditor;

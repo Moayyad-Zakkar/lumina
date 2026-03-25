@@ -1,97 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  FeatherEdit3,
-  FeatherRefreshCw,
-  FeatherX,
-  FeatherChevronDown,
-  FeatherChevronUp,
-} from '@subframe/core';
+import { FeatherEdit3, FeatherX } from '@subframe/core';
 import { Button } from '../Button';
-import RadioGroup from '../RadioGroup';
-import { Loader } from '../Loader';
-import supabase from '../../../helper/supabaseClient';
 
-const RequestEditDialog = ({
-  isOpen,
-  onClose,
-  onChangeMaterial,
-  saving,
-  caseData,
-}) => {
+const RequestEditDialog = ({ isOpen, onClose, onChangeMaterial, saving, caseData }) => {
   const { t } = useTranslation();
-  const [showMaterialEdit, setShowMaterialEdit] = useState(false);
-  const [alignerMaterials, setAlignerMaterials] = useState([]);
-  const [selectedMaterial, setSelectedMaterial] = useState('');
-  const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [userNote, setUserNote] = useState('');
 
-  // Fetch aligner materials when dialog opens
   useEffect(() => {
     if (isOpen) {
-      const fetchMaterials = async () => {
-        setLoadingMaterials(true);
-        try {
-          const { data, error } = await supabase
-            .from('services')
-            .select('*')
-            .eq('is_active', true);
-
-          if (error) {
-            console.error('Error fetching materials:', error);
-          } else {
-            const materials = data.filter(
-              (item) => item.type === 'aligners_material'
-            );
-            setAlignerMaterials(materials);
-          }
-        } catch (error) {
-          console.error('Error fetching materials:', error);
-        } finally {
-          setLoadingMaterials(false);
-        }
-      };
-
-      fetchMaterials();
-      // Reset state when dialog opens
-      setShowMaterialEdit(false);
-      setSelectedMaterial(caseData?.aligner_material || '');
       setUserNote(caseData?.user_note || '');
     }
-  }, [isOpen, caseData?.aligner_material, caseData?.user_note]);
-
-  const handleMaterialChange = (e) => {
-    setSelectedMaterial(e.target.value);
-  };
-
-  const handleUpdateMaterial = async () => {
-    const currentMaterial = caseData?.aligner_material || '';
-    const newMaterial = selectedMaterial;
-
-    // Check if material has changed
-    const materialChanged = newMaterial !== currentMaterial;
-
-    if (onChangeMaterial) {
-      await onChangeMaterial(newMaterial, materialChanged, userNote);
-    }
-  };
+  }, [isOpen, caseData?.user_note]);
 
   const handleClose = () => {
-    if (!saving) {
-      onClose();
-    }
+    if (!saving) onClose();
   };
 
-  // Helper to determine if there are unsaved changes
   const hasChanges = () => {
-    const originalMaterial = caseData?.aligner_material || '';
     const originalNote = caseData?.user_note || '';
+    return userNote.trim() !== originalNote.trim();
+  };
 
-    const materialChanged = selectedMaterial !== originalMaterial;
-    // Check if note changed (trimming ensures we ignore empty spaces vs empty string)
-    const noteChanged = userNote.trim() !== originalNote.trim();
-
-    return materialChanged || noteChanged;
+  const handleSubmit = async () => {
+    if (onChangeMaterial) {
+      // Pass current material unchanged, materialChanged = false, with the note
+      await onChangeMaterial(
+        caseData?.aligner_material || '',
+        false,
+        userNote
+      );
+    }
   };
 
   if (!isOpen) return null;
@@ -102,14 +41,13 @@ const RequestEditDialog = ({
       <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
 
       {/* Dialog Content */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full mx-4 p-6 max-w-[640px] max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-lg shadow-xl w-full mx-4 p-6 max-w-[540px] max-h-[90vh] overflow-y-auto">
         <div className="flex flex-col gap-4">
           {/* Header */}
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center flex-shrink-0">
               <FeatherEdit3 className="w-4 h-4 text-brand-600" />
             </div>
-
             <div className="flex-1">
               <h3 className="text-heading-3 font-heading-3 text-default-font">
                 {t('casePage.dialogs.requestEdit.title')}
@@ -118,7 +56,6 @@ const RequestEditDialog = ({
                 {t('casePage.dialogs.requestEdit.subtitle')}
               </p>
             </div>
-
             <button
               onClick={handleClose}
               disabled={saving}
@@ -126,63 +63,6 @@ const RequestEditDialog = ({
             >
               <FeatherX className="w-6 h-6" />
             </button>
-          </div>
-
-          {/* Change Material Option */}
-          <div className="border border-neutral-border rounded-md p-4 mt-2">
-            <div
-              className="flex items-start gap-3 cursor-pointer hover:bg-neutral-50 -m-4 p-4 rounded-md transition-colors"
-              onClick={() => setShowMaterialEdit(!showMaterialEdit)}
-            >
-              <FeatherRefreshCw className="w-5 h-5 text-brand-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-body-bold font-body-bold text-default-font">
-                    {t('casePage.dialogs.requestEdit.changeMaterial')}
-                  </h4>
-                  {showMaterialEdit ? (
-                    <FeatherChevronUp className="w-5 h-5 text-subtext-color" />
-                  ) : (
-                    <FeatherChevronDown className="w-5 h-5 text-subtext-color" />
-                  )}
-                </div>
-                <p className="text-body font-body text-subtext-color mt-1">
-                  {t('casePage.dialogs.requestEdit.currentMaterial')}{' '}
-                  <span className="font-semibold">
-                    {caseData?.aligner_material || t('casePage.notSpecified')}
-                  </span>
-                </p>
-                <p className="text-body font-body text-subtext-color mt-1">
-                  {t('casePage.dialogs.requestEdit.materialDescription')}
-                </p>
-              </div>
-            </div>
-
-            {/* Material Selection (collapsible) */}
-            {showMaterialEdit && (
-              <div className="mt-4 pt-4 border-t border-neutral-border">
-                {loadingMaterials ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader size="small" />
-                  </div>
-                ) : alignerMaterials.length > 0 ? (
-                  <RadioGroup
-                    label={t('casePage.dialogs.requestEdit.selectMaterial')}
-                    name="alignerMaterial"
-                    options={alignerMaterials.map((mat) => ({
-                      label: mat.name,
-                      value: mat.name,
-                    }))}
-                    selectedValue={selectedMaterial}
-                    onChange={handleMaterialChange}
-                  />
-                ) : (
-                  <p className="text-body font-body text-subtext-color">
-                    {t('casePage.dialogs.requestEdit.noMaterials')}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Notes Section */}
@@ -224,18 +104,14 @@ const RequestEditDialog = ({
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-2 mt-2 pt-4 border-t border-neutral-border">
-            <Button
-              variant="neutral-secondary"
-              onClick={handleClose}
-              disabled={saving}
-            >
+            <Button variant="neutral-secondary" onClick={handleClose} disabled={saving}>
               {t('common.cancel')}
             </Button>
             <Button
               variant="brand-primary"
-              icon={<FeatherRefreshCw />}
-              onClick={handleUpdateMaterial}
-              disabled={saving || !selectedMaterial || !hasChanges()}
+              icon={<FeatherEdit3 />}
+              onClick={handleSubmit}
+              disabled={saving || !hasChanges()}
             >
               {saving
                 ? t('casePage.dialogs.requestEdit.submitting')

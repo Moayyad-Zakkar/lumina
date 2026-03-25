@@ -13,6 +13,7 @@ import DentalChart from '../../components/DentalChart';
 import DeclineCaseDialog from '../../components/AdminDeclineCaseDialog';
 import RefinementDialog from '../../components/RefinementDialog';
 import RefinementHistory from '../../components/RefinementHistory';
+import AdminApprovePlanDialog from '../../components/case/AdminApprovePlanDialog';
 
 // Import refactored components
 import CaseInformation from '../../components/case/CaseInformation';
@@ -44,7 +45,6 @@ import { checkCaseTreatmentImages } from '../../../helper/caseHasView';
 import TreatmentDetails from '../../components/case/TreatmentDetails';
 import CaseSatisfactionDisplay from '../../components/case/CaseSatisfactionDisplay';
 import InternalNotesSection from '../../components/case/InternalNotesSection';
-import { useUserRole } from '../../../helper/useUserRole';
 import { useIsMobile } from '../../../hooks/useIsMobile';
 
 const AdminCasePageRefactored = () => {
@@ -52,8 +52,6 @@ const AdminCasePageRefactored = () => {
   const { caseData, error } = useLoaderData();
   const navigate = useNavigate();
   const [caseHasViewer, setCaseHasViewer] = useState(false);
-  const { role, loading: roleLoading } = useUserRole();
-  const isAdmin = role === 'admin';
   const isMobile = useIsMobile();
 
   const [isRefinementDialogOpen, setIsRefinementDialogOpen] = useState(false);
@@ -61,6 +59,10 @@ const AdminCasePageRefactored = () => {
   const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [refinementError, setRefinementError] = useState(null);
   const [isSubmittingRefinement, setIsSubmittingRefinement] = useState(false);
+
+  // Admin approve plan dialog
+  const [isApprovePlanDialogOpen, setIsApprovePlanDialogOpen] = useState(false);
+  const [isApprovingPlan, setIsApprovingPlan] = useState(false);
 
   // Fetch services when refinement dialog opens
   useEffect(() => {
@@ -78,9 +80,8 @@ const AdminCasePageRefactored = () => {
         .eq('is_active', true);
 
       if (error) throw error;
-
       setAlignerMaterials(
-        data.filter((item) => item.type === 'aligners_material')
+        data.filter((item) => item.type === 'aligners_material'),
       );
     } catch (error) {
       console.error('Error fetching services:', error);
@@ -90,10 +91,8 @@ const AdminCasePageRefactored = () => {
     }
   };
 
-  // Initialize IPR data from caseData
   const [iprData, setIprData] = useState(caseData?.ipr_data || {});
 
-  // Custom hooks
   const { downloadingFiles, downloadSingleFile, downloadAllFiles } =
     useFileDownload();
   const {
@@ -112,9 +111,6 @@ const AdminCasePageRefactored = () => {
     saving,
     caseStudyFee,
     setCaseStudyFee,
-    alignerUnitPrice,
-    alignersPrice,
-    setAlignersPrice,
     deliveryCharges,
     setDeliveryCharges,
     upperJawAligners,
@@ -142,14 +138,10 @@ const AdminCasePageRefactored = () => {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Update iprData when caseData changes
   useEffect(() => {
-    if (caseData?.ipr_data) {
-      setIprData(caseData.ipr_data);
-    }
+    if (caseData?.ipr_data) setIprData(caseData.ipr_data);
   }, [caseData?.ipr_data]);
 
-  // Mark admin notifications for this case as read when page opens
   useEffect(() => {
     const markNotificationsRead = async () => {
       try {
@@ -164,34 +156,27 @@ const AdminCasePageRefactored = () => {
           .eq('case_id', caseData.id)
           .eq('status', 'unread');
       } catch {
-        // ignore
+        /* ignore */
       }
     };
     markNotificationsRead();
   }, [caseData?.id]);
 
-  // Check if the case has treatment sequence viewer available
   useEffect(() => {
     const checkImages = async () => {
       try {
         const { hasImages } = await checkCaseTreatmentImages(caseData.id);
         setCaseHasViewer(hasImages);
-      } catch (error) {
+      } catch {
         setCaseHasViewer(false);
       }
     };
-
-    if (caseData.id) {
-      checkImages();
-    }
+    if (caseData.id) checkImages();
   }, [caseData.id]);
 
-  if (error) {
-    return <Error error={error} />;
-  }
-  if (!caseData) {
+  if (error) return <Error error={error} />;
+  if (!caseData)
     return <p className="text-neutral-500">{t('casePage.caseNotFound')}</p>;
-  }
 
   const handleDeleteCase = async () => {
     try {
@@ -209,8 +194,7 @@ const AdminCasePageRefactored = () => {
   };
 
   const handleViewerClick = () => {
-    const viewerUrl = `/case-viewer/${caseData.id}`;
-    window.open(viewerUrl, '_blank');
+    window.open(`/case-viewer/${caseData.id}`, '_blank');
   };
 
   const viewerLink = `${window.location.origin}/case-viewer/${caseData.id}`;
@@ -221,31 +205,37 @@ const AdminCasePageRefactored = () => {
         .from('cases')
         .update({ ipr_data: data })
         .eq('id', caseData.id);
-
       if (error) throw error;
-
       setIprData(data);
       caseData.ipr_data = data;
-
       toast.success(t('adminCasePage.toast.iprSaved'));
     } catch (error) {
       console.error('Error saving IPR data:', error);
       toast.error(t('adminCasePage.toast.iprFailed'));
     }
   };
-  // Admin Approve plan button sets the total cost and the billable approved total cost to the final value
-  const approvePlan = async () => {
-    try {
-      const totalCost = parseFloat(caseData?.total_cost || 0);
 
+  // Admin approves plan — picks material + finalises cost
+  const handleApprovePlanConfirm = async (
+    materialName,
+    alignersPrice,
+    totalCost,
+  ) => {
+    setIsApprovingPlan(true);
+    try {
       await updateCase({
         status: 'approved',
+        aligner_material: materialName,
+        aligners_price: alignersPrice,
         total_cost: totalCost,
         approved_total_cost: totalCost,
       });
+      setIsApprovePlanDialogOpen(false);
       toast.success(t('casePage.toast.planApproved'));
     } catch (e) {
       toast.error(e.message || t('casePage.toast.approveFailed'));
+    } finally {
+      setIsApprovingPlan(false);
     }
   };
 
@@ -260,20 +250,17 @@ const AdminCasePageRefactored = () => {
       if (!user)
         throw new Error(t('casePage.refinement.errors.notAuthenticated'));
 
-      // Use the case's doctor info instead of current user
       const doctorName = caseData.profiles?.full_name || 'Unknown Doctor';
       const clinicName = caseData.profiles?.clinic || null;
       const patientName = `${caseData.first_name} ${caseData.last_name}`;
       const refinementCaseId = `REF-${caseData.id}-${Date.now()}`;
 
-      // Upload files helper (same as RefinementSection)
       const uploadFileWithErrorHandling = async (
         file,
         folderPath,
-        metadata = {}
+        metadata = {},
       ) => {
         if (!file) return null;
-
         try {
           const result = await uploadFile(file, folderPath, {
             caseId: metadata.caseId || refinementCaseId,
@@ -281,11 +268,7 @@ const AdminCasePageRefactored = () => {
             fileType: metadata.fileType || folderPath,
             doctorName: metadata.doctorName || doctorName,
           });
-
-          if (!result.success) {
-            throw new Error(result.error || 'Upload failed');
-          }
-
+          if (!result.success) throw new Error(result.error || 'Upload failed');
           return result.filePath;
         } catch (error) {
           console.error(`Upload error for ${folderPath}:`, error);
@@ -299,7 +282,6 @@ const AdminCasePageRefactored = () => {
       let compressedScansPath = null;
       let additionalFilesPaths = [];
 
-      // Upload based on method
       if (refinementData.uploadMethod === 'individual') {
         const uploadResults = await Promise.all([
           uploadFileWithErrorHandling(
@@ -311,7 +293,7 @@ const AdminCasePageRefactored = () => {
               doctorName,
               clinicName,
               fileType: t('caseSubmit.upperJawScan'),
-            }
+            },
           ),
           uploadFileWithErrorHandling(
             refinementData.lowerJawScan,
@@ -322,7 +304,7 @@ const AdminCasePageRefactored = () => {
               doctorName,
               clinicName,
               fileType: t('caseSubmit.lowerJawScan'),
-            }
+            },
           ),
           uploadFileWithErrorHandling(refinementData.biteScan, 'bite-scans', {
             caseId: refinementCaseId,
@@ -332,7 +314,6 @@ const AdminCasePageRefactored = () => {
             fileType: t('caseSubmit.biteScan'),
           }),
         ]);
-
         [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
       } else if (refinementData.uploadMethod === 'compressed') {
         compressedScansPath = await uploadFileWithErrorHandling(
@@ -344,11 +325,10 @@ const AdminCasePageRefactored = () => {
             doctorName,
             clinicName,
             fileType: t('caseSubmit.compressedScans'),
-          }
+          },
         );
       }
 
-      // Upload additional files if any
       if (
         refinementData.additionalFiles &&
         refinementData.additionalFiles.length > 0
@@ -361,12 +341,11 @@ const AdminCasePageRefactored = () => {
               doctorName,
               clinicName,
               fileType: t('caseSubmit.additionalFile', { number: index + 1 }),
-            })
-          )
+            }),
+          ),
         );
       }
 
-      // Get the latest refinement number
       const { data: existingRefinements } = await supabase
         .from('cases')
         .select('refinement_number')
@@ -378,9 +357,8 @@ const AdminCasePageRefactored = () => {
         ? existingRefinements[0].refinement_number + 1
         : 1;
 
-      // Create refinement case
       const insertPayload = {
-        user_id: caseData.user_id, // Use original case's doctor
+        user_id: caseData.user_id,
         parent_case_id: caseData.id,
         refinement_number: nextRefinementNumber,
         first_name: caseData.first_name,
@@ -410,18 +388,15 @@ const AdminCasePageRefactored = () => {
       const { error: insertError } = await supabase
         .from('cases')
         .insert(insertPayload);
-
       if (insertError) throw insertError;
 
       toast.success(t('casePage.refinement.success.submitted'));
       setIsRefinementDialogOpen(false);
-
-      // Refresh the page data
       window.location.reload();
     } catch (error) {
       console.error('Submit error:', error);
       setRefinementError(
-        error.message || t('casePage.refinement.errors.submitFailed')
+        error.message || t('casePage.refinement.errors.submitFailed'),
       );
       toast.error(error.message);
     } finally {
@@ -526,7 +501,7 @@ const AdminCasePageRefactored = () => {
         </Dialog>
       )}
 
-      {/* Show decline reason alert for rejected cases */}
+      {/* Decline reason alert */}
       {currentStatus === 'rejected' && caseData.decline_reason && (
         <Alert
           variant="destructive"
@@ -564,7 +539,6 @@ const AdminCasePageRefactored = () => {
         />
       )}
 
-      {/* Standard status alert for non-rejected cases */}
       {currentStatus !== 'rejected' && currentStatus !== 'user_rejected' && (
         <Alert
           variant="success"
@@ -575,7 +549,6 @@ const AdminCasePageRefactored = () => {
         />
       )}
 
-      {/* User rejected alert */}
       {currentStatus === 'user_rejected' && (
         <Alert
           variant="destructive"
@@ -589,11 +562,10 @@ const AdminCasePageRefactored = () => {
       <div className="flex w-full flex-col items-start gap-6">
         <CaseInformation caseData={caseData} isAdmin={true} />
 
-        {/* Satisfaction Display */}
         {currentStatus === 'completed' && caseData.satisfaction_rating && (
           <CaseSatisfactionDisplay caseData={caseData} />
         )}
-        {/* Decline Reason Section */}
+
         {(currentStatus === 'user_rejected' || currentStatus === 'rejected') &&
           caseData.decline_reason && (
             <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-red-200 bg-red-50 px-6 pt-4 pb-6 shadow-sm">
@@ -639,7 +611,6 @@ const AdminCasePageRefactored = () => {
           />
         )}
 
-        {/* Dental Chart */}
         {!isMobile && (
           <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
             <span className="text-heading-3 font-heading-3 text-default-font">
@@ -660,7 +631,6 @@ const AdminCasePageRefactored = () => {
           </div>
         )}
 
-        {/* Case Acceptance Card - Only for submitted cases */}
         <CaseAcceptanceCard
           currentStatus={currentStatus}
           caseStudyFee={caseStudyFee}
@@ -670,10 +640,8 @@ const AdminCasePageRefactored = () => {
           handleDecline={handleDecline}
         />
 
-        {/* Admin Notes Section */}
         <AdminNotesSection caseData={caseData} />
 
-        {/* Treatment Plan Editor - Only for accepted cases and beyond */}
         <AdminTreatmentPlanEditor
           caseData={caseData}
           currentStatus={currentStatus}
@@ -686,11 +654,8 @@ const AdminCasePageRefactored = () => {
           setEstimatedDurationMonths={setEstimatedDurationMonths}
           caseStudyFee={caseStudyFee}
           setCaseStudyFee={setCaseStudyFee}
-          alignersPrice={alignersPrice}
-          setAlignersPrice={setAlignersPrice}
           deliveryCharges={deliveryCharges}
           setDeliveryCharges={setDeliveryCharges}
-          alignerUnitPrice={alignerUnitPrice}
           isDisabled={isDisabled}
           handleStartEdit={handleStartEdit}
           handleCancelEdit={handleCancelEdit}
@@ -703,7 +668,6 @@ const AdminCasePageRefactored = () => {
           onIPRSave={handleIPRSave}
         />
 
-        {/* Manufacturing Progress - Only for approved cases and beyond */}
         <ManufacturingProgress
           currentStatus={currentStatus}
           isDisabled={isDisabled}
@@ -716,10 +680,9 @@ const AdminCasePageRefactored = () => {
           handleFileDownload={downloadSingleFile}
         />
 
-        {/* Refinement History */}
         <RefinementHistory caseData={caseData} />
 
-        {/* Admin Buttons */}
+        {/* Admin action buttons */}
         <div className="flex w-full items-center justify-end gap-2">
           {currentStatus === 'delivered' && (
             <Button
@@ -735,7 +698,7 @@ const AdminCasePageRefactored = () => {
             <Button
               variant="brand"
               icon={<FeatherCheck />}
-              onClick={approvePlan}
+              onClick={() => setIsApprovePlanDialogOpen(true)}
               disabled={saving}
               className="w-auto"
             >
@@ -753,7 +716,15 @@ const AdminCasePageRefactored = () => {
         </div>
       </div>
 
-      {/* Refinement Dialog */}
+      {/* Admin Approve Plan Dialog */}
+      <AdminApprovePlanDialog
+        isOpen={isApprovePlanDialogOpen}
+        onClose={() => setIsApprovePlanDialogOpen(false)}
+        onConfirm={handleApprovePlanConfirm}
+        caseData={caseData}
+        isLoading={isApprovingPlan}
+      />
+
       <RefinementDialog
         isOpen={isRefinementDialogOpen}
         onClose={handleRefinementClose}
@@ -763,7 +734,7 @@ const AdminCasePageRefactored = () => {
         loadingMaterials={loadingMaterials}
         loading={isSubmittingRefinement}
         error={refinementError}
-        isAdminMode={true} // Add this prop to make fields optional
+        isAdminMode={true}
       />
 
       <DeclineCaseDialog

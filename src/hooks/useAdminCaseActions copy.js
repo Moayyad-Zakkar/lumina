@@ -10,14 +10,14 @@ export const useAdminCaseActions = (caseData) => {
 
   // Pricing state
   const [caseStudyFee, setCaseStudyFee] = useState(
-    caseData?.case_study_fee != null
-      ? parseFloat(caseData.case_study_fee).toFixed(2)
-      : '0.00',
+    caseData?.case_study_fee?.toFixed(2) || '0.00',
+  );
+  const [alignerUnitPrice, setAlignerUnitPrice] = useState(0);
+  const [alignersPrice, setAlignersPrice] = useState(
+    caseData?.aligners_price?.toFixed(2) || '0.00',
   );
   const [deliveryCharges, setDeliveryCharges] = useState(
-    caseData?.delivery_charges != null
-      ? parseFloat(caseData.delivery_charges).toFixed(2)
-      : '0.00',
+    caseData?.delivery_charges?.toFixed(2) || '0.00',
   );
 
   // Treatment plan editing state
@@ -53,14 +53,37 @@ export const useAdminCaseActions = (caseData) => {
     [currentStatus],
   );
 
-  // Fetch case study fee default only if not already set on the case
+  // Auto-calculate aligners price
+  useEffect(() => {
+    const hasNoAlignerRecord =
+      caseData?.aligners_price === 0.0 ||
+      caseData?.aligners_price === undefined ||
+      caseData?.aligners_price === null;
+
+    if (hasNoAlignerRecord) {
+      // ← This condition prevents recalculation
+      const totalAligners =
+        parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
+      const totalPrice = totalAligners * alignerUnitPrice;
+      setAlignersPrice(totalPrice.toFixed(2));
+    }
+  }, [
+    upperJawAligners,
+    lowerJawAligners,
+    alignerUnitPrice,
+    caseData?.aligners_price,
+  ]);
+
+  // Fetch pricing defaults
   useEffect(() => {
     const fetchDefaults = async () => {
+      // Only fetch defaults if no existing pricing data
       const hasNoFeeRecord =
         caseData?.case_study_fee === undefined ||
         caseData?.case_study_fee === null;
 
       if (hasNoFeeRecord) {
+        // 1. Case Study Fee
         const { data: feeData } = await supabase
           .from('services')
           .select('price')
@@ -70,13 +93,31 @@ export const useAdminCaseActions = (caseData) => {
 
         setCaseStudyFee(feeData?.price?.toFixed(2) || '0.00');
       }
-      // Note: alignerUnitPrice / alignersPrice auto-calc is removed.
-      // Per-material prices are now calculated in AdminTreatmentPlanEditor
-      // using materialPrices state and passed to handleSendForApproval.
+
+      // 2. Aligner Material Price (always fetch for calculation)
+      const { data: materialData } = await supabase
+        .from('services')
+        .select('price')
+        .eq('type', 'aligners_material')
+        .eq('name', caseData?.aligner_material)
+        .eq('is_active', true)
+        .single();
+
+      setAlignerUnitPrice(parseFloat(materialData?.price || 0));
     };
 
     fetchDefaults();
-  }, [caseData?.case_study_fee]);
+  }, [caseData?.aligner_material, caseData?.case_study_fee]);
+
+  useEffect(() => {
+    // Only recalculate if we have a backup (meaning user started editing)
+    if (editBackup !== null) {
+      const totalAligners =
+        parseInt(upperJawAligners || 0) + parseInt(lowerJawAligners || 0);
+      const totalPrice = totalAligners * alignerUnitPrice;
+      setAlignersPrice(totalPrice.toFixed(2));
+    }
+  }, [upperJawAligners, lowerJawAligners, alignerUnitPrice, editBackup]);
 
   // Update case in database
   const updateCase = async (updates) => {
@@ -109,13 +150,13 @@ export const useAdminCaseActions = (caseData) => {
     await updateCase({
       status: 'accepted',
       case_study_fee: caseStudyFeeAmount,
-      total_cost: caseStudyFeeAmount,
+      total_cost: caseStudyFeeAmount, // Update total cost when case study fee is set
       approved_total_cost: caseStudyFeeAmount,
     });
     toast.success('Case accepted successfully');
   };
 
-  // Decline case (admin)
+  // Reject case by admin
   const handleDecline = () => {
     setShowDeclineDialog(true);
   };
@@ -194,7 +235,7 @@ export const useAdminCaseActions = (caseData) => {
     }
   };
 
-  // Send for approval — materialPrices comes from AdminTreatmentPlanEditor
+  // Send for approval
   const handleSendForApproval = async ({ materialPrices = {} } = {}) => {
     const u = Number(upperJawAligners);
     const l = Number(lowerJawAligners);
@@ -213,34 +254,40 @@ export const useAdminCaseActions = (caseData) => {
       return;
     }
 
+    // Calculate total cost by adding aligners price and delivery charges to existing case study fee
+    const existingCaseStudyFee = parseFloat(caseStudyFee || 0);
+    const newAlignersPrice = parseFloat(alignersPrice || 0);
     const newDeliveryCharges = parseFloat(deliveryCharges || 0);
+    //no longer used as total cost is not specified until the user approves one total cost
+    const totalCost =
+      existingCaseStudyFee + newAlignersPrice + newDeliveryCharges;
 
     await updateCase({
       upper_jaw_aligners: u,
       lower_jaw_aligners: l,
       estimated_duration_months: d,
       status: 'awaiting_user_approval',
-      // case_study_fee already set during acceptance — don't overwrite
-      aligners_price: null, // null until doctor picks a material
+      // Don't update case_study_fee here - it was already set during acceptance
+      aligners_price: null,
       delivery_charges: newDeliveryCharges,
-      total_cost: null, // null until doctor approves
+      total_cost: null,
       material_prices: materialPrices,
-      // approved_total_cost set when doctor approves
+      //// Don't update approved_total_cost here - it will be set when doctor approves
     });
-
     setIsEditingPlan(false);
     setEditBackup(null);
     toast.success('Sent for doctor approval');
 
+    // Reload the page to get fresh data
     window.location.reload();
   };
 
-  // Status transitions (in_production → ready_for_delivery → delivered)
+  // Status transitions
   const handleStatusTransition = async (newStatus) => {
     await updateCase({ status: newStatus });
   };
 
-  // Edit plan
+  // Edit plan functions
   const handleStartEdit = () => {
     if (!isPlanEditAllowed) return;
     setEditBackup({
@@ -270,8 +317,9 @@ export const useAdminCaseActions = (caseData) => {
     actionSuccess,
     caseStudyFee,
     setCaseStudyFee,
-    // alignerUnitPrice removed — no longer needed in hook
-    // alignersPrice removed — per-material prices live in AdminTreatmentPlanEditor
+    alignerUnitPrice,
+    alignersPrice,
+    setAlignersPrice,
     deliveryCharges,
     setDeliveryCharges,
     upperJawAligners,

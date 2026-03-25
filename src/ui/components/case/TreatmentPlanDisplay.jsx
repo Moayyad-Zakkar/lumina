@@ -70,17 +70,20 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
                 : '0'}
             </span>
           </DataFieldHorizontal>
-          <DataFieldHorizontal
-            icon={<FeatherGrid />}
-            label={t('casePage.treatmentPlan.alignersPrice')}
-          >
-            <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
-              $
-              {caseData.aligners_price
-                ? parseFloat(caseData.aligners_price).toFixed(2)
-                : '0'}
-            </span>
-          </DataFieldHorizontal>
+          {caseData.aligners_price > 0 && (
+            <DataFieldHorizontal
+              icon={<FeatherGrid />}
+              label={t('casePage.treatmentPlan.alignersPrice')}
+            >
+              <span className="whitespace-nowrap text-body-bold font-body-bold text-default-font">
+                $
+                {caseData.aligners_price
+                  ? parseFloat(caseData.aligners_price).toFixed(2)
+                  : '0'}
+              </span>
+            </DataFieldHorizontal>
+          )}
+
           <DataFieldHorizontal
             icon={<FeatherPlusCircle />}
             label={t('casePage.treatmentPlan.deliveryCharges')}
@@ -92,17 +95,19 @@ const TreatmentPlanDisplay = ({ caseData, showPlanSection, caseHasViewer }) => {
                 : '0'}
             </span>
           </DataFieldHorizontal>
-          <DataFieldHorizontal
-            icon={<FeatherCalculator />}
-            label={t('casePage.treatmentPlan.totalCost')}
-          >
-            <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
-              $
-              {caseData.total_cost
-                ? parseFloat(caseData.total_cost).toFixed(2)
-                : '0'}
-            </span>
-          </DataFieldHorizontal>
+          {caseData.total_cost > 0 && (
+            <DataFieldHorizontal
+              icon={<FeatherCalculator />}
+              label={t('casePage.treatmentPlan.totalCost')}
+            >
+              <span className="whitespace-nowrap text-heading-3 font-heading-3 text-brand-600">
+                $
+                {caseData.total_cost
+                  ? parseFloat(caseData.total_cost).toFixed(2)
+                  : '0'}
+              </span>
+            </DataFieldHorizontal>
+          )}
         </div>
       </div>
 

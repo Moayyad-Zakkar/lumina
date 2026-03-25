@@ -18,12 +18,10 @@ import { useUserRole } from '../../helper/useUserRole';
 
 const CaseSubmitRefactored = () => {
   const { t } = useTranslation();
-  const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [toothStatus, setToothStatus] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  //for more accurate role check, but no need i think as this page isn't for admins!
 
   const { role, loading: roleLoading } = useUserRole();
   const isAdmin = role === 'admin';
@@ -33,7 +31,6 @@ const CaseSubmitRefactored = () => {
     lastName: '',
     isUrgent: false,
     urgentDeliveryDate: '',
-    alignerMaterial: '',
     uploadMethod: 'individual',
     upperJawScan: null,
     lowerJawScan: null,
@@ -55,32 +52,6 @@ const CaseSubmitRefactored = () => {
   });
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchServices = async () => {
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('is_active', true)
-        .order('id', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching services:', error);
-        setLoading(false);
-        return;
-      }
-
-      setAlignerMaterials(
-        data.filter((item) => item.type === 'aligners_material')
-      );
-
-      setLoading(false);
-    };
-
-    fetchServices();
-  }, []);
 
   const handleChange = (e) => {
     const { name, value, files, type, checked } = e.target;
@@ -137,7 +108,6 @@ const CaseSubmitRefactored = () => {
   };
 
   const handleTermsClick = () => {
-    // Open the Terms page in a new tab
     const termsUrl = `/app/terms`;
     window.open(termsUrl, '_blank');
   };
@@ -165,7 +135,7 @@ const CaseSubmitRefactored = () => {
       }
 
       // Fetch doctor's profile information
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name, clinic')
         .eq('id', user.id)
@@ -175,17 +145,15 @@ const CaseSubmitRefactored = () => {
         profileData?.full_name || user.email || t('caseSubmit.unknownDoctor');
       const clinicName = profileData?.clinic || null;
 
-      // Comprehensive validation
+      // Validation
       const validateSubmission = () => {
         const errors = [];
 
-        // Basic info (Always required)
         if (!formData.firstName?.trim())
           errors.push(t('caseSubmit.errors.firstNameRequired'));
         if (!formData.lastName?.trim())
           errors.push(t('caseSubmit.errors.lastNameRequired'));
-if (!formData.alignerMaterial?.trim())
-          errors.push(t('caseSubmit.errors.alignerMaterialRequired'));
+
         // Diagnosis Validation (Skipped for Admins)
         if (!isAdmin) {
           if (!formData.upperMidline)
@@ -203,7 +171,6 @@ if (!formData.alignerMaterial?.trim())
           if (!formData.treatmentArch)
             errors.push(t('caseSubmit.errors.treatmentArchRequired'));
 
-          // Conditional shift amount validation
           if (
             ['shifted_right', 'shifted_left'].includes(formData.upperMidline) &&
             !formData.upperMidlineShift
@@ -212,7 +179,7 @@ if (!formData.alignerMaterial?.trim())
           }
         }
 
-        // File Uploads (Always required)
+        // File Uploads
         if (formData.uploadMethod === 'individual') {
           if (!formData.upperJawScan || !formData.lowerJawScan) {
             errors.push(t('caseSubmit.errors.scansRequired'));
@@ -235,18 +202,10 @@ if (!formData.alignerMaterial?.trim())
         if (!file) return null;
 
         try {
-          const maxFileSize = 100 * 1024 * 1024; // 100MB
+          const maxFileSize = 100 * 1024 * 1024;
           const allowedFileTypes = [
-            '.stl',
-            '.obj',
-            '.ply',
-            '.pdf',
-            '.png',
-            '.jpg',
-            '.jpeg',
-            '.zip',
-            '.rar',
-            '.7z',
+            '.stl', '.obj', '.ply', '.pdf', '.png', '.jpg',
+            '.jpeg', '.zip', '.rar', '.7z',
           ];
 
           if (file.size > maxFileSize) {
@@ -270,9 +229,7 @@ if (!formData.alignerMaterial?.trim())
           });
 
           if (!result.success) {
-            throw new Error(
-              result.error || t('caseSubmit.errors.uploadFailed')
-            );
+            throw new Error(result.error || t('caseSubmit.errors.uploadFailed'));
           }
 
           return result.filePath;
@@ -286,36 +243,17 @@ if (!formData.alignerMaterial?.trim())
       const caseId = `CASE-${user.id.substring(0, 8)}-${Date.now()}`;
 
       if (formData.uploadMethod === 'individual') {
-        //console.log('📤 Starting individual file uploads...');
-
         const uploadResults = await Promise.all([
-          uploadFileWithErrorHandling(
-            formData.upperJawScan,
-            'upper-jaw-scans',
-            {
-              caseId,
-              patientName,
-              doctorName,
-              clinicName,
-              fileType: t('caseSubmit.upperJawScan'),
-            }
-          ),
-          uploadFileWithErrorHandling(
-            formData.lowerJawScan,
-            'lower-jaw-scans',
-            {
-              caseId,
-              patientName,
-              doctorName,
-              clinicName,
-              fileType: t('caseSubmit.lowerJawScan'),
-            }
-          ),
+          uploadFileWithErrorHandling(formData.upperJawScan, 'upper-jaw-scans', {
+            caseId, patientName, doctorName, clinicName,
+            fileType: t('caseSubmit.upperJawScan'),
+          }),
+          uploadFileWithErrorHandling(formData.lowerJawScan, 'lower-jaw-scans', {
+            caseId, patientName, doctorName, clinicName,
+            fileType: t('caseSubmit.lowerJawScan'),
+          }),
           uploadFileWithErrorHandling(formData.biteScan, 'bite-scans', {
-            caseId,
-            patientName,
-            doctorName,
-            clinicName,
+            caseId, patientName, doctorName, clinicName,
             fileType: t('caseSubmit.biteScan'),
           }),
         ]);
@@ -323,13 +261,8 @@ if (!formData.alignerMaterial?.trim())
         [upperJawScanPath, lowerJawScanPath, biteScanPath] = uploadResults;
       } else if (formData.uploadMethod === 'compressed') {
         compressedScansPath = await uploadFileWithErrorHandling(
-          formData.compressedScans,
-          'compressed-scans',
-          {
-            caseId,
-            patientName,
-            doctorName,
-            clinicName,
+          formData.compressedScans, 'compressed-scans', {
+            caseId, patientName, doctorName, clinicName,
             fileType: t('caseSubmit.compressedScans'),
           }
         );
@@ -339,10 +272,7 @@ if (!formData.alignerMaterial?.trim())
         additionalFilesPaths = await Promise.all(
           formData.additionalFiles.map((file, index) =>
             uploadFileWithErrorHandling(file, 'additional-files', {
-              caseId,
-              patientName,
-              doctorName,
-              clinicName,
+              caseId, patientName, doctorName, clinicName,
               fileType: t('caseSubmit.additionalFile', { number: index + 1 }),
             })
           )
@@ -358,7 +288,7 @@ if (!formData.alignerMaterial?.trim())
           formData.isUrgent && formData.urgentDeliveryDate
             ? formData.urgentDeliveryDate
             : null,
-        aligner_material: formData.alignerMaterial?.trim() || null,
+        // aligner_material intentionally omitted — doctor picks after admin sets material_prices
         upload_method: formData.uploadMethod,
         upper_jaw_scan_url: upperJawScanPath,
         lower_jaw_scan_url: lowerJawScanPath,
@@ -433,13 +363,14 @@ if (!formData.alignerMaterial?.trim())
         <TreatmentOptionsForm
           formData={formData}
           handleChange={handleChange}
-          alignerMaterials={alignerMaterials}
         />
+
         <DiagnosisForm
           formData={formData}
           handleChange={handleChange}
           isAdmin={false}
         />
+
         {/* Dental Chart */}
         <div className="flex w-full flex-col items-start gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
           <span className="text-heading-3 font-heading-3 text-default-font">

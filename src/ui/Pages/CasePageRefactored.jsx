@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import RefinementSection from '../components/RefinementSection';
 import RefinementHistory from '../components/RefinementHistory';
 import DentalChart from '../components/DentalChart';
+import MaterialSelectionCards from '../components/case/MaterialSelectionCards';
 
 import { FeatherEye } from '@subframe/core';
 
@@ -28,7 +29,6 @@ import { useCaseNotes } from '../../hooks/useCaseNotes';
 
 import {
   FeatherDownload,
-  FeatherPlay,
   FeatherRefreshCw,
   FeatherCheck,
   FeatherX,
@@ -54,6 +54,13 @@ const CasePageRefactored = () => {
   const [isDeclineDialogOpen, setIsDeclineDialogOpen] = useState(false);
   const [isRequestEditOpen, setIsRequestEditOpen] = useState(false);
 
+  // Material selection state
+  const [alignerMaterials, setAlignerMaterials] = useState([]);
+  const [selectedMaterial, setSelectedMaterial] = useState(
+    caseData?.aligner_material || null
+  );
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+
   // Custom hooks
   const { status, setStatus, alertContent, showPlanSection } = useCaseStatus(
     caseData?.status
@@ -72,36 +79,55 @@ const CasePageRefactored = () => {
     handleSaveNote,
   } = useCaseNotes(caseData);
 
-  // Helper to refresh data
+  // Fetch aligner materials when in awaiting_user_approval
+  useEffect(() => {
+    if (status === 'awaiting_user_approval' && caseData?.material_prices) {
+      const fetchMaterials = async () => {
+        setLoadingMaterials(true);
+        try {
+          const { data, error } = await supabase
+            .from('services')
+            .select('*')
+            .eq('is_active', true)
+            .eq('type', 'aligners_material')
+            .order('id', { ascending: true });
+          if (!error && data) {
+            // Only show materials that have prices set by admin
+            setAlignerMaterials(
+              data.filter((mat) => caseData.material_prices?.[mat.name] != null)
+            );
+          }
+        } catch (err) {
+          console.error('Error fetching materials:', err);
+        } finally {
+          setLoadingMaterials(false);
+        }
+      };
+      fetchMaterials();
+    }
+  }, [status, caseData?.material_prices]);
+
   const handleRefresh = () => {
     revalidator.revalidate();
   };
 
-  // Check if the case has treatment sequence viewer available or not
   useEffect(() => {
     const checkImages = async () => {
       try {
         const { hasImages } = await checkCaseTreatmentImages(caseData.id);
         setCaseHasViewer(hasImages);
-      } catch (error) {
+      } catch {
         setCaseHasViewer(false);
       }
     };
-
-    if (caseData.id) {
-      checkImages();
-    }
+    if (caseData.id) checkImages();
   }, [caseData.id]);
 
-  // Mark notifications for this case as read when the doctor opens the case
   useEffect(() => {
     const markCaseNotificationsRead = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-        if (!caseData?.id) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || !caseData?.id) return;
         await supabase
           .from('notifications')
           .update({ status: 'read' })
@@ -115,33 +141,54 @@ const CasePageRefactored = () => {
     markCaseNotificationsRead();
   }, [caseData?.id]);
 
-  if (error) {
-    return <Error error={error} />;
-  }
-
+  if (error) return <Error error={error} />;
   if (!caseData) {
     return <p className="text-neutral-500">{t('casePage.caseNotFound')}</p>;
   }
 
+  // Derive total cost for the chosen material
+  const getMaterialTotal = (materialName) => {
+    const alignersPrice = parseFloat(
+      caseData?.material_prices?.[materialName] || 0
+    );
+    return (
+      parseFloat(caseData?.case_study_fee || 0) +
+      alignersPrice +
+      parseFloat(caseData?.delivery_charges || 0)
+    );
+  };
+
   const approvePlan = async () => {
+    if (!selectedMaterial) {
+      toast.error(t('casePage.materialSelection.required'));
+      return;
+    }
+
     try {
       setSaving(true);
       setActionError(null);
+
+      const alignersPrice = parseFloat(
+        caseData?.material_prices?.[selectedMaterial] || 0
+      );
+      const totalCost = getMaterialTotal(selectedMaterial);
+
       const { error: updateError } = await supabase
         .from('cases')
         .update({
           status: 'approved',
-          total_cost: parseFloat(caseData?.total_cost || 0),
-          approved_total_cost: parseFloat(caseData?.total_cost || 0),
+          aligner_material: selectedMaterial,
+          aligners_price: alignersPrice,
+          total_cost: totalCost,
+          approved_total_cost: totalCost,
         })
         .eq('id', caseData.id);
+
       if (updateError) throw updateError;
 
       setStatus('approved');
       setIsApprovalConfirmOpen(false);
       toast.success(t('casePage.toast.planApproved'));
-
-      // [!code change] Refresh data from server
       handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.approveFailed'));
@@ -150,9 +197,9 @@ const CasePageRefactored = () => {
       setSaving(false);
     }
   };
-  // when user decline treatment plan he is billed with case study fees only, but the calculated total cost is still as it is
+
   const declinePlan = async (reason) => {
-    const CaseStudyFee = parseFloat(caseData?.case_study_fee || 0);
+    const caseStudyFee = parseFloat(caseData?.case_study_fee || 0);
 
     try {
       setSaving(true);
@@ -161,7 +208,7 @@ const CasePageRefactored = () => {
         .from('cases')
         .update({
           status: 'user_rejected',
-          approved_total_cost: CaseStudyFee,
+          approved_total_cost: caseStudyFee,
           decline_reason: reason,
         })
         .eq('id', caseData.id);
@@ -170,8 +217,6 @@ const CasePageRefactored = () => {
       setStatus('user_rejected');
       setIsDeclineDialogOpen(false);
       toast.success(t('casePage.toast.planDeclined'));
-
-      // Refresh data from server
       handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.declineFailed'));
@@ -182,9 +227,7 @@ const CasePageRefactored = () => {
   };
 
   const handleViewerClick = () => {
-    // Open the viewer in a new tab with the case ID
-    const viewerUrl = `/case-viewer/${caseData.id}`;
-    window.open(viewerUrl, '_blank');
+    window.open(`/case-viewer/${caseData.id}`, '_blank');
   };
 
   const changeMaterial = async (newMaterial, materialChanged, userNote) => {
@@ -193,15 +236,11 @@ const CasePageRefactored = () => {
       setActionError(null);
 
       const updateData = {
-        aligner_material: newMaterial,
         user_note: userNote || null,
       };
 
-      // If material changed, set status back to 'accepted' for re-evaluation
-      if (materialChanged) {
-        updateData.status = 'accepted';
-      }
-
+      // No material change logic here anymore — material is picked at approval time.
+      // "Request Edit" is only for notes / re-evaluation requests.
       const { error: updateError } = await supabase
         .from('cases')
         .update(updateData)
@@ -209,17 +248,8 @@ const CasePageRefactored = () => {
 
       if (updateError) throw updateError;
 
-      // Update local state
-      if (materialChanged) {
-        setStatus('accepted');
-        toast.success(t('casePage.toast.materialUpdatedReeval'));
-      } else {
-        toast.success(t('casePage.toast.materialUpdated'));
-      }
-
+      toast.success(t('casePage.toast.editRequested'));
       setIsRequestEditOpen(false);
-
-      // Refresh data from server
       handleRefresh();
     } catch (e) {
       setActionError(e.message || t('casePage.toast.updateMaterialFailed'));
@@ -278,11 +308,7 @@ const CasePageRefactored = () => {
           </div>
           <div className="flex items-center gap-2">
             {caseData.parent_case_id && (
-              <Button
-                variant="neutral-secondary"
-                icon={<FeatherRefreshCw />}
-                asChild
-              >
+              <Button variant="neutral-secondary" icon={<FeatherRefreshCw />} asChild>
                 <Link to={`/app/cases/${caseData.parent_case_id}`}>
                   {t('casePage.viewOriginalCase')}
                 </Link>
@@ -322,13 +348,11 @@ const CasePageRefactored = () => {
 
         {/* Satisfaction Display */}
         {status === 'completed' && caseData.satisfaction_rating && (
-          <CaseSatisfactionDisplay
-            caseData={caseData}
-            onRefresh={handleRefresh}
-          />
+          <CaseSatisfactionDisplay caseData={caseData} onRefresh={handleRefresh} />
         )}
 
         <TreatmentDetails caseData={caseData} />
+
         {/* Decline Reason Section */}
         {(status === 'user_rejected' || status === 'rejected') &&
           caseData.decline_reason && (
@@ -372,10 +396,7 @@ const CasePageRefactored = () => {
               <DentalChart
                 initialStatus={caseData.tooth_status || {}}
                 onChange={(updated) =>
-                  supabase
-                    .from('cases')
-                    .update({ tooth_status: updated })
-                    .eq('id', caseData.id)
+                  supabase.from('cases').update({ tooth_status: updated }).eq('id', caseData.id)
                 }
                 readOnly={true}
               />
@@ -397,7 +418,23 @@ const CasePageRefactored = () => {
                 showPlanSection={true}
               />
 
-              <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-border" />
+              {/* Material selection cards — only shown in awaiting_user_approval */}
+              {status === 'awaiting_user_approval' && (
+                <>
+                  <div className="flex h-px w-full flex-none bg-neutral-border" />
+                  <MaterialSelectionCards
+                    materials={alignerMaterials}
+                    materialPrices={caseData.material_prices || {}}
+                    caseStudyFee={caseData.case_study_fee}
+                    deliveryCharges={caseData.delivery_charges}
+                    selectedMaterial={selectedMaterial}
+                    onSelect={setSelectedMaterial}
+                  />
+                </>
+              )}
+
+              <div className="flex h-px w-full flex-none bg-neutral-border" />
+
               <div className="flex w-full items-center justify-between">
                 {!isMobile && (
                   <span className="text-body font-body text-subtext-color">
@@ -426,7 +463,7 @@ const CasePageRefactored = () => {
                       <Button
                         variant="brand-primary"
                         icon={<FeatherCheck />}
-                        disabled={saving}
+                        disabled={saving || !selectedMaterial}
                         onClick={() => setIsApprovalConfirmOpen(true)}
                       >
                         {t('casePage.approvePlan')}
@@ -438,12 +475,10 @@ const CasePageRefactored = () => {
             </div>
           </div>
         )}
+
         {/* Refinement Section */}
         {!isMobile && (
-          <RefinementSection
-            caseData={caseData}
-            onCaseUpdate={handleRefresh} // or revalidator.revalidate
-          />
+          <RefinementSection caseData={caseData} onCaseUpdate={handleRefresh} />
         )}
 
         {/* Refinement History */}

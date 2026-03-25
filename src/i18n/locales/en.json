@@ -369,6 +369,15 @@
       "userRejected": "You have declined the treatment plan."
     },
 
+    "materialSelection": {
+      "title": "Choose Your Aligner Material",
+      "subtitle": "Select the aligner material that works best for you. Your choice will finalize the treatment cost.",
+      "recommended": "Most Popular",
+      "select": "Select",
+      "selected": "Selected",
+      "required": "Please select an aligner material before approving."
+    },
+
     "caseAcceptanceCard": {
       "title": "Case Review",
       "description": "Review the submitted case and decide whether to accept or decline it. If accepted, you can proceed to create the treatment plan.",
@@ -574,7 +583,7 @@
       },
       "requestEdit": {
         "title": "Request Treatment Plan Edit",
-        "subtitle": "Request changes to your patient's treatment plan by selecting a different aligners system and adding notes.",
+        "subtitle": "Request changes to your patient's treatment plan by adding notes about the current treatment plan.",
         "changeMaterial": "Change Aligners System",
         "currentMaterial": "Current System:",
         "materialDescription": "Select a different aligner system. Your case will be re-evaluated by our team.",
@@ -585,7 +594,7 @@
         "notesPlaceholder": "Enter any additional notes or requests for our team...",
         "notesHelp": "These notes will be visible to the team member reviewing your case.",
         "warningTitle": "⚠️ Important Information",
-        "warningMessage": "Changing the aligner system will send your case back to out team for re-evaluation. You will need to approve the updated treatment plan once it's ready.",
+        "warningMessage": "Requesting an edit will send your case back to out team for re-evaluation. You will need to approve the updated treatment plan once it's ready.",
         "submitting": "Submitting...",
         "submitButton": "Submit Edit Request"
       }
@@ -847,6 +856,11 @@
     "sendForApproval": "Send for Doctor Approval",
     "editPlan": "Edit plan details",
     "printDialogTitle": "Print Treatment Plan",
+    "perAligner": "/ aligner",
+    "materialPricing": "Aligner System Pricing",
+    "materialPricingHelp": "Prices are auto-calculated from aligner counts × unit price, but can be adjusted manually.",
+    "noMaterials": "No aligner system found.",
+    "doctorChoice": "Doctor's Choice",
     "statusMessages": {
       "editing": "Choose to decline the case or set plan details and send to the doctor for approval.",
       "awaitingApproval": "Plan details are awaiting doctor approval.",
@@ -1115,6 +1129,12 @@
     "doctorDeclineReason": "Doctor Decline Reason",
     "adminDeclineReason": "Admin Decline Reason",
     "approvePlan": "Approve Plan",
+    "approvePlanDialog": {
+      "title": "Approve Treatment Plan",
+      "subtitle": "Select the aligner system to finalise the treatment cost before approving.",
+      "noPrices": "No material prices have been set for this case. Please edit the treatment plan first.",
+      "confirm": "Approve Plan"
+    },
     "toast": {
       "caseDeleted": "Case deleted successfully",
       "deleteFailed": "Failed to delete case",
@@ -1186,20 +1206,20 @@
     "title": "Terms and Conditions"
   },
   "withdrawalDialog": {
-  "title": "Withdraw Profits",
-  "subtitle": "Record a profit withdrawal. This will reduce net income but is not counted as a business expense.",
-  "amount": "Withdrawal Amount *",
-  "description": "Description/Notes",
-  "descriptionPlaceholder": "Describe the withdrawal (e.g., monthly profit distribution, owner withdrawal)...",
-  "willBeRecorded": "Will be recorded as -${{amount}} withdrawal",
-  "recordWithdrawal": "Record Withdrawal",
-  "recording": "Recording...",
-  "errors": {
-    "validAmount": "Please enter a valid withdrawal amount",
-    "recordFailed": "Failed to record withdrawal"
-  },
-  "success": {
-    "recorded": "Withdrawal recorded successfully!"
+    "title": "Withdraw Profits",
+    "subtitle": "Record a profit withdrawal. This will reduce net income but is not counted as a business expense.",
+    "amount": "Withdrawal Amount *",
+    "description": "Description/Notes",
+    "descriptionPlaceholder": "Describe the withdrawal (e.g., monthly profit distribution, owner withdrawal)...",
+    "willBeRecorded": "Will be recorded as -${{amount}} withdrawal",
+    "recordWithdrawal": "Record Withdrawal",
+    "recording": "Recording...",
+    "errors": {
+      "validAmount": "Please enter a valid withdrawal amount",
+      "recordFailed": "Failed to record withdrawal"
+    },
+    "success": {
+      "recorded": "Withdrawal recorded successfully!"
+    }
   }
-}
 }

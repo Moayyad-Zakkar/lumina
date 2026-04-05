@@ -21,7 +21,16 @@ import {
    PrintableInvoice Component
 ------------------------------------------------------- */
 export const PrintableInvoice = React.forwardRef(
-  ({ paymentData, doctorInfo, selectedCasesData, paymentNotes }, ref) => {
+  (
+    {
+      paymentData,
+      doctorInfo,
+      selectedCasesData,
+      selectedServicesData = [],
+      paymentNotes,
+    },
+    ref,
+  ) => {
     const { t, i18n } = useTranslation();
     const isRTL = i18n.dir() === 'rtl';
 
@@ -136,6 +145,21 @@ export const PrintableInvoice = React.forwardRef(
                 </span>
               </div>
             )}
+            {/*
+              selectedServicesData.length > 0 &&
+              selectedServicesData.reduce((sum, s) => sum + parseFloat(s.price), 0) > 0 && (
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  {t('additionalServices.buttonLabel')}
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  $
+                  {selectedServicesData
+                    .reduce((sum, s) => sum + parseFloat(s.price), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+            ) */}
             {paymentData.discountAmount &&
               parseFloat(paymentData.discountAmount) > 0 && (
                 <div className={`flex justify-between items-center mb-2`}>
@@ -264,21 +288,100 @@ export const PrintableInvoice = React.forwardRef(
                   ))}
                 </tbody>
                 <tfoot className="bg-gray-50">
+                  {
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className={`px-4 py-3 text-sm font-medium text-gray-900 ${
+                          isRTL ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        {t('paymentCollectionDialog.totalPayment')}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-sm font-bold text-gray-900 ${
+                          isRTL ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        $
+                        {selectedCasesData
+                          .reduce(
+                            (sum, c) => sum + parseFloat(c.paymentApplied),
+                            0,
+                          )
+                          .toFixed(2)}
+                      </td>
+                    </tr>
+                  }
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Additional Services Breakdown */}
+        {selectedServicesData.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              {t('additionalServices.buttonLabel')}
+            </h2>
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${isRTL ? 'text-right' : 'text-left'}`}
+                    >
+                      {t('additionalServices.table.columnService')}
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${isRTL ? 'text-right' : 'text-left'}`}
+                    >
+                      {t('additionalServices.table.columnNotes')}
+                    </th>
+                    <th
+                      className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${isRTL ? 'text-right' : 'text-left'}`}
+                    >
+                      {t('additionalServices.table.columnPrice')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {selectedServicesData.map((service) => (
+                    <tr key={service.id}>
+                      <td
+                        className={`px-4 py-3 text-sm text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
+                        {service.service_name}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-sm text-gray-500 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
+                        {service.notes || '—'}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-sm font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
+                        ${parseFloat(service.price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50">
                   <tr>
                     <td
-                      colSpan="4"
-                      className={`px-4 py-3 text-sm font-medium text-gray-900 ${
-                        isRTL ? 'text-right' : 'text-left'
-                      }`}
+                      colSpan="2"
+                      className={`px-4 py-3 text-sm font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
                     >
-                      {t('paymentCollectionDialog.totalPayment')}
+                      {t('additionalServices.table.columnPrice')}
                     </td>
                     <td
-                      className={`px-4 py-3 text-sm font-bold text-gray-900 ${
-                        isRTL ? 'text-right' : 'text-left'
-                      }`}
+                      className={`px-4 py-3 text-sm font-bold text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
                     >
-                      ${parseFloat(paymentData.amount).toFixed(2)}
+                      $
+                      {selectedServicesData
+                        .reduce((sum, s) => sum + parseFloat(s.price), 0)
+                        .toFixed(2)}
                     </td>
                   </tr>
                 </tfoot>
@@ -297,7 +400,7 @@ export const PrintableInvoice = React.forwardRef(
         </div>
       </div>
     );
-  }
+  },
 );
 
 const PaymentCollectionDialog = ({
@@ -318,7 +421,8 @@ const PaymentCollectionDialog = ({
 
   const printRef = useRef();
 
-  const { doctorCases, loadingCases, loadDoctorCases } = useDoctorCases();
+  const { doctorCases, doctorServices, loadingCases, loadDoctorCases } =
+    useDoctorCases();
   const { processingPayment, processPayment } =
     usePaymentProcessor(refetchBillingData);
 
@@ -350,30 +454,41 @@ const PaymentCollectionDialog = ({
     await loadDoctorCases(doctorId);
   };
 
-  const handleCaseSelection = (caseId, checked) => {
+  const handleCaseSelection = (itemId, checked) => {
     const newSelectedCases = new Set(selectedCases);
     if (checked) {
-      newSelectedCases.add(caseId);
+      newSelectedCases.add(itemId);
     } else {
-      newSelectedCases.delete(caseId);
+      newSelectedCases.delete(itemId);
     }
     setSelectedCases(newSelectedCases);
-    
-    // Auto-fill payment amount with selected cases total
+
+    // Auto-fill: sum selected cases + selected services
     if (newSelectedCases.size > 0) {
-      const selectedTotal = doctorCases
-        .filter((case_) => newSelectedCases.has(case_.id))
-        .reduce((sum, case_) => sum + case_.remainingAmount, 0);
-      setPaymentAmount(selectedTotal.toFixed(2));
+      const casesTotal = doctorCases
+        .filter((c) => newSelectedCases.has(c.id))
+        .reduce((sum, c) => sum + c.remainingAmount, 0);
+
+      const servicesTotal = doctorServices
+        .filter((s) => newSelectedCases.has(s.id))
+        .reduce((sum, s) => sum + s.remainingAmount, 0);
+
+      setPaymentAmount((casesTotal + servicesTotal).toFixed(2));
     } else {
       setPaymentAmount('');
     }
   };
 
   const calculateSelectedCasesTotal = () => {
-    return doctorCases
-      .filter((case_) => selectedCases.has(case_.id))
-      .reduce((sum, case_) => sum + case_.remainingAmount, 0);
+    const casesTotal = doctorCases
+      .filter((c) => selectedCases.has(c.id))
+      .reduce((sum, c) => sum + c.remainingAmount, 0);
+
+    const servicesTotal = doctorServices
+      .filter((s) => selectedCases.has(s.id))
+      .reduce((sum, s) => sum + s.remainingAmount, 0);
+
+    return casesTotal + servicesTotal;
   };
 
   const calculateRemainingAmount = () => {
@@ -406,6 +521,7 @@ const PaymentCollectionDialog = ({
       discountAmount,
       selectedCases,
       doctorCases,
+      doctorServices,
       paymentNotes,
     });
 
@@ -413,15 +529,20 @@ const PaymentCollectionDialog = ({
     if (paymentRecord) {
       const paymentAmountNum = parseFloat(paymentAmount);
       const discountAmountNum = parseFloat(discountAmount || 0);
-      const finalPaymentAmount = Math.max(0, paymentAmountNum - discountAmountNum);
+      const finalPaymentAmount = Math.max(
+        0,
+        paymentAmountNum - discountAmountNum,
+      );
       const selectedTotal = calculateSelectedCasesTotal();
       const remainingAmount = Math.max(0, finalPaymentAmount - selectedTotal);
       const unselectedCases = getUnselectedCases();
 
+      // Cases selected
       const selectedCasesData = doctorCases
         .filter((case_) => selectedCases.has(case_.id))
         .map((case_) => ({
           ...case_,
+          _type: 'case',
           paymentApplied: Math.min(case_.remainingAmount, finalPaymentAmount),
         }));
 
@@ -431,12 +552,21 @@ const PaymentCollectionDialog = ({
         unselectedCases.forEach((case_) => {
           selectedCasesData.push({
             ...case_,
+            _type: 'case',
             paymentApplied: Math.min(case_.remainingAmount, perCaseAmount),
           });
         });
       }
 
-      // 3. Update the state with the REAL database info
+      // Services selected — append after cases
+      const selectedServicesData = doctorServices
+        .filter((s) => selectedCases.has(s.id))
+        .map((s) => ({
+          ...s,
+          _type: 'service',
+          paymentApplied: parseFloat(s.price),
+        }));
+
       setLastPaymentData({
         paymentData: {
           amount: finalPaymentAmount,
@@ -446,7 +576,8 @@ const PaymentCollectionDialog = ({
           invoiceId: paymentRecord.id,
         },
         doctorInfo: selectedDoctor,
-        selectedCasesData,
+        selectedCasesData, // cases only (for the cases table in invoice)
+        selectedServicesData, // services only (for the services table in invoice)
         paymentNotes,
       });
 
@@ -485,6 +616,7 @@ const PaymentCollectionDialog = ({
               paymentData={lastPaymentData.paymentData}
               doctorInfo={lastPaymentData.doctorInfo}
               selectedCasesData={lastPaymentData.selectedCasesData}
+              selectedServicesData={lastPaymentData.selectedServicesData}
               paymentNotes={lastPaymentData.paymentNotes}
             />
           </div>
@@ -539,6 +671,7 @@ const PaymentCollectionDialog = ({
         {selectedDoctor && (
           <CasesSection
             doctorCases={doctorCases}
+            doctorServices={doctorServices}
             loadingCases={loadingCases}
             selectedCases={selectedCases}
             handleCaseSelection={handleCaseSelection}
@@ -601,7 +734,8 @@ const PaymentAmountInput = ({ paymentAmount, setPaymentAmount }) => {
       <label className="text-body-bold font-body-bold text-default-font">
         {t('paymentCollectionDialog.invoiceAmountLabel', {
           defaultValue: 'Invoice Amount (USD)',
-        })} *
+        })}{' '}
+        *
       </label>
       <TextField>
         <TextField.Input
@@ -615,7 +749,8 @@ const PaymentAmountInput = ({ paymentAmount, setPaymentAmount }) => {
       </TextField>
       <p className="text-caption font-caption text-subtext-color">
         {t('paymentCollectionDialog.invoiceAmountHelp', {
-          defaultValue: 'Amount will be auto-filled based on selected cases. You can edit if needed.',
+          defaultValue:
+            'Amount will be auto-filled based on selected cases. You can edit if needed.',
         })}
       </p>
     </div>
@@ -658,7 +793,10 @@ const DiscountAmountInput = ({
       </TextField>
       {discountAmount && parseFloat(discountAmount) > 0 && (
         <div className="text-sm text-subtext-color">
-        {t('paymentCollectionDialog.originalAmount')}: ${originalAmount.toFixed(2)} | {t('paymentCollectionDialog.finalPaymentAmount')} : ${finalPaymentAmount.toFixed(2)}
+          {t('paymentCollectionDialog.originalAmount')}: $
+          {originalAmount.toFixed(2)} |{' '}
+          {t('paymentCollectionDialog.finalPaymentAmount')} : $
+          {finalPaymentAmount.toFixed(2)}
         </div>
       )}
     </div>
@@ -686,6 +824,7 @@ const PaymentNotesInput = ({ paymentNotes, setPaymentNotes }) => {
 
 const CasesSection = ({
   doctorCases,
+  doctorServices,
   loadingCases,
   selectedCases,
   handleCaseSelection,
@@ -704,12 +843,13 @@ const CasesSection = ({
 
     <CasesList
       doctorCases={doctorCases}
+      doctorServices={doctorServices}
       loadingCases={loadingCases}
       selectedCases={selectedCases}
       handleCaseSelection={handleCaseSelection}
     />
 
-    {paymentAmount && doctorCases.length > 0 && (
+    {paymentAmount && (doctorCases.length > 0 || doctorServices.length > 0) && (
       <PaymentSummary
         calculateSelectedCasesTotal={calculateSelectedCasesTotal}
         paymentAmount={paymentAmount}
@@ -722,19 +862,20 @@ const CasesSection = ({
   </div>
 );
 
-const CasesSectionHeader = ({ selectedCases, doctorCases }) => {
+const CasesSectionHeader = ({ selectedCases, doctorCases, doctorServices }) => {
   const { t } = useTranslation();
+  const total = doctorCases.length + (doctorServices?.length ?? 0);
 
   return (
     <div className="flex items-center justify-between">
       <h3 className="text-heading-4 font-heading-4 text-default-font">
         {t('paymentCollectionDialog.unpaidCasesTitle')}
       </h3>
-      {doctorCases.length > 0 && (
+      {total > 0 && (
         <div className="text-sm text-subtext-color">
           {t('paymentCollectionDialog.selectedSummary', {
             selected: selectedCases.size,
-            total: doctorCases.length,
+            total,
           })}
         </div>
       )}
@@ -780,6 +921,7 @@ const PaymentStatusBadge = ({ paymentStatus, paymentPercentage }) => {
 
 const CasesList = ({
   doctorCases,
+  doctorServices,
   loadingCases,
   selectedCases,
   handleCaseSelection,
@@ -794,7 +936,8 @@ const CasesList = ({
     );
   }
 
-  if (doctorCases.length === 0) {
+  const isEmpty = doctorCases.length === 0 && doctorServices.length === 0;
+  if (isEmpty) {
     return (
       <div className="text-center py-8 text-neutral-500 border border-neutral-border rounded-md">
         {t('paymentCollectionDialog.noUnpaidCases')}
@@ -803,15 +946,37 @@ const CasesList = ({
   }
 
   return (
-    <div className="border border-neutral-border rounded-md max-h-60 overflow-y-auto">
+    <div className="border border-neutral-border rounded-md max-h-72 overflow-y-auto">
+      {/* Cases */}
       {doctorCases.map((case_) => (
         <CaseItem
-          key={case_.id}
+          key={`case-${case_.id}`}
           case_={case_}
           isSelected={selectedCases.has(case_.id)}
           onSelectionChange={handleCaseSelection}
         />
       ))}
+
+      {/* Divider + services */}
+      {doctorServices.length > 0 && (
+        <>
+          {doctorCases.length > 0 && (
+            <div className="px-3 py-2 bg-neutral-50 border-b border-t border-neutral-border">
+              <span className="text-caption font-caption text-subtext-color uppercase tracking-wide">
+                {t('additionalServices.buttonLabel')}
+              </span>
+            </div>
+          )}
+          {doctorServices.map((service) => (
+            <ServiceItem
+              key={`service-${service.id}`}
+              service={service}
+              isSelected={selectedCases.has(service.id)}
+              onSelectionChange={handleCaseSelection}
+            />
+          ))}
+        </>
+      )}
     </div>
   );
 };
@@ -885,6 +1050,45 @@ const CaseItem = ({ case_, isSelected, onSelectionChange }) => {
   );
 };
 
+const ServiceItem = ({ service, isSelected, onSelectionChange }) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex items-center gap-3 p-3 border-b border-neutral-border last:border-b-0 hover:bg-neutral-50">
+      <input
+        type="checkbox"
+        id={`service-${service.id}`}
+        checked={isSelected}
+        onChange={(e) => onSelectionChange(service.id, e.target.checked)}
+        className="w-4 h-4 text-brand-600 border-neutral-border rounded focus:ring-brand-500"
+      />
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <label
+            htmlFor={`service-${service.id}`}
+            className="text-body font-body text-default-font cursor-pointer"
+          >
+            {service.service_name}
+          </label>
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border text-brand-600 bg-brand-50 border-brand-200">
+            {t('additionalServices.badge')}
+          </span>
+        </div>
+        {service.notes && (
+          <p className="text-caption font-caption text-subtext-color mb-1">
+            {service.notes}
+          </p>
+        )}
+        <div className="flex justify-end">
+          <span className="text-body-bold font-body-bold text-default-font">
+            ${parseFloat(service.price).toFixed(2)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PaymentSummary = ({
   paymentAmount,
   discountAmount,
@@ -926,13 +1130,12 @@ const PaymentSummary = ({
                 defaultValue: 'Final Payment Amount',
               })}
             </span>
-            <span className="font-bold">
-              ${finalPaymentAmount.toFixed(2)}
-            </span>
+            <span className="font-bold">${finalPaymentAmount.toFixed(2)}</span>
           </div>
         </>
       )}
-      {discountAmountNum === 0 && (
+      {/*
+        discountAmountNum === 0 && (
         <div className="flex justify-between text-body font-body border-t border-neutral-border pt-2">
           <span>
             {t('paymentCollectionDialog.finalPaymentAmount', {
@@ -943,7 +1146,7 @@ const PaymentSummary = ({
             ${parseFloat(paymentAmount || 0).toFixed(2)}
           </span>
         </div>
-      )}
+      )*/}
       <div className="flex justify-between text-body font-body border-t border-neutral-border pt-2">
         <span>{t('paymentCollectionDialog.remainingAmount')}</span>
         <span

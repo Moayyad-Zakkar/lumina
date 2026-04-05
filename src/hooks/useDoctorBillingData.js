@@ -15,7 +15,7 @@ const calculateCasePaymentInfo = (case_, allPayments = []) => {
   }
 
   const casePayments = allPayments.filter(
-    (payment) => payment.case_id === case_.id
+    (payment) => payment.case_id === case_.id,
   );
 
   const totalPaid = casePayments.reduce((sum, payment) => {
@@ -52,6 +52,7 @@ export const useDoctorBillingData = () => {
   const [totalPaid, setTotalPaid] = useState(0);
   const [pendingCases, setPendingCases] = useState(0);
   const [completedCases, setCompletedCases] = useState(0);
+  const [unpaidServicesCount, setUnpaidServicesCount] = useState(0);
 
   const fetchBillingData = useCallback(async () => {
     try {
@@ -91,7 +92,7 @@ export const useDoctorBillingData = () => {
           delivery_charges,
           user_note,
           admin_note
-        `
+        `,
         )
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -153,28 +154,42 @@ export const useDoctorBillingData = () => {
         };
       });
 
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('additional_services')
+        .select('price')
+        .eq('doctor_id', user.id)
+        .eq('payment_status', 'unpaid');
+
+      if (servicesError) throw servicesError;
+
+      const servicesDue = (servicesData || []).reduce(
+        (sum, s) => sum + parseFloat(s.price ?? 0),
+        0,
+      );
+      const unpaidServicesTotal = servicesData?.length ?? 0;
+      setUnpaidServicesCount(unpaidServicesTotal);
       // Calculate totals (what doctor owes/has paid)
       const totalCasesCount = casesWithPaymentInfo.length;
       const totalDueAmount = casesWithPaymentInfo.reduce(
         (sum, case_) => sum + case_.remainingAmount,
-        0
+        0,
       );
       const totalPaidAmount = casesWithPaymentInfo.reduce(
         (sum, case_) => sum + case_.totalPaid,
-        0
+        0,
       );
 
       // Count pending and completed cases
       const pendingCasesCount = casesWithPaymentInfo.filter(
-        (case_) => case_.remainingAmount > 0
+        (case_) => case_.remainingAmount > 0,
       ).length;
       const completedCasesCount = casesWithPaymentInfo.filter(
-        (case_) => case_.remainingAmount === 0 && case_.totalPaid > 0
+        (case_) => case_.remainingAmount === 0 && case_.totalPaid > 0,
       ).length;
 
       setCases(casesWithPaymentInfo);
       setTotalCases(totalCasesCount);
-      setTotalDue(totalDueAmount);
+      setTotalDue(totalDueAmount + servicesDue); // <-- combined
       setTotalPaid(totalPaidAmount);
       setPendingCases(pendingCasesCount);
       setCompletedCases(completedCasesCount);
@@ -199,6 +214,7 @@ export const useDoctorBillingData = () => {
     totalPaid,
     pendingCases,
     completedCases,
+    unpaidServicesCount,
     refetchBillingData: fetchBillingData,
   };
 };

@@ -976,7 +976,7 @@
     "paymentInvoice": "فاتورة دفعة",
     "paymentInvoiceDescription": "تم حفظ الدفعة بنجاح، يمكنك طباعة الفاتورة لإضافتها لسجلاتك",
     "patient": "اسم المريض",
-    "totalPayment": "المبلغ النهائي المطلوب:",
+    "totalPayment": "السعر:",
     "paymentSummary": "ملخص الدفعة",
     "paymentAmountLabel": "مبلغ الدفعة (دولار أمريكي)",
     "paymentAmountPlaceholder": "0.00",
@@ -989,7 +989,7 @@
     "finalPaymentAmount": "المبلغ النهائي",
     "notesLabel": "ملاحظات (اختياري)",
     "notesPlaceholder": "أضف أي ملاحظات حول هذه الدفعة...",
-    "unpaidCasesTitle": "الحالات غير المسددة",
+    "unpaidCasesTitle": "الحالات والخدمات غير المسددة",
     "selectedSummary": "{{selected}} من {{total}} محددة",
     "loadingCases": "جارٍ تحميل الحالات...",
     "noUnpaidCases": "لا توجد حالات غير مسددة لهذا الطبيب.",
@@ -1224,6 +1224,41 @@
     },
     "success": {
       "recorded": "تم تسجيل السحب بنجاح!"
+    }
+  },
+  "additionalServices": {
+    "buttonLabel": "خدمات إضافية",
+    "dialog": {
+      "title": "إضافة خدمة إضافية",
+      "subtitle": "فرض رسوم على الطبيب مقابل خدمة إضافية خارج نطاق فوترة الحالة المعتادة.",
+      "doctorLabel": "الطبيب",
+      "doctorPlaceholder": "اختر طبيبًا...",
+      "serviceNameLabel": "اسم الخدمة",
+      "serviceNamePlaceholder": "مثلًا: معالجة عاجلة، تحسين إضافي، جهاز تثبيت...",
+      "notesLabel": "ملاحظات (اختياري)",
+      "notesPlaceholder": "أضف أي تفاصيل إضافية حول هذه الخدمة...",
+      "priceLabel": "السعر (دولار أمريكي)",
+      "pricePlaceholder": "0.00",
+      "addService": "إضافة الخدمة",
+      "adding": "جارٍ الإضافة..."
+    },
+    "table": {
+      "columnService": "الخدمة",
+      "columnNotes": "الملاحظات",
+      "columnPrice": "السعر",
+      "columnDate": "التاريخ",
+      "columnStatus": "الحالة",
+      "noServices": "لم يتم احتساب أي خدمات إضافية بعد."
+    },
+    "badge": "خدمة إضافية",
+    "errors": {
+      "doctorRequired": "يرجى اختيار طبيب.",
+      "serviceNameRequired": "يرجى إدخال اسم الخدمة.",
+      "priceRequired": "يرجى إدخال سعر صالح.",
+      "addFailed": "فشل في إضافة الخدمة الإضافية."
+    },
+    "success": {
+      "added": "تمت إضافة الخدمة الإضافية بنجاح!"
     }
   }
 }

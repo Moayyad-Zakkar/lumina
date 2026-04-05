@@ -103,6 +103,11 @@ const CasesInfo = ({ doctor }) => {
       <span className="text-caption font-caption text-error-600">
         {doctor.unpaidCasesCount} {t('billingTable.unpaidCases')}
       </span>
+      {doctor.unpaidServicesCount > 0 && (
+        <span className="text-caption font-caption text-brand-600">
+          {doctor.unpaidServicesCount} {t('additionalServices.badge')}
+        </span>
+      )}
     </div>
   );
 };

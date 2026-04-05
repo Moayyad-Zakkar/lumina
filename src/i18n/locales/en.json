@@ -1221,5 +1221,40 @@
     "success": {
       "recorded": "Withdrawal recorded successfully!"
     }
+  },
+  "additionalServices": {
+    "buttonLabel": "Additional Services",
+    "dialog": {
+      "title": "Add Additional Service",
+      "subtitle": "Charge a doctor for an extra service outside of standard case billing.",
+      "doctorLabel": "Doctor",
+      "doctorPlaceholder": "Select a doctor...",
+      "serviceNameLabel": "Service Name",
+      "serviceNamePlaceholder": "e.g., Rush processing, Extra refinement, Retainer...",
+      "notesLabel": "Notes (Optional)",
+      "notesPlaceholder": "Add any additional details about this service...",
+      "priceLabel": "Price (USD)",
+      "pricePlaceholder": "0.00",
+      "addService": "Add Service",
+      "adding": "Adding..."
+    },
+    "table": {
+      "columnService": "Service",
+      "columnNotes": "Notes",
+      "columnPrice": "Price",
+      "columnDate": "Date",
+      "columnStatus": "Status",
+      "noServices": "No additional services charged yet."
+    },
+    "badge": "Additional Service",
+    "errors": {
+      "doctorRequired": "Please select a doctor.",
+      "serviceNameRequired": "Please enter a service name.",
+      "priceRequired": "Please enter a valid price.",
+      "addFailed": "Failed to add additional service."
+    },
+    "success": {
+      "added": "Additional service added successfully!"
+    }
   }
 }

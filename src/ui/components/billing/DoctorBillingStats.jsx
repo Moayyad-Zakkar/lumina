@@ -1,22 +1,13 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../Button';
-import {
-  FeatherFileText,
-  FeatherClock,
-  FeatherCheckCircle,
-} from '@subframe/core';
 import { Loader } from '../Loader';
 
 const DoctorBillingStats = ({
   totalCases,
   totalDue,
-  totalPaid,
   isDashboard = false,
-  pendingCases,
   completedCases,
   submittedCases,
-  withButtons = false,
 }) => {
   return (
     <>

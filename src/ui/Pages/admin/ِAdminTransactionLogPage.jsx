@@ -28,112 +28,126 @@ import DialogWrapper from '../../components/DialogWrapper';
 /* -------------------------------------------------------
    PrintableInvoice Component
 ------------------------------------------------------- */
-const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.dir() === 'rtl';
+const PrintableInvoice = React.forwardRef(
+  ({ transaction, casesData, servicesData = [] }, ref) => {
+    const { t, i18n } = useTranslation();
+    const isRTL = i18n.dir() === 'rtl';
 
-  const statusDisplayText = {
-    submitted: t('caseStatusBadge.submitted'),
-    accepted: t('caseStatusBadge.accepted'),
-    under_review: t('caseStatusBadge.underReview'),
-    rejected: t('caseStatusBadge.rejected'),
-    awaiting_patient_approval: t('caseStatusBadge.awaitingApproval'),
-    patient_rejected: t('caseStatusBadge.patientRejected'),
-    awaiting_user_approval: t('caseStatusBadge.awaitingApproval'),
-    user_rejected: t('caseStatusBadge.userRejected'),
-    approved: t('caseStatusBadge.approved'),
-    in_production: t('caseStatusBadge.inProduction'),
-    ready_for_delivery: t('caseStatusBadge.readyForDelivery'),
-    delivered: t('caseStatusBadge.delivered'),
-    completed: t('caseStatusBadge.completed'),
-  };
+    const statusDisplayText = {
+      submitted: t('caseStatusBadge.submitted'),
+      accepted: t('caseStatusBadge.accepted'),
+      under_review: t('caseStatusBadge.underReview'),
+      rejected: t('caseStatusBadge.rejected'),
+      awaiting_patient_approval: t('caseStatusBadge.awaitingApproval'),
+      patient_rejected: t('caseStatusBadge.patientRejected'),
+      awaiting_user_approval: t('caseStatusBadge.awaitingApproval'),
+      user_rejected: t('caseStatusBadge.userRejected'),
+      approved: t('caseStatusBadge.approved'),
+      in_production: t('caseStatusBadge.inProduction'),
+      ready_for_delivery: t('caseStatusBadge.readyForDelivery'),
+      delivered: t('caseStatusBadge.delivered'),
+      completed: t('caseStatusBadge.completed'),
+    };
 
-  const invoiceNumber = transaction.id;
-  const currentDate = new Date(transaction.datetime).toLocaleDateString();
+    const thClass = (isRTL) =>
+      `px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${isRTL ? 'text-right' : 'text-left'}`;
+    const tdClass = (isRTL) =>
+      `px-4 py-3 text-sm text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`;
 
-  return (
-    <div ref={ref} className="p-8 bg-white" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <div
-        className={`flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6`}
-      >
-        <div>
-          <img
-            className="h-10 flex-none object-cover"
-            src={`${window.location.origin}/logo.png`}
-            alt="Logo"
-          />
-          <p className="text-sm text-gray-600 mt-2">
-            {t('paymentCollectionDialog.paymentReceipt')}
-          </p>
-        </div>
-        <div className={isRTL ? 'text-left' : 'text-right'}>
-          <p className="text-sm text-gray-600">
-            <strong>{t('paymentCollectionDialog.invoice')} #:</strong>{' '}
-            {invoiceNumber}
-          </p>
-          <p className="text-sm text-gray-600">
-            <strong>{t('transactions.table.date')}:</strong> {currentDate}
-          </p>
-        </div>
-      </div>
-
-      {/* Doctor Information */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">
-          {t('paymentCollectionDialog.doctorLabel')}
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">
-                {t('paymentCollectionDialog.name')}
-              </p>
-              <p className="text-sm text-gray-900">{transaction.from}</p>
-            </div>
-            {transaction.email !== '-' && (
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">
-                  {t('auth.email')}
-                </p>
-                <p className="text-sm text-gray-900">{transaction.email}</p>
-              </div>
-            )}
+    return (
+      <div ref={ref} className="p-8 bg-white" dir={isRTL ? 'rtl' : 'ltr'}>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b-2 border-brand-600 pb-4 mb-6">
+          <div>
+            <img
+              className="h-10 flex-none object-cover"
+              src={`${window.location.origin}/logo.png`}
+              alt="Logo"
+            />
+            <p className="text-sm text-gray-600 mt-2">
+              {t('paymentCollectionDialog.paymentReceipt')}
+            </p>
           </div>
-          <div className="space-y-2">
-            {transaction.clinic !== '-' && (
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">
-                  {t('casePage.clinic')}
-                </p>
-                <p className="text-sm text-gray-900">{transaction.clinic}</p>
-              </div>
-            )}
+          <div className={isRTL ? 'text-left' : 'text-right'}>
+            <p className="text-sm text-gray-600">
+              <strong>{t('paymentCollectionDialog.invoice')} #:</strong>{' '}
+              {transaction.id}
+            </p>
+            <p className="text-sm text-gray-600">
+              <strong>{t('transactions.table.date')}:</strong>{' '}
+              {new Date(transaction.datetime).toLocaleDateString()}
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Payment Summary */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">
-          {t('paymentCollectionDialog.paymentSummary')}
-        </h2>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          {transaction.originalAmount && transaction.originalAmount > 0 && (
-            <div className={`flex justify-between items-center mb-2`}>
-              <span className="text-sm font-medium text-gray-700">
-                {t('paymentCollectionDialog.originalAmount', {
-                  defaultValue: 'Original Amount',
-                })}
-              </span>
-              <span className="text-sm font-medium text-gray-900">
-                ${parseFloat(transaction.originalAmount).toFixed(2)}
-              </span>
+        {/* Doctor Information */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            {t('paymentCollectionDialog.doctorLabel')}
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">
+                  {t('paymentCollectionDialog.name')}
+                </p>
+                <p className="text-sm text-gray-900">{transaction.from}</p>
+              </div>
+              {transaction.email !== '-' && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1">
+                    {t('auth.email')}
+                  </p>
+                  <p className="text-sm text-gray-900">{transaction.email}</p>
+                </div>
+              )}
             </div>
-          )}
-          {transaction.discountAmount &&
-            parseFloat(transaction.discountAmount) > 0 && (
-              <div className={`flex justify-between items-center mb-2`}>
+            <div className="space-y-2">
+              {transaction.clinic !== '-' && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1">
+                    {t('casePage.clinic')}
+                  </p>
+                  <p className="text-sm text-gray-900">{transaction.clinic}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Summary */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            {t('paymentCollectionDialog.paymentSummary')}
+          </h2>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            {transaction.originalAmount > 0 && (
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  {t('paymentCollectionDialog.originalAmount', {
+                    defaultValue: 'Original Amount',
+                  })}
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  ${parseFloat(transaction.originalAmount).toFixed(2)}
+                </span>
+              </div>
+            )}
+            {servicesData.length > 0 && (
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  {t('additionalServices.buttonLabel')}
+                </span>
+                <span className="text-sm font-medium text-gray-900">
+                  $
+                  {servicesData
+                    .reduce((sum, s) => sum + parseFloat(s.price), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+            )}
+            {transaction.discountAmount > 0 && (
+              <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">
                   {t('paymentCollectionDialog.discountLabel', {
                     defaultValue: 'Discount',
@@ -144,155 +158,178 @@ const PrintableInvoice = React.forwardRef(({ transaction, casesData }, ref) => {
                 </span>
               </div>
             )}
-          <div
-            className={`flex justify-between items-center ${
-              transaction.discountAmount &&
-              parseFloat(transaction.discountAmount) > 0
-                ? 'mt-2 pt-2 border-t border-gray-300'
-                : ''
-            }`}
-          >
-            <span className="text-sm font-medium text-gray-700">
-              {t('paymentCollectionDialog.paymentAmount')}
-            </span>
-            <span className="text-lg font-bold text-gray-900">
-              ${transaction.amount.toFixed(2)}
-            </span>
-          </div>
-          {transaction.description && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <p className="text-xs font-medium text-gray-500 mb-1">
-                {t('paymentCollectionDialog.notes')}
-              </p>
-              <p className="text-sm text-gray-700">{transaction.description}</p>
+            <div
+              className={`flex justify-between items-center ${transaction.discountAmount > 0 ? 'mt-2 pt-2 border-t border-gray-300' : ''}`}
+            >
+              <span className="text-sm font-medium text-gray-700">
+                {t('paymentCollectionDialog.paymentAmount')}
+              </span>
+              <span className="text-lg font-bold text-gray-900">
+                ${transaction.amount.toFixed(2)}
+              </span>
             </div>
-          )}
+            {transaction.description && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-xs font-medium text-gray-500 mb-1">
+                  {t('paymentCollectionDialog.notes')}
+                </p>
+                <p className="text-sm text-gray-700">
+                  {transaction.description}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Cases Breakdown */}
-      {casesData && casesData.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            {t('paymentCollectionDialog.casesIncluded')}
-          </h2>
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    {t('cases.caseId')}
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    {t('paymentCollectionDialog.patient')}
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    {t('paymentCollectionDialog.statusLabel')}
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    {t('casePage.treatmentPlan.totalCost')}
-                  </th>
-                  <th
-                    className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    {t('paymentCollectionDialog.paymentAmountLabel')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {casesData.map((case_) => (
-                  <tr key={case_.id}>
+        {/* Cases Breakdown */}
+        {casesData?.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              {t('paymentCollectionDialog.casesIncluded')}
+            </h2>
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className={thClass(isRTL)}>{t('cases.caseId')}</th>
+                    <th className={thClass(isRTL)}>
+                      {t('paymentCollectionDialog.patient')}
+                    </th>
+                    <th className={thClass(isRTL)}>
+                      {t('paymentCollectionDialog.statusLabel')}
+                    </th>
+                    <th className={thClass(isRTL)}>
+                      {t('casePage.treatmentPlan.totalCost')}
+                    </th>
+                    <th className={thClass(isRTL)}>
+                      {t('paymentCollectionDialog.paymentAmountLabel')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {casesData.map((case_) => (
+                    <tr key={case_.id}>
+                      <td className={tdClass(isRTL)}>
+                        {t('doctorTransactions.case')} #{case_.id}
+                      </td>
+                      <td className={tdClass(isRTL)}>
+                        {case_.first_name} {case_.last_name}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-sm text-gray-700 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
+                        {statusDisplayText[case_.status] || case_.status}
+                      </td>
+                      <td className={tdClass(isRTL)}>
+                        ${parseFloat(case_.total_cost || 0).toFixed(2)}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-sm font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
+                        ${case_.paymentApplied.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50">
+                  <tr>
                     <td
-                      className={`px-4 py-3 text-sm text-gray-900 ${
-                        isRTL ? 'text-right' : 'text-left'
-                      }`}
+                      colSpan="4"
+                      className={`px-4 py-3 text-sm font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
                     >
-                      {t('doctorTransactions.case')} #{case_.id}
+                      {t('paymentCollectionDialog.totalPayment')}
                     </td>
                     <td
-                      className={`px-4 py-3 text-sm text-gray-900 ${
-                        isRTL ? 'text-right' : 'text-left'
-                      }`}
+                      className={`px-4 py-3 text-sm font-bold text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
                     >
-                      {case_.first_name} {case_.last_name}
-                    </td>
-                    <td
-                      className={`px-4 py-3 text-sm text-gray-700 ${
-                        isRTL ? 'text-right' : 'text-left'
-                      }`}
-                    >
-                      {statusDisplayText[case_.status] || case_.status}
-                    </td>
-                    <td
-                      className={`px-4 py-3 text-sm text-gray-900 ${
-                        isRTL ? 'text-right' : 'text-left'
-                      }`}
-                    >
-                      ${parseFloat(case_.total_cost || 0).toFixed(2)}
-                    </td>
-                    <td
-                      className={`px-4 py-3 text-sm font-medium text-gray-900 ${
-                        isRTL ? 'text-right' : 'text-left'
-                      }`}
-                    >
-                      ${case_.paymentApplied.toFixed(2)}
+                      $
+                      {casesData
+                        .reduce(
+                          (sum, c) => sum + parseFloat(c.paymentApplied),
+                          0,
+                        )
+                        .toFixed(2)}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-gray-50">
-                <tr>
-                  <td
-                    colSpan="4"
-                    className={`px-4 py-3 text-sm font-medium text-gray-900 ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    {t('paymentCollectionDialog.totalPayment')}
-                  </td>
-                  <td
-                    className={`px-4 py-3 text-sm font-bold text-gray-900 ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                  >
-                    ${transaction.amount.toFixed(2)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                </tfoot>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Footer */}
-      <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
-        <p>
-          {t('adminTreatmentPlan.print.footer', {
-            date: new Date().toLocaleString(),
-          })}
-        </p>
+        {/* Additional Services Breakdown */}
+        {servicesData.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              {t('additionalServices.buttonLabel')}
+            </h2>
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className={thClass(isRTL)}>
+                      {t('additionalServices.table.columnService')}
+                    </th>
+                    <th className={thClass(isRTL)}>
+                      {t('additionalServices.table.columnNotes')}
+                    </th>
+                    <th className={thClass(isRTL)}>
+                      {t('additionalServices.table.columnPrice')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {servicesData.map((service) => (
+                    <tr key={service.id}>
+                      <td className={tdClass(isRTL)}>{service.service_name}</td>
+                      <td
+                        className={`px-4 py-3 text-sm text-gray-500 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
+                        {service.notes || '—'}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-sm font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
+                      >
+                        ${parseFloat(service.price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50">
+                  <tr>
+                    <td
+                      colSpan="2"
+                      className={`px-4 py-3 text-sm font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
+                    >
+                      {t('additionalServices.table.columnPrice')}
+                    </td>
+                    <td
+                      className={`px-4 py-3 text-sm font-bold text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}
+                    >
+                      $
+                      {servicesData
+                        .reduce((sum, s) => sum + parseFloat(s.price), 0)
+                        .toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
+          <p>
+            {t('adminTreatmentPlan.print.footer', {
+              date: new Date().toLocaleString(),
+            })}
+          </p>
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 function AdminTransactionLogPage() {
   const { t } = useTranslation();
@@ -311,6 +348,7 @@ function AdminTransactionLogPage() {
 
   // Print preview state
   const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [fetchedServicesData, setFetchedServicesData] = useState([]);
   const [transactionToPrint, setTransactionToPrint] = useState(null);
   const [fetchedCasesData, setFetchedCasesData] = useState([]);
   const [printLoading, setPrintLoading] = useState(false);
@@ -356,7 +394,9 @@ function AdminTransactionLogPage() {
 
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('payments')
-        .select('id, amount, discount_amount, type, notes, created_at, doctor_id, admin_id')
+        .select(
+          'id, amount, discount_amount, type, notes, created_at, doctor_id, admin_id',
+        )
         .order('created_at', { ascending: false });
 
       if (paymentsError) throw paymentsError;
@@ -414,14 +454,14 @@ function AdminTransactionLogPage() {
             (payment.type === 'payment'
               ? `Payment from ${doctor?.full_name || 'Unknown'}`
               : payment.type === 'withdrawal'
-              ? t('withdrawalDialog.title')
-              : 'Expense'),
+                ? t('withdrawalDialog.title')
+                : 'Expense'),
           from:
             payment.type === 'payment'
               ? doctor?.full_name || 'Unknown Doctor'
               : payment.type === 'withdrawal'
-              ? t('withdrawalDialog.title')
-              : payment.notes || 'Expense',
+                ? t('withdrawalDialog.title')
+                : payment.notes || 'Expense',
           email: doctor?.email || '-',
           clinic: doctor?.clinic || '-',
           amount: Math.abs(parseFloat(payment.amount || 0)),
@@ -451,48 +491,54 @@ function AdminTransactionLogPage() {
     setTransactionToPrint(transaction);
     setShowPrintPreview(true);
     setPrintLoading(true);
-    setFetchedCasesData([]); // Reset previous data
+    setFetchedCasesData([]);
+    setFetchedServicesData([]);
 
     try {
-      // Query the junction table 'payment_case_allocations'
-      // And join with 'cases' table to get details
-      const { data, error } = await supabase
+      // Fetch case allocations
+      const { data: allocationsData, error: allocationsError } = await supabase
         .from('payment_case_allocations')
         .select(
           `
-          allocated_amount,
-          cases (
-            id,
-            first_name,
-            last_name,
-            status,
-            total_cost
-          )
-        `
+        allocated_amount,
+        cases (
+          id,
+          first_name,
+          last_name,
+          status,
+          total_cost
+        )
+      `,
         )
         .eq('payment_id', transaction.fullId);
 
-      if (error) {
-        console.error('Error fetching invoice details:', error);
-      } else if (data) {
-        // Transform the data: flatten the object and rename allocated_amount to paymentApplied
-        const formattedCases = data.map((item) => ({
+      if (allocationsError) throw allocationsError;
+
+      if (allocationsData) {
+        const formattedCases = allocationsData.map((item) => ({
           ...item.cases,
           paymentApplied: parseFloat(item.allocated_amount),
         }));
         setFetchedCasesData(formattedCases);
 
-        // Calculate original amount from cases (sum of all allocated amounts)
-        // This represents what should have been paid before discount
         const originalAmount = formattedCases.reduce(
-          (sum, case_) => sum + parseFloat(case_.paymentApplied || 0),
-          0
+          (sum, c) => sum + parseFloat(c.paymentApplied || 0),
+          0,
         );
-        // Update transaction with original amount for invoice display
-        setTransactionToPrint((prev) => ({
-          ...prev,
-          originalAmount: originalAmount,
-        }));
+        setTransactionToPrint((prev) => ({ ...prev, originalAmount }));
+      }
+
+      // Fetch additional services paid in this payment
+      // We identify them by doctor_id + payment date window since there's no direct FK.
+      // Best approach: store payment_id on additional_services when marking paid.
+      // If you've added a payment_id column to additional_services, use this:
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('additional_services')
+        .select('id, service_name, notes, price')
+        .eq('payment_id', transaction.fullId); // requires payment_id column
+
+      if (!servicesError && servicesData) {
+        setFetchedServicesData(servicesData);
       }
     } catch (err) {
       console.error('Error fetching invoice details:', err);
@@ -507,6 +553,7 @@ function AdminTransactionLogPage() {
       setShowPrintPreview(false);
       setTransactionToPrint(null);
       setFetchedCasesData([]);
+      setFetchedServicesData([]);
     }, 500);
   };
 
@@ -514,6 +561,7 @@ function AdminTransactionLogPage() {
     setShowPrintPreview(false);
     setTransactionToPrint(null);
     setFetchedCasesData([]);
+    setFetchedServicesData([]);
   };
 
   const handleDeleteClick = (transaction) => {
@@ -538,7 +586,7 @@ function AdminTransactionLogPage() {
       if (deleteError) throw deleteError;
 
       setTransactions((prev) =>
-        prev.filter((txn) => txn.fullId !== transactionToDelete.fullId)
+        prev.filter((txn) => txn.fullId !== transactionToDelete.fullId),
       );
 
       setShowDeleteDialog(false);
@@ -624,11 +672,11 @@ function AdminTransactionLogPage() {
 
   const stats = useMemo(() => {
     const paymentsReceived = filteredTransactions.filter(
-      (t) => t.type === 'payment_received'
+      (t) => t.type === 'payment_received',
     );
     const expenses = filteredTransactions.filter((t) => t.type === 'expense');
     const withdrawals = filteredTransactions.filter(
-      (t) => t.type === 'withdrawal'
+      (t) => t.type === 'withdrawal',
     );
 
     const totalRevenue = paymentsReceived.reduce((sum, t) => sum + t.amount, 0);
@@ -938,17 +986,17 @@ function AdminTransactionLogPage() {
                   <p className="text-caption font-caption text-subtext-color mt-2">
                     {startDate && endDate
                       ? `Showing transactions from ${new Date(
-                          startDate
+                          startDate,
                         ).toLocaleDateString('en-GB')} to ${new Date(
-                          endDate
+                          endDate,
                         ).toLocaleDateString('en-GB')}`
                       : startDate
-                      ? `Showing transactions from ${new Date(
-                          startDate
-                        ).toLocaleDateString('en-GB')} onwards`
-                      : `Showing transactions up to ${new Date(
-                          endDate
-                        ).toLocaleDateString('en-GB')}`}
+                        ? `Showing transactions from ${new Date(
+                            startDate,
+                          ).toLocaleDateString('en-GB')} onwards`
+                        : `Showing transactions up to ${new Date(
+                            endDate,
+                          ).toLocaleDateString('en-GB')}`}
                   </p>
                 )}
               </div>
@@ -966,8 +1014,8 @@ function AdminTransactionLogPage() {
                     {typeFilter === 'payment_received'
                       ? 'Payments'
                       : typeFilter === 'withdrawal'
-                      ? t('withdrawalDialog.title')
-                      : 'Expenses'}
+                        ? t('withdrawalDialog.title')
+                        : 'Expenses'}
                     <button
                       onClick={() => setTypeFilter('all')}
                       className="ml-1 hover:text-neutral-800"
@@ -1109,8 +1157,8 @@ function AdminTransactionLogPage() {
                         txn.type === 'expense'
                           ? 'error'
                           : txn.type === 'withdrawal'
-                          ? 'warning'
-                          : 'brand'
+                            ? 'warning'
+                            : 'brand'
                       }
                     >
                       {getTypeLabel(txn.type)}
@@ -1122,8 +1170,8 @@ function AdminTransactionLogPage() {
                         txn.type === 'expense'
                           ? 'text-error-600'
                           : txn.type === 'withdrawal'
-                          ? 'text-warning-600'
-                          : 'text-success-600'
+                            ? 'text-warning-600'
+                            : 'text-success-600'
                       }`}
                     >
                       {txn.type !== 'payment_received' && '-'}$
@@ -1187,6 +1235,7 @@ function AdminTransactionLogPage() {
                   ref={printRef}
                   transaction={transactionToPrint}
                   casesData={fetchedCasesData}
+                  servicesData={fetchedServicesData}
                 />
               </div>
             )}
@@ -1238,8 +1287,8 @@ function AdminTransactionLogPage() {
                     transactionToDelete.type === 'expense'
                       ? 'error'
                       : transactionToDelete.type === 'withdrawal'
-                      ? 'warning'
-                      : 'brand'
+                        ? 'warning'
+                        : 'brand'
                   }
                 >
                   {getTypeLabel(transactionToDelete.type)}
@@ -1254,8 +1303,8 @@ function AdminTransactionLogPage() {
                     transactionToDelete.type === 'expense'
                       ? 'text-error-600'
                       : transactionToDelete.type === 'withdrawal'
-                      ? 'text-warning-600'
-                      : 'text-success-600'
+                        ? 'text-warning-600'
+                        : 'text-success-600'
                   }`}
                 >
                   {transactionToDelete.type !== 'payment_received' && '-'}$

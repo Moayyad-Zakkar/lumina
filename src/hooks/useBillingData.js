@@ -17,7 +17,7 @@ const calculateCasePaymentInfo = (case_, allPayments = []) => {
   }
 
   const casePayments = allPayments.filter(
-    (payment) => payment.case_id === case_.id
+    (payment) => payment.case_id === case_.id,
   );
 
   const totalPaid = casePayments.reduce((sum, payment) => {
@@ -81,7 +81,7 @@ export const useBillingData = () => {
             first_name,
             last_name
           )
-        `
+        `,
         )
         .eq('role', 'user');
 
@@ -103,32 +103,42 @@ export const useBillingData = () => {
 
       if (paymentRecordsError) throw paymentRecordsError;
 
+      const { data: additionalServices, error: servicesError } = await supabase
+        .from('additional_services')
+        .select('doctor_id, price, payment_status')
+        .eq('payment_status', 'unpaid');
+
+      if (servicesError) throw servicesError;
+
       // Process doctors with billing calculations
       const doctorsWithBilling = doctorsData.map((doctor) => {
         const casesWithPaymentInfo = doctor.cases.map((case_) => {
           const paymentInfo = calculateCasePaymentInfo(
             case_,
-            allPayments || []
+            allPayments || [],
           );
-          return {
-            ...case_,
-            ...paymentInfo, // This adds remainingAmount, paymentStatus, totalPaid, paymentPercentage
-          };
+          return { ...case_, ...paymentInfo };
         });
 
         const unpaidCases = casesWithPaymentInfo.filter(
-          (case_) => case_.remainingAmount > 0
+          (case_) => case_.remainingAmount > 0,
         );
 
-        const totalDueAmount = unpaidCases.reduce(
+        const casesDueAmount = unpaidCases.reduce(
           (sum, case_) => sum + case_.remainingAmount,
-          0
+          0,
         );
 
-        // Get last payment date from actual payment records (only received payments)
+        // Sum unpaid additional services for this doctor
+        const servicesDueAmount = (additionalServices || [])
+          .filter((s) => s.doctor_id === doctor.id)
+          .reduce((sum, s) => sum + parseFloat(s.price), 0);
+
+        const totalDueAmount = casesDueAmount + servicesDueAmount; // <-- combined
+
         const doctorPayments = paymentRecords.filter(
           (payment) =>
-            payment.doctor_id === doctor.id && payment.type === 'payment'
+            payment.doctor_id === doctor.id && payment.type === 'payment',
         );
         const lastPaymentDate =
           doctorPayments.length > 0 ? doctorPayments[0].created_at : null;
@@ -138,6 +148,10 @@ export const useBillingData = () => {
           cases: casesWithPaymentInfo,
           totalCases: doctor.cases.length,
           unpaidCasesCount: unpaidCases.length,
+          unpaidServicesCount: (additionalServices || []).filter(
+            // bonus: useful for the table
+            (s) => s.doctor_id === doctor.id,
+          ).length,
           totalDueAmount,
           lastPaymentDate,
           paymentStatus: totalDueAmount > 0 ? 'due' : 'current',
@@ -149,9 +163,9 @@ export const useBillingData = () => {
       // Calculate total expenses
       const totalDueAmount = doctorsWithBilling.reduce(
         (sum, doctor) => sum + doctor.totalDueAmount,
-        0
+        0,
       );
-/*
+      /*
       const totalExpensesAmount = (paymentRecords || [])
         .filter((payment) => payment.type === 'expense')
         .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
@@ -165,23 +179,27 @@ export const useBillingData = () => {
       const totalEarningsAmount = totalPaymentsAmount - totalExpensesAmount;
 */
 
-// Calculate total expenses (type === 'expense' only, withdrawals excluded)
-const totalExpensesAmount = (paymentRecords || [])
-  .filter((payment) => payment.type === 'expense')
-  .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
+      // Calculate total expenses (type === 'expense' only, withdrawals excluded)
+      const totalExpensesAmount = (paymentRecords || [])
+        .filter((payment) => payment.type === 'expense')
+        .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
 
-// Calculate total withdrawals
-const totalWithdrawalsAmount = (paymentRecords || [])
-  .filter((payment) => payment.type === 'withdrawal')
-  .reduce((sum, payment) => sum + Math.abs(parseFloat(payment.amount || 0)), 0);
+      // Calculate total withdrawals
+      const totalWithdrawalsAmount = (paymentRecords || [])
+        .filter((payment) => payment.type === 'withdrawal')
+        .reduce(
+          (sum, payment) => sum + Math.abs(parseFloat(payment.amount || 0)),
+          0,
+        );
 
-// Calculate total payments received
-const totalPaymentsAmount = (paymentRecords || [])
-  .filter((payment) => payment.type === 'payment')
-  .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
+      // Calculate total payments received
+      const totalPaymentsAmount = (paymentRecords || [])
+        .filter((payment) => payment.type === 'payment')
+        .reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
 
-// Net earnings = payments - expenses - withdrawals
-const totalEarningsAmount = totalPaymentsAmount - totalExpensesAmount - totalWithdrawalsAmount;
+      // Net earnings = payments - expenses - withdrawals
+      const totalEarningsAmount =
+        totalPaymentsAmount - totalExpensesAmount - totalWithdrawalsAmount;
 
       setTotalEarnings(totalEarningsAmount);
       setTotalDue(totalDueAmount);
@@ -212,60 +230,70 @@ const totalEarningsAmount = totalPaymentsAmount - totalExpensesAmount - totalWit
 // Custom hook for managing doctor cases
 export const useDoctorCases = () => {
   const [doctorCases, setDoctorCases] = useState([]);
+  const [doctorServices, setDoctorServices] = useState([]);
   const [loadingCases, setLoadingCases] = useState(false);
 
   const loadDoctorCases = useCallback(async (doctorId) => {
     if (!doctorId) {
       setDoctorCases([]);
+      setDoctorServices([]);
       return;
     }
 
     try {
       setLoadingCases(true);
 
-      // Get all cases for this doctor
       const { data: casesData, error: casesError } = await supabase
         .from('cases')
         .select('*')
         .eq('user_id', doctorId);
-
       if (casesError) throw casesError;
 
-      // Get payment allocations for these cases
       const caseIds = (casesData || []).map((c) => c.id);
       const { data: payments, error: paymentsError } = await supabase
         .from('payment_case_allocations')
         .select('case_id, allocated_amount')
         .in('case_id', caseIds);
-
       if (paymentsError) throw paymentsError;
 
-      // Filter cases that have remaining amounts to be paid
       const billableCases = (casesData || [])
-        .map((case_) => {
-          const paymentInfo = calculateCasePaymentInfo(case_, payments || []);
-          return {
-            ...case_,
-            ...paymentInfo,
-          };
-        })
-        .filter((case_) => case_.remainingAmount > 0);
+        .map((case_) => ({
+          ...case_,
+          _type: 'case', // <-- tag
+          ...calculateCasePaymentInfo(case_, payments || []),
+        }))
+        .filter((c) => c.remainingAmount > 0);
+
+      // Fetch unpaid additional services
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('additional_services')
+        .select('*')
+        .eq('doctor_id', doctorId)
+        .eq('payment_status', 'unpaid');
+      if (servicesError) throw servicesError;
+
+      const billableServices = (servicesData || []).map((s) => ({
+        ...s,
+        _type: 'service', // <-- tag
+        remainingAmount: parseFloat(s.price),
+        paymentStatus: 'unpaid',
+        totalPaid: 0,
+        paymentPercentage: 0,
+      }));
 
       setDoctorCases(billableCases);
+      setDoctorServices(billableServices);
     } catch (err) {
       console.error('Error fetching doctor cases:', err);
       toast.error('Failed to load doctor cases');
       setDoctorCases([]);
+      setDoctorServices([]);
     } finally {
       setLoadingCases(false);
     }
   }, []);
 
-  return {
-    doctorCases,
-    loadingCases,
-    loadDoctorCases,
-  };
+  return { doctorCases, doctorServices, loadingCases, loadDoctorCases };
 };
 
 // Custom hook for payment processing logic
@@ -280,6 +308,7 @@ export const usePaymentProcessor = (refetchBillingData) => {
         discountAmount,
         selectedCases,
         doctorCases,
+        doctorServices,
         paymentNotes,
       } = paymentData;
 
@@ -298,7 +327,10 @@ export const usePaymentProcessor = (refetchBillingData) => {
 
         const paymentAmountNum = parseFloat(paymentAmount);
         const discountAmountNum = parseFloat(discountAmount || 0);
-        const finalPaymentAmount = Math.max(0, paymentAmountNum - discountAmountNum);
+        const finalPaymentAmount = Math.max(
+          0,
+          paymentAmountNum - discountAmountNum,
+        );
 
         // Validate discount doesn't exceed payment amount
         if (discountAmountNum > paymentAmountNum) {
@@ -334,10 +366,10 @@ export const usePaymentProcessor = (refetchBillingData) => {
 
           const remainingAmount = Math.max(
             0,
-            finalPaymentAmount - selectedCasesTotal
+            finalPaymentAmount - selectedCasesTotal,
           );
           const unselectedCases = doctorCases.filter(
-            (case_) => !selectedCases.has(case_.id)
+            (case_) => !selectedCases.has(case_.id),
           );
           const allocations = [];
 
@@ -345,14 +377,14 @@ export const usePaymentProcessor = (refetchBillingData) => {
           // This ensures the remaining due is correctly calculated (accounting for discount)
           if (selectedCasesTotal > 0) {
             const totalToAllocate = finalPaymentAmount + discountAmountNum;
-            
+
             for (const caseId of selectedCases) {
               const case_ = doctorCases.find((c) => c.id === caseId);
               if (case_) {
                 const caseShare = case_.remainingAmount / selectedCasesTotal;
                 const totalAllocation = Math.min(
                   totalToAllocate * caseShare,
-                  case_.remainingAmount
+                  case_.remainingAmount,
                 );
 
                 if (totalAllocation > 0) {
@@ -372,7 +404,7 @@ export const usePaymentProcessor = (refetchBillingData) => {
             for (const case_ of unselectedCases) {
               const allocationAmount = Math.min(
                 amountPerCase,
-                case_.remainingAmount
+                case_.remainingAmount,
               );
               if (allocationAmount > 0) {
                 allocations.push({
@@ -394,6 +426,20 @@ export const usePaymentProcessor = (refetchBillingData) => {
           }
         }
 
+        const selectedServiceIds = [...selectedCases].filter((id) =>
+          doctorServices?.some((s) => s.id === id),
+        );
+
+        if (selectedServiceIds.length > 0) {
+          const serviceUpdates = selectedServiceIds.map((serviceId) =>
+            supabase
+              .from('additional_services')
+              .update({ payment_status: 'paid', payment_id: paymentRecord.id })
+              .eq('id', serviceId),
+          );
+          await Promise.all(serviceUpdates);
+        }
+
         toast.success('Payment processed successfully!');
 
         // Refresh data after successful payment
@@ -410,7 +456,7 @@ export const usePaymentProcessor = (refetchBillingData) => {
         setProcessingPayment(false);
       }
     },
-    [refetchBillingData]
+    [refetchBillingData],
   );
 
   return {

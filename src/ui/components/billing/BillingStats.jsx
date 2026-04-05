@@ -6,6 +6,7 @@ import {
   FeatherArrowUp,
   FeatherPlus,
   FeatherTrendingDown,
+  FeatherPlusCircle,
 } from '@subframe/core';
 
 const BillingStats = ({
@@ -16,6 +17,7 @@ const BillingStats = ({
   onMakePayment,
   onAddCredit,
   onWithdrawProfits,
+  onAddAdditionalService,
   withButtons = true,
 }) => {
   return (
@@ -27,16 +29,21 @@ const BillingStats = ({
         {totalDue !== null && totalDue !== undefined && (
           <DuePaymentsCard totalDue={totalDue} />
         )}
-
         {totalExpenses !== null && totalExpenses !== undefined && (
           <ExpensesCard totalExpenses={totalExpenses} />
         )}
       </div>
+
       {withButtons && (
         <div className="flex w-full flex-wrap items-start gap-4">
           <PaymentButton onReceivePayment={onReceivePayment} />
           {onMakePayment && <ExpenseButton onMakePayment={onMakePayment} />}
           {onAddCredit && <CreditButton onAddCredit={onAddCredit} />}
+          {onAddAdditionalService && (
+            <AdditionalServiceButton
+              onAddAdditionalService={onAddAdditionalService}
+            />
+          )}
           {onWithdrawProfits && (
             <WithdrawProfitsButton onWithdrawProfits={onWithdrawProfits} />
           )}
@@ -165,6 +172,21 @@ const CreditButton = ({ onAddCredit }) => {
       variant="brand-primary"
     >
       {t('billingStats.addCredit')}
+    </Button>
+  );
+};
+
+const AdditionalServiceButton = ({ onAddAdditionalService }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Button
+      className="h-10 w-auto flex-none"
+      icon={<FeatherPlusCircle />}
+      onClick={onAddAdditionalService}
+      variant="neutral-secondary"
+    >
+      {t('additionalServices.buttonLabel')}
     </Button>
   );
 };

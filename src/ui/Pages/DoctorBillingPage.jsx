@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
@@ -12,11 +12,15 @@ import { useDoctorBillingData } from '../../hooks/useDoctorBillingData';
 import Headline from '../components/Headline';
 import { Link } from 'react-router';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import AdditionalServicesTable from '../components/billing/AdditionalServicesTable';
+import supabase from '../../helper/supabaseClient';
+import { useUser } from '../../helper/useUser';
 
 function DoctorBillingPage() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useUser();
 
   const {
     cases,
@@ -27,20 +31,42 @@ function DoctorBillingPage() {
     totalPaid,
     pendingCases,
     completedCases,
-    //refetchBillingData,
   } = useDoctorBillingData();
 
-  // Filter out cases with not_applicable payment status (non-billable cases)
+  // ── Additional services state ──────────────────────────────────────────────
+  const [additionalServices, setAdditionalServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchServices = async () => {
+      setServicesLoading(true);
+      const { data, error: fetchError } = await supabase
+        .from('additional_services')
+        .select('*')
+        .eq('doctor_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (!fetchError && data) setAdditionalServices(data);
+      setServicesLoading(false);
+    };
+
+    fetchServices();
+  }, [user?.id]);
+
+  // ── Cases filtering ────────────────────────────────────────────────────────
   const billableCases = cases.filter(
-    (case_item) => case_item.paymentStatus?.toLowerCase() !== 'not_applicable'
+    (case_item) => case_item.paymentStatus?.toLowerCase() !== 'not_applicable',
   );
 
-  // Filter billable cases based on search term
   const filteredCases = billableCases.filter(
     (case_item) =>
       case_item.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_item.case_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      case_item.treatment_type?.toLowerCase().includes(searchTerm.toLowerCase())
+      case_item.treatment_type
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -81,6 +107,7 @@ function DoctorBillingPage() {
             />
           )}
 
+          {/* ── Cases section ──────────────────────────────────────────────── */}
           <div className="flex w-full items-center gap-2">
             <span className="grow shrink-0 basis-0 text-heading-3 font-heading-3 text-default-font">
               {t('billing.myCasesAndBilling')}
@@ -102,6 +129,23 @@ function DoctorBillingPage() {
           </div>
 
           <DoctorCasesTable cases={filteredCases} />
+
+          {/* ── Additional Services section ────────────────────────────────── */}
+          {(servicesLoading || additionalServices.length > 0) && (
+            <div className="flex flex-col gap-4 w-full">
+              <span className="text-heading-3 font-heading-3 text-default-font">
+                {t('additionalServices.buttonLabel')}
+              </span>
+
+              {servicesLoading ? (
+                <div className="flex w-full justify-center items-center py-8">
+                  <Loader size="small" />
+                </div>
+              ) : (
+                <AdditionalServicesTable services={additionalServices} />
+              )}
+            </div>
+          )}
         </>
       )}
     </>

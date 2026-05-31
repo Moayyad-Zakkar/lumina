@@ -14,6 +14,8 @@ import DeclineCaseDialog from '../../components/AdminDeclineCaseDialog';
 import RefinementDialog from '../../components/RefinementDialog';
 import RefinementHistory from '../../components/RefinementHistory';
 import AdminApprovePlanDialog from '../../components/case/AdminApprovePlanDialog';
+// ── NEW ──
+import AdminEditCaseDetailsDialog from '../../components/case/AdminEditCaseDetailsDialog';
 
 // Import refactored components
 import CaseInformation from '../../components/case/CaseInformation';
@@ -37,6 +39,7 @@ import {
   FeatherRotateCcw,
   FeatherEye,
   FeatherCheck,
+  FeatherEdit2, // ── NEW ──
 } from '@subframe/core';
 
 import supabase from '../../../helper/supabaseClient';
@@ -63,6 +66,9 @@ const AdminCasePageRefactored = () => {
   // Admin approve plan dialog
   const [isApprovePlanDialogOpen, setIsApprovePlanDialogOpen] = useState(false);
   const [isApprovingPlan, setIsApprovingPlan] = useState(false);
+
+  // ── NEW: Edit details dialog ──
+  const [isEditDetailsDialogOpen, setIsEditDetailsDialogOpen] = useState(false);
 
   // Fetch services when refinement dialog opens
   useEffect(() => {
@@ -682,7 +688,7 @@ const AdminCasePageRefactored = () => {
 
         <RefinementHistory caseData={caseData} />
 
-        {/* Admin action buttons */}
+        {/* ── Admin action buttons ── */}
         <div className="flex w-full items-center justify-end gap-2">
           {currentStatus === 'delivered' && (
             <Button
@@ -705,6 +711,17 @@ const AdminCasePageRefactored = () => {
               {t('adminCasePage.approvePlan')}
             </Button>
           )}
+
+          {/* Edit Details button — always visible to admin */}
+          <Button
+            variant="neutral-secondary"
+            icon={<FeatherEdit2 />}
+            onClick={() => setIsEditDetailsDialogOpen(true)}
+            className="w-auto"
+          >
+            {t('adminEditCaseDetails.title')}
+          </Button>
+
           <Button
             variant="destructive-primary"
             icon={<FeatherAlertTriangle />}
@@ -723,6 +740,14 @@ const AdminCasePageRefactored = () => {
         onConfirm={handleApprovePlanConfirm}
         caseData={caseData}
         isLoading={isApprovingPlan}
+      />
+
+      {/* Edit Case Details Dialog */}
+      <AdminEditCaseDetailsDialog
+        isOpen={isEditDetailsDialogOpen}
+        onClose={() => setIsEditDetailsDialogOpen(false)}
+        caseData={caseData}
+        onSaved={() => window.location.reload()}
       />
 
       <RefinementDialog

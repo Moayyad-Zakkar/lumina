@@ -1256,5 +1256,17 @@
     "success": {
       "added": "Additional service added successfully!"
     }
+  },
+  "adminEditCaseDetails": {
+    "title": "Edit Case Details",
+    "subtitle": "Update treatment and pricing information for this case.",
+    "caseInfo": "Case Info",
+    "selectMaterial": "Select aligner material",
+    "totalCostNote": "Updating Total Cost will also update the Approved Total Cost in the system.",
+    "saveButton": "Save Changes",
+    "toast": {
+      "saved": "Case details updated successfully.",
+      "saveFailed": "Failed to update case details."
+    }
   }
 }

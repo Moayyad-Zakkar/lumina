@@ -33,11 +33,13 @@
     "dashboard": "Dashboard",
     "doctors": "Doctors",
     "cases": "Cases",
+    "store": "Store",
     "billing": "Billing",
     "settings": "Settings",
     "signOut": "Sign Out",
     "allCases": "All Cases",
     "signUpRequests": "Sign Up Requests",
+    "storeRequests": "Store Requests",
     "transactionLog": "Transaction Log",
     "paymentsHistory": "Payments History",
     "home": "Home",
@@ -681,6 +683,7 @@
     "phoneNumber": "Phone Number",
     "updateContactInfo": "Update Contact Info",
     "serviceManagement": "Service Management",
+    "storeManagement": "Store",
     "caseStudyFee": "Case Study Fee",
     "caseStudyFeeDescription": "This fee is charged when a new case is accepted.",
     "amountUSD": "Amount (USD)",
@@ -1255,6 +1258,76 @@
     },
     "success": {
       "added": "Additional service added successfully!"
+    }
+  },
+  "store": {
+    "title": "Store",
+    "subtitle": "Browse products and submit a request. Charges apply after admin approval.",
+    "noProducts": "No products available at the moment.",
+    "noImage": "No image",
+    "requestProduct": "Request",
+    "unitPrice": "Unit price",
+    "unit": "unit",
+    "myRequests": "My requests",
+    "table": {
+      "product": "Product",
+      "quantity": "Qty",
+      "total": "Total",
+      "status": "Status",
+      "date": "Date"
+    },
+    "requestStatus": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "request": {
+      "title": "Request product",
+      "quantityLabel": "Quantity",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Any details for this order...",
+      "total": "Estimated total",
+      "submit": "Submit request",
+      "success": "Your request was submitted. You will be charged after approval.",
+      "failed": "Failed to submit request. Please try again."
+    },
+    "admin": {
+      "productsTitle": "Store products",
+      "productsSubtitle": "Manage catalog items shown to doctors.",
+      "addProduct": "Add product",
+      "noProducts": "No products yet.",
+      "namePlaceholder": "Product name",
+      "descEnPlaceholder": "Description (English)",
+      "descArPlaceholder": "Description (Arabic)",
+      "pricePlaceholder": "Price (USD)",
+      "sortPlaceholder": "Sort order",
+      "currentImage": "Current image set",
+      "colImage": "Image",
+      "colName": "Name",
+      "colPrice": "Price",
+      "colSort": "Sort",
+      "colStatus": "Status",
+      "colDoctor": "Doctor",
+      "colProduct": "Product",
+      "active": "Active",
+      "inactive": "Hidden",
+      "activate": "Show in store",
+      "deactivate": "Hide from store",
+      "productAdded": "Product added.",
+      "productUpdated": "Product updated.",
+      "requestsTitle": "Store requests",
+      "requestsSubtitle": "Approve requests to add charges to doctor billing as additional services.",
+      "noRequests": "No store requests yet.",
+      "confirmApprove": "Approve this request and add it to the doctor's billing?",
+      "confirmReject": "Reject this store request?",
+      "approveSuccess": "Request approved and added to billing.",
+      "approveFailed": "Failed to approve request.",
+      "rejectSuccess": "Request rejected.",
+      "rejectFailed": "Failed to reject request.",
+      "errors": {
+        "nameRequired": "Product name is required.",
+        "saveFailed": "Failed to save product."
+      }
     }
   },
   "adminEditCaseDetails": {

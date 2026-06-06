@@ -10,6 +10,7 @@ import {
   FeatherSettings,
   FeatherMenu,
   FeatherX,
+  FeatherShoppingBag,
 } from '@subframe/core';
 import { DropdownMenu } from '../components/DropdownMenu';
 import * as SubframeCore from '@subframe/core';
@@ -50,6 +51,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
   const [badgeLoading, setBadgeLoading] = useState(true);
   const [signupRequestCount, setSignupRequestCount] = useState(0);
   const [signupRequestLoading, setSignupRequestLoading] = useState(true);
+  const [storeRequestCount, setStoreRequestCount] = useState(0);
 
   // Mobile Menu State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -107,6 +109,26 @@ const DefaultPageLayoutRoot = React.forwardRef<
         localStorage.setItem(cacheKey, String(count || 0));
       }
       if (isMounted) setSignupRequestLoading(false);
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const cacheKey = 'store_request_count';
+      const cached = localStorage.getItem(cacheKey);
+      if (isMounted && cached != null) setStoreRequestCount(Number(cached));
+      const { count, error } = await supabase
+        .from('store_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      if (!error && isMounted) {
+        setStoreRequestCount(count || 0);
+        localStorage.setItem(cacheKey, String(count || 0));
+      }
     })();
     return () => {
       isMounted = false;
@@ -229,6 +251,24 @@ const DefaultPageLayoutRoot = React.forwardRef<
             {t('navigation.signUpRequests')}
           </SidebarWithLargeItems.NavItem>
         </Link>
+        <Link to="/admin/store-requests">
+          <SidebarWithLargeItems.NavItem
+            icon={<FeatherShoppingBag />}
+            selected={pathname.startsWith('/admin/store-requests')}
+            rightSlot={
+              storeRequestCount > 0 ? (
+                <Badge
+                  variant="error"
+                  className="ml-2 px-2 py-0 text-xs rounded-full"
+                >
+                  {storeRequestCount}
+                </Badge>
+              ) : null
+            }
+          >
+            {t('navigation.storeRequests')}
+          </SidebarWithLargeItems.NavItem>
+        </Link>
         <Link to="/admin/billing">
           <SidebarWithLargeItems.NavItem
             selected={pathname.startsWith('/admin/billing')}
@@ -288,6 +328,19 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   }
                 >
                   {t('navigation.signUpRequests')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
+              <Link to="/admin/store-requests">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherShoppingBag />}
+                  selected={pathname.startsWith('/admin/store-requests')}
+                  rightSlot={
+                    storeRequestCount > 0 ? (
+                      <Badge variant="error">{storeRequestCount}</Badge>
+                    ) : null
+                  }
+                >
+                  {t('navigation.storeRequests')}
                 </SidebarWithLargeItems.NavItem>
               </Link>
               <Link to="/admin/billing">

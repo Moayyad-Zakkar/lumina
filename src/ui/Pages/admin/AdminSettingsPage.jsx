@@ -5,6 +5,7 @@ import { TextField } from '../../components/TextField';
 import { Button } from '../../components/Button';
 import AdminHeadline from '../../components/AdminHeadline';
 import AdminOptionManager from '../../components/AdminOptionManager';
+import AdminStoreProductManager from '../../components/store/AdminStoreProductManager';
 import Error from '../../components/Error';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import supabase from '../../../helper/supabaseClient';
@@ -227,6 +228,12 @@ function AdminSettingsPage() {
         >
           {t('settings.serviceManagement')}
         </Tabs.Item>
+        <Tabs.Item
+          active={activeTab === 'store'}
+          onClick={() => setActiveTab('store')}
+        >
+          {t('settings.storeManagement')}
+        </Tabs.Item>
       </Tabs>
 
       {activeTab === 'security' && (
@@ -336,6 +343,12 @@ function AdminSettingsPage() {
             </div>
           </div>
         </>
+      )}
+
+      {activeTab === 'store' && (
+        <div className="flex w-full flex-col gap-6 rounded-md border border-solid border-neutral-border bg-default-background px-6 py-6 shadow-sm">
+          <AdminStoreProductManager />
+        </div>
       )}
 
       {activeTab === 'services' && (

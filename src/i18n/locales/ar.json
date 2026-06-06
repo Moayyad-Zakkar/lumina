@@ -34,11 +34,13 @@
     "home": "الرئيسية",
     "doctors": "الأطباء",
     "cases": "الحالات",
+    "store": "المتجر",
     "billing": "المعاملات المالية",
     "settings": "الإعدادات",
     "signOut": "تسجيل الخروج",
     "allCases": "جميع الحالات",
     "signUpRequests": "طلبات التسجيل",
+    "storeRequests": "طلبات المتجر",
     "transactionLog": "سجل المعاملات",
     "paymentsHistory": "سجل الدفعات",
     "profile": "الملف الشخصي"
@@ -203,6 +205,7 @@
     "phoneNumber": "رقم الهاتف",
     "updateContactInfo": "تحديث معلومات الاتصال",
     "serviceManagement": "إدارة الخدمات",
+    "storeManagement": "المتجر",
     "caseStudyFee": "رسوم دراسة الحالة",
     "caseStudyFeeDescription": "يتم فرض هذا الرسم عند قبول حالة جديدة.",
     "amountUSD": "المبلغ (دولار أمريكي)",
@@ -1259,6 +1262,76 @@
     },
     "success": {
       "added": "تمت إضافة الخدمة الإضافية بنجاح!"
+    }
+  },
+  "store": {
+    "title": "المتجر",
+    "subtitle": "تصفح المنتجات المتوفرة وأرسل طلبًا.",
+    "noProducts": "لا توجد منتجات متاحة حاليًا.",
+    "noImage": "لا توجد صورة",
+    "requestProduct": "طلب",
+    "unitPrice": "سعر الوحدة",
+    "unit": "وحدة",
+    "myRequests": "طلباتي",
+    "table": {
+      "product": "المنتج",
+      "quantity": "الكمية",
+      "total": "الإجمالي",
+      "status": "الحالة",
+      "date": "التاريخ"
+    },
+    "requestStatus": {
+      "pending": "قيد الانتظار",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض"
+    },
+    "request": {
+      "title": "طلب منتج",
+      "quantityLabel": "الكمية",
+      "notesLabel": "ملاحظات (اختياري)",
+      "notesPlaceholder": "أي تفاصيل لهذا الطلب...",
+      "total": "الإجمالي",
+      "submit": "إرسال الطلب",
+      "success": "تم إرسال طلبك. سيتم احتساب الرسوم بعد الموافقة.",
+      "failed": "فشل إرسال الطلب. يرجى المحاولة مرة أخرى."
+    },
+    "admin": {
+      "productsTitle": "منتجات المتجر",
+      "productsSubtitle": "إدارة عناصر الكتالوج المعروضة للأطباء.",
+      "addProduct": "إضافة منتج",
+      "noProducts": "لا توجد منتجات بعد.",
+      "namePlaceholder": "اسم المنتج",
+      "descEnPlaceholder": "الوصف (إنجليزي)",
+      "descArPlaceholder": "الوصف (عربي)",
+      "pricePlaceholder": "السعر (دولار)",
+      "sortPlaceholder": "ترتيب العرض",
+      "currentImage": "صورة محددة",
+      "colImage": "صورة",
+      "colName": "الاسم",
+      "colPrice": "السعر",
+      "colSort": "الترتيب",
+      "colStatus": "الحالة",
+      "colDoctor": "الطبيب",
+      "colProduct": "المنتج",
+      "active": "نشط",
+      "inactive": "مخفي",
+      "activate": "إظهار في المتجر",
+      "deactivate": "إخفاء من المتجر",
+      "productAdded": "تمت إضافة المنتج.",
+      "productUpdated": "تم تحديث المنتج.",
+      "requestsTitle": "طلبات المتجر",
+      "requestsSubtitle": "الموافقة على الطلبات لإضافة رسوم إلى فواتير الطبيب كخدمات إضافية.",
+      "noRequests": "لا توجد طلبات متجر بعد.",
+      "confirmApprove": "الموافقة على هذا الطلب وإضافته إلى فواتير الطبيب؟",
+      "confirmReject": "رفض طلب المتجر هذا؟",
+      "approveSuccess": "تمت الموافقة وإضافة الرسوم إلى الفواتير.",
+      "approveFailed": "فشلت الموافقة على الطلب.",
+      "rejectSuccess": "تم رفض الطلب.",
+      "rejectFailed": "فشل رفض الطلب.",
+      "errors": {
+        "nameRequired": "اسم المنتج مطلوب.",
+        "saveFailed": "فشل حفظ المنتج."
+      }
     }
   },
   "adminEditCaseDetails": {

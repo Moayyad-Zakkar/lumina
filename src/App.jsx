@@ -43,6 +43,8 @@ import DoctorTransactionLogPage from './ui/Pages/DoctorTransactionLogPage';
 import CaseViewer from './ui/Pages/CaseViewer';
 import AdminSignUpRequests from './ui/Pages/admin/AdminSignUpRequests';
 import TermsAndConditions from './ui/Pages/TermsAndConditions';
+import Store from './ui/Pages/Store';
+import AdminStoreRequestsPage from './ui/Pages/admin/AdminStoreRequestsPage';
 
 const router = createBrowserRouter([
   {
@@ -50,7 +52,7 @@ const router = createBrowserRouter([
     children: [
       {
         element: <Home />,
-        path: '/staging/landing'
+        path: '/staging/landing',
       },
       {
         element: <About />,
@@ -97,6 +99,10 @@ const router = createBrowserRouter([
         element: <UserDashboard />,
         path: '/app/dashboard',
         loader: userDashboardLoader,
+      },
+      {
+        element: <Store />,
+        path: '/app/store',
       },
       {
         element: <CasesPage />,
@@ -156,6 +162,10 @@ const router = createBrowserRouter([
       {
         element: <AdminSignUpRequests />,
         path: '/admin/signup-requests',
+      },
+      {
+        element: <AdminStoreRequestsPage />,
+        path: '/admin/store-requests',
       },
       {
         element: <AdminCaseSubmit />,

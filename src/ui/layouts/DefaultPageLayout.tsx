@@ -12,6 +12,7 @@ import { SidebarWithLargeItems } from '../components/SidebarWithLargeItems';
 import {
   FeatherHome,
   FeatherInbox,
+  FeatherShoppingBag,
   FeatherBarChart2,
   FeatherUser,
   FeatherSettings,
@@ -27,8 +28,7 @@ import supabase from '../../helper/supabaseClient';
 import { Badge } from '../components/Badge';
 import { useTranslation } from 'react-i18next';
 
-interface DefaultPageLayoutRootProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface DefaultPageLayoutRootProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   className?: string;
   initialBadgeCount?: number;
@@ -46,7 +46,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
     initialUserId,
     ...otherProps
   }: DefaultPageLayoutRootProps,
-  ref
+  ref,
 ) {
   const location = useLocation();
   const { t } = useTranslation();
@@ -170,7 +170,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                 return next;
               });
             }
-          }
+          },
         )
         .subscribe();
 
@@ -187,21 +187,19 @@ const DefaultPageLayoutRoot = React.forwardRef<
     <div
       className={SubframeUtils.twClassNames(
         'flex h-screen w-full flex-col md:flex-row items-center', // Stack vertically on mobile
-        className
+        className,
       )}
       ref={ref as any}
     >
       {/* MOBILE HEADER - Only visible on small screens */}
       <div className="flex md:hidden w-full px-4 py-3 items-center justify-between border-b border-component-divider bg-default-background z-20">
-      
-                  <img className="h-8" src="/logo.png" alt="logo" />
+        <img className="h-8" src="/logo.png" alt="logo" />
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-subtext-color"
         >
           {isMobileMenuOpen ? <FeatherX /> : <FeatherMenu />}
         </button>
-
       </div>
 
       {/* DESKTOP SIDEBAR - Hidden on mobile */}
@@ -291,6 +289,14 @@ const DefaultPageLayoutRoot = React.forwardRef<
             {t('navigation.cases')}
           </SidebarWithLargeItems.NavItem>
         </Link>
+        <Link to="/app/store">
+          <SidebarWithLargeItems.NavItem
+            icon={<FeatherShoppingBag />}
+            selected={pathname.startsWith('/app/store')}
+          >
+            {t('navigation.store')}
+          </SidebarWithLargeItems.NavItem>
+        </Link>
         <Link to="/app/billing">
           <SidebarWithLargeItems.NavItem
             selected={pathname.startsWith('/app/billing')}
@@ -330,6 +336,14 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   }
                 >
                   {t('navigation.cases')}
+                </SidebarWithLargeItems.NavItem>
+              </Link>
+              <Link to="/app/store">
+                <SidebarWithLargeItems.NavItem
+                  icon={<FeatherShoppingBag />}
+                  selected={pathname.startsWith('/app/store')}
+                >
+                  {t('navigation.store')}
                 </SidebarWithLargeItems.NavItem>
               </Link>
               <Link to="/app/billing">

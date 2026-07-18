@@ -746,6 +746,7 @@ const AdminTreatmentPlanEditor = ({
               {t('adminTreatmentPlan.printDialogTitle')}
             </span>
             <Button
+              style={{ width: 'auto' }}
               variant="brand-primary"
               icon={<FeatherPrinter />}
               onClick={() => {

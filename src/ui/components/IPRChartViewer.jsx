@@ -2,6 +2,7 @@ import React from 'react';
 import { toothPaths } from '../../assets/toothPaths';
 import { FeatherSlice, FeatherX } from '@subframe/core';
 import { useTranslation } from 'react-i18next';
+import { universalToFdi } from '../../helper/toothNumbering';
 
 // Reusable Tooth component with IPR values
 const ToothWithIPR = ({
@@ -85,7 +86,7 @@ const ToothWithIPR = ({
             margin: 0,
           }}
         >
-          {num}
+          {universalToFdi(num)}
         </p>
       </div>
 
@@ -419,7 +420,7 @@ export const PrintableIPRChart = ({ toothStatus, iprData }) => {
             className="text-xs text-center"
             style={{ lineHeight: '1', width: '100%', margin: 0 }}
           >
-            {num}
+            {universalToFdi(num)}
           </p>
         </div>
 

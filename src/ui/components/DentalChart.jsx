@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toothPaths } from '../../assets/toothPaths';
+import { universalToFdi } from '../../helper/toothNumbering';
 
 // Reusable Tooth component
 const Tooth = ({
@@ -56,7 +57,7 @@ const Tooth = ({
           margin: 0,
         }}
       >
-        {num}
+        {universalToFdi(num)}
       </p>
     </div>
   );

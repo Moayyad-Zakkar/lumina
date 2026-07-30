@@ -29,6 +29,12 @@ import IPRChartDialog from './IPRChartDialog';
 import { capitalizeFirstSafe } from '../../../helper/formatText';
 import { useIsMobile } from '../../../hooks/useIsMobile';
 import supabase from '../../../helper/supabaseClient';
+import toast from 'react-hot-toast';
+import { Checkbox } from '../Checkbox';
+import {
+  buildMaterialPricesPayload,
+  isMaterialAvailableForCase,
+} from '../../../helper/materialPrices';
 
 const PrintField = ({ label, value }) => {
   const { i18n } = useTranslation();
@@ -164,27 +170,51 @@ const PrintableTreatmentPlan = React.forwardRef(
 );
 
 // Purely controlled — no internal useEffect. Parent owns all state.
-const MaterialPriceRow = ({ material, price, onChange }) => {
+const MaterialPriceRow = ({
+  material,
+  price,
+  enabled,
+  onEnabledChange,
+  onChange,
+}) => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-3">
+    <div
+      className={`flex items-center gap-3 rounded-md border px-3 py-2 ${
+        enabled
+          ? 'border-neutral-border bg-default-background'
+          : 'border-neutral-200 bg-neutral-50 opacity-80'
+      }`}
+    >
+      <Checkbox
+        checked={enabled}
+        onCheckedChange={onEnabledChange}
+        aria-label={t('adminTreatmentPlan.availableForCase')}
+      />
       <div className="flex-1 min-w-0">
-        <span className="text-body-bold font-body-bold text-default-font truncate block">
+        <span
+          className={`text-body-bold font-body-bold truncate block ${
+            enabled ? 'text-default-font' : 'text-subtext-color'
+          }`}
+        >
           {material.name}
         </span>
-        <span className="text-caption font-caption text-subtext-color">
-          ${parseFloat(material.price || 0).toFixed(2)}{' '}
-          {t('adminTreatmentPlan.perAligner')}
-        </span>
+        {enabled && (
+          <span className="text-caption font-caption text-subtext-color">
+            ${parseFloat(material.price || 0).toFixed(2)}{' '}
+            {t('adminTreatmentPlan.perAligner')}
+          </span>
+        )}
       </div>
       <div className="w-32 flex-shrink-0">
-        <TextField>
+        <TextField disabled={!enabled}>
           <TextField.Input
             type="number"
             min={0}
             step="0.01"
-            value={price ?? ''}
+            value={enabled ? (price ?? '') : ''}
             placeholder="0.00"
+            disabled={!enabled}
             onChange={(e) => onChange(e.target.value)}
           />
         </TextField>
@@ -233,6 +263,9 @@ const AdminTreatmentPlanEditor = ({
   // Track which materials the admin has manually typed a price for
   const [manuallyEdited, setManuallyEdited] = useState(new Set());
 
+  const [enabledMaterials, setEnabledMaterials] = useState(new Set());
+  const [enabledInitialized, setEnabledInitialized] = useState(false);
+
   const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [loadingMaterials, setLoadingMaterials] = useState(false);
 
@@ -271,6 +304,27 @@ const AdminTreatmentPlanEditor = ({
     }
   }, [caseData?.material_prices]);
 
+  // Initialize which systems are offered for this case (checkboxes).
+  useEffect(() => {
+    if (alignerMaterials.length === 0 || enabledInitialized) return;
+
+    const saved = caseData?.material_prices;
+    const hasSaved =
+      saved && Object.keys(saved).length > 0;
+
+    if (hasSaved) {
+      const enabled = new Set(
+        alignerMaterials
+          .filter((mat) => isMaterialAvailableForCase(saved, mat.name))
+          .map((mat) => mat.name),
+      );
+      setEnabledMaterials(enabled);
+    } else {
+      setEnabledMaterials(new Set(alignerMaterials.map((mat) => mat.name)));
+    }
+    setEnabledInitialized(true);
+  }, [alignerMaterials, caseData?.material_prices, enabledInitialized]);
+
   const totalAligners =
     (parseInt(upperJawAligners) || 0) + (parseInt(lowerJawAligners) || 0);
 
@@ -281,6 +335,7 @@ const AdminTreatmentPlanEditor = ({
     setMaterialPrices((prev) => {
       const updated = { ...prev };
       alignerMaterials.forEach((mat) => {
+        if (!enabledMaterials.has(mat.name)) return;
         if (!manuallyEdited.has(mat.name)) {
           updated[mat.name] =
             totalAligners > 0
@@ -292,7 +347,34 @@ const AdminTreatmentPlanEditor = ({
     });
     // manuallyEdited intentionally omitted — we only want this on count/material changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalAligners, alignerMaterials]);
+  }, [totalAligners, alignerMaterials, enabledMaterials]);
+
+  const handleMaterialEnabledChange = useCallback((materialName, enabled) => {
+    setEnabledMaterials((prev) => {
+      const next = new Set(prev);
+      if (enabled) next.add(materialName);
+      else next.delete(materialName);
+      return next;
+    });
+    if (!enabled) {
+      setMaterialPrices((prev) => {
+        const updated = { ...prev };
+        delete updated[materialName];
+        return updated;
+      });
+      setManuallyEdited((prev) => {
+        const next = new Set(prev);
+        next.delete(materialName);
+        return next;
+      });
+    } else {
+      setManuallyEdited((prev) => {
+        const next = new Set(prev);
+        next.delete(materialName);
+        return next;
+      });
+    }
+  }, []);
 
   // Admin manually changes a price — mark it so auto-calc leaves it alone
   const handleMaterialPriceChange = useCallback((materialName, value) => {
@@ -320,8 +402,47 @@ const AdminTreatmentPlanEditor = ({
   };
 
   const handleSendForApprovalWithPrices = () => {
-    handleSendForApproval({ materialPrices });
+    const payload = buildMaterialPricesPayload(
+      materialPrices,
+      enabledMaterials,
+    );
+    if (Object.keys(payload).length === 0) {
+      toast.error(t('adminTreatmentPlan.noMaterialsEnabled'));
+      return;
+    }
+    handleSendForApproval({ materialPrices: payload });
   };
+
+  const isActiveEdit =
+    isEditingPlan &&
+    ![
+      'approved',
+      'in_production',
+      'ready_for_delivery',
+      'delivered',
+      'completed',
+      'user_rejected',
+    ].includes(currentStatus);
+
+  const wasActiveEditRef = useRef(isActiveEdit);
+  useEffect(() => {
+    const enteredEdit = isActiveEdit && !wasActiveEditRef.current;
+    wasActiveEditRef.current = isActiveEdit;
+    if (!enteredEdit || alignerMaterials.length === 0) return;
+
+    const saved = caseData?.material_prices;
+    if (saved && Object.keys(saved).length > 0) {
+      setEnabledMaterials(
+        new Set(
+          alignerMaterials
+            .filter((m) => isMaterialAvailableForCase(saved, m.name))
+            .map((m) => m.name),
+        ),
+      );
+      setMaterialPrices({ ...saved });
+      setManuallyEdited(new Set(Object.keys(saved)));
+    }
+  }, [isActiveEdit, alignerMaterials, caseData?.material_prices]);
 
   if (
     ![
@@ -350,17 +471,6 @@ const AdminTreatmentPlanEditor = ({
         'user_rejected',
       ].includes(currentStatus)
     : true;
-
-  const isActiveEdit =
-    isEditingPlan &&
-    ![
-      'approved',
-      'in_production',
-      'ready_for_delivery',
-      'delivered',
-      'completed',
-      'user_rejected',
-    ].includes(currentStatus);
 
   return (
     <>
@@ -588,6 +698,10 @@ const AdminTreatmentPlanEditor = ({
                     <MaterialPriceRow
                       key={mat.id}
                       material={mat}
+                      enabled={enabledMaterials.has(mat.name)}
+                      onEnabledChange={(checked) =>
+                        handleMaterialEnabledChange(mat.name, checked)
+                      }
                       price={materialPrices[mat.name]}
                       onChange={(val) =>
                         handleMaterialPriceChange(mat.name, val)
@@ -600,26 +714,52 @@ const AdminTreatmentPlanEditor = ({
               <div className="flex flex-col gap-2">
                 {alignerMaterials.map((mat) => {
                   const price = caseData?.material_prices?.[mat.name];
-                  if (!price) return null;
+                  const offered = isMaterialAvailableForCase(
+                    caseData?.material_prices,
+                    mat.name,
+                  );
                   const isChosen = caseData?.aligner_material === mat.name;
                   return (
                     <div
                       key={mat.id}
-                      className={`flex items-center justify-between rounded-md border px-4 py-2 ${isChosen ? 'border-brand-300 bg-brand-50' : 'border-neutral-border bg-neutral-50'}`}
+                      className={`flex items-center justify-between rounded-md border px-4 py-2 ${
+                        !offered
+                          ? 'border-neutral-200 bg-neutral-100 opacity-70'
+                          : isChosen
+                            ? 'border-brand-300 bg-brand-50'
+                            : 'border-neutral-border bg-neutral-50'
+                      }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-body-bold font-body-bold text-default-font">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`text-body-bold font-body-bold ${
+                            offered
+                              ? 'text-default-font'
+                              : 'text-subtext-color'
+                          }`}
+                        >
                           {mat.name}
                         </span>
-                        {isChosen && (
+                        {!offered && (
+                          <Badge variant="neutral">
+                            {t('adminTreatmentPlan.notAvailableForCase')}
+                          </Badge>
+                        )}
+                        {offered && isChosen && (
                           <Badge variant="brand">
                             {t('adminTreatmentPlan.doctorChoice')}
                           </Badge>
                         )}
                       </div>
-                      <span className="text-body-bold font-body-bold text-default-font">
-                        ${parseFloat(price).toFixed(2)}
-                      </span>
+                      {offered ? (
+                        <span className="text-body-bold font-body-bold text-default-font">
+                          ${parseFloat(price).toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-caption font-caption text-subtext-color">
+                          —
+                        </span>
+                      )}
                     </div>
                   );
                 })}

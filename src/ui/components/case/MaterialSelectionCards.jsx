@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FeatherCheck } from '@subframe/core';
-
+import { isMaterialAvailableForCase } from '../../../helper/materialPrices';
 const MaterialSelectionCards = ({
   materials,
   materialPrices,
@@ -22,9 +22,6 @@ const MaterialSelectionCards = ({
     <div className="flex w-full flex-col gap-3">
       <div className="flex flex-col gap-1">
         <span className="text-body-bold font-body-bold text-default-font">
-          {t('casePage.materialSelection.title')}
-        </span>
-        <span className="text-body font-body text-subtext-color">
           {t('casePage.materialSelection.subtitle')}
         </span>
       </div>
@@ -39,32 +36,35 @@ const MaterialSelectionCards = ({
         }`}
       >
         {materials.map((mat, index) => {
+          const isAvailable = isMaterialAvailableForCase(
+            materialPrices,
+            mat.name,
+          );
           const materialPrice = parseFloat(materialPrices?.[mat.name] || 0);
           const totalCost =
             parseFloat(caseStudyFee || 0) +
             materialPrice +
             parseFloat(deliveryCharges || 0);
-          const isSelected = selectedMaterial === mat.name;
-          const isRecommended = index === recommendedIndex;
+          const isSelected = isAvailable && selectedMaterial === mat.name;
+          const isRecommended = isAvailable && index === recommendedIndex;
           const description = isRTL ? mat.description_ar : mat.description_en;
 
-          return (
-            <button
-              key={mat.id}
-              type="button"
-              onClick={() => onSelect(mat.name)}
-              className={`
+          const cardClassName = `
                 relative flex flex-col gap-4 rounded-xl border-2 p-5 text-left
-                transition-all duration-200 cursor-pointer outline-none
+                transition-all duration-200 outline-none w-full
                 ${
-                  isSelected
-                    ? 'border-brand-600 bg-brand-50 shadow-md ring-2 ring-brand-200'
-                    : isRecommended
-                      ? 'border-brand-300 bg-white shadow-sm hover:border-brand-400 hover:shadow-md'
-                      : 'border-neutral-border bg-white shadow-sm hover:border-neutral-400 hover:shadow-md'
+                  !isAvailable
+                    ? 'border-neutral-200 bg-neutral-100 opacity-60 cursor-not-allowed'
+                    : isSelected
+                      ? 'border-brand-600 bg-brand-50 shadow-md ring-2 ring-brand-200 cursor-pointer'
+                      : isRecommended
+                        ? 'border-brand-300 bg-white shadow-sm hover:border-brand-400 hover:shadow-md cursor-pointer'
+                        : 'border-neutral-border bg-white shadow-sm hover:border-neutral-400 hover:shadow-md cursor-pointer'
                 }
-              `}
-            >
+              `;
+
+          const cardBody = (
+            <>
               {/* Recommended badge */}
               {isRecommended && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -85,11 +85,20 @@ const MaterialSelectionCards = ({
               <div className="flex flex-col gap-1 pr-6">
                 <span
                   className={`text-heading-3 font-heading-3 ${
-                    isSelected ? 'text-brand-700' : 'text-default-font'
+                    !isAvailable
+                      ? 'text-subtext-color'
+                      : isSelected
+                        ? 'text-brand-700'
+                        : 'text-default-font'
                   }`}
                 >
                   {mat.name}
                 </span>
+                {!isAvailable && (
+                  <span className="text-caption font-caption text-subtext-color">
+                    {t('casePage.materialSelection.notAvailableForCase')}
+                  </span>
+                )}
                 {description && (
                   <ul
                     className={`flex flex-col gap-2 ${isRTL ? 'text-right' : 'text-left'}`}
@@ -116,53 +125,56 @@ const MaterialSelectionCards = ({
               <div className="h-px w-full bg-neutral-border" />
 
               {/* Pricing breakdown */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-caption font-caption text-subtext-color">
-                    {t('casePage.treatmentPlan.alignersPrice')}
-                  </span>
-                  <span className="text-body-bold font-body-bold text-default-font">
-                    ${materialPrice.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-caption font-caption text-subtext-color">
-                    {t('casePage.treatmentPlan.caseStudyFee')}
-                  </span>
-                  <span className="text-body font-body text-subtext-color">
-                    ${parseFloat(caseStudyFee || 0).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-caption font-caption text-subtext-color">
-                    {t('casePage.treatmentPlan.deliveryCharges')}
-                  </span>
-                  <span className="text-body font-body text-subtext-color">
-                    ${parseFloat(deliveryCharges || 0).toFixed(2)}
-                  </span>
-                </div>
+              {isAvailable && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-caption font-caption text-subtext-color">
+                      {t('casePage.treatmentPlan.alignersPrice')}
+                    </span>
+                    <span className="text-body-bold font-body-bold text-default-font">
+                      ${materialPrice.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-caption font-caption text-subtext-color">
+                      {t('casePage.treatmentPlan.caseStudyFee')}
+                    </span>
+                    <span className="text-body font-body text-subtext-color">
+                      ${parseFloat(caseStudyFee || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-caption font-caption text-subtext-color">
+                      {t('casePage.treatmentPlan.deliveryCharges')}
+                    </span>
+                    <span className="text-body font-body text-subtext-color">
+                      ${parseFloat(deliveryCharges || 0).toFixed(2)}
+                    </span>
+                  </div>
 
-                {/* Divider */}
-                <div className="h-px w-full bg-neutral-border" />
+                  {/* Divider */}
+                  <div className="h-px w-full bg-neutral-border" />
 
-                {/* Total */}
-                <div className="flex items-center justify-between">
-                  <span className="text-body-bold font-body-bold text-default-font">
-                    {t('casePage.treatmentPlan.totalCost')}
-                  </span>
-                  <span
-                    className={`text-heading-3 font-heading-3 ${
-                      isSelected ? 'text-brand-600' : 'text-default-font'
-                    }`}
-                  >
-                    ${totalCost.toFixed(2)}
-                  </span>
+                  {/* Total */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-body-bold font-body-bold text-default-font">
+                      {t('casePage.treatmentPlan.totalCost')}
+                    </span>
+                    <span
+                      className={`text-heading-3 font-heading-3 ${
+                        isSelected ? 'text-brand-600' : 'text-default-font'
+                      }`}
+                    >
+                      ${totalCost.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Select indicator */}
-              <div
-                className={`
+              {isAvailable ? (
+                <div
+                  className={`
                   mt-auto flex items-center justify-center rounded-lg py-2 text-body-bold font-body-bold
                   transition-colors duration-150
                   ${
@@ -171,11 +183,35 @@ const MaterialSelectionCards = ({
                       : 'bg-neutral-100 text-subtext-color group-hover:bg-neutral-200'
                   }
                 `}
-              >
-                {isSelected
-                  ? t('casePage.materialSelection.selected')
-                  : t('casePage.materialSelection.select')}
+                >
+                  {isSelected
+                    ? t('casePage.materialSelection.selected')
+                    : t('casePage.materialSelection.select')}
+                </div>
+              ) : (
+                <div className="mt-auto flex items-center justify-center rounded-lg py-2 text-body-bold font-body-bold bg-neutral-200 text-subtext-color">
+                  {t('casePage.materialSelection.unavailable')}
+                </div>
+              )}
+            </>
+          );
+
+          if (!isAvailable) {
+            return (
+              <div key={mat.id} className={cardClassName} aria-disabled="true">
+                {cardBody}
               </div>
+            );
+          }
+
+          return (
+            <button
+              key={mat.id}
+              type="button"
+              onClick={() => onSelect(mat.name)}
+              className={cardClassName}
+            >
+              {cardBody}
             </button>
           );
         })}

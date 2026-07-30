@@ -36,6 +36,7 @@ import {
   FeatherEdit3,
 } from '@subframe/core';
 import { checkCaseTreatmentImages } from '../../helper/caseHasView';
+import { isMaterialAvailableForCase } from '../../helper/materialPrices';
 import ApprovalConfirmDialog from '../components/case/ApprovalConfirmDialog';
 import DeclineCaseDialog from '../components/case/DeclineCaseDialog';
 import CaseSatisfactionDisplay from '../components/case/CaseSatisfactionDisplay';
@@ -92,10 +93,7 @@ const CasePageRefactored = () => {
             .eq('type', 'aligners_material')
             .order('id', { ascending: true });
           if (!error && data) {
-            // Only show materials that have prices set by admin
-            setAlignerMaterials(
-              data.filter((mat) => caseData.material_prices?.[mat.name] != null)
-            );
+            setAlignerMaterials(data);
           }
         } catch (err) {
           console.error('Error fetching materials:', err);
@@ -159,7 +157,10 @@ const CasePageRefactored = () => {
   };
 
   const approvePlan = async () => {
-    if (!selectedMaterial) {
+    if (
+      !selectedMaterial ||
+      !isMaterialAvailableForCase(caseData?.material_prices, selectedMaterial)
+    ) {
       toast.error(t('casePage.materialSelection.required'));
       return;
     }

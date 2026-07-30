@@ -377,7 +377,9 @@
       "recommended": "Most Popular",
       "select": "Select",
       "selected": "Selected",
-      "required": "Please select an aligner material before approving."
+      "required": "Please select an aligner material before approving.",
+      "notAvailableForCase": "Not offered for this treatment plan",
+      "unavailable": "Not available"
     },
 
     "caseAcceptanceCard": {
@@ -861,8 +863,11 @@
     "printDialogTitle": "Print Treatment Plan",
     "perAligner": "/ aligner",
     "materialPricing": "Aligner System Pricing",
-    "materialPricingHelp": "Prices are auto-calculated from aligner counts × unit price, but can be adjusted manually.",
+    "materialPricingHelp": "Check each aligner system that applies to this case and set pricing. Uncheck systems that are not suitable — they will appear as unavailable to the doctor.",
     "noMaterials": "No aligner system found.",
+    "availableForCase": "Available for this case",
+    "notAvailableForCase": "Not offered",
+    "noMaterialsEnabled": "Enable at least one aligner system with a valid price before sending.",
     "doctorChoice": "Doctor's Choice",
     "statusMessages": {
       "editing": "Choose to decline the case or set plan details and send to the doctor for approval.",

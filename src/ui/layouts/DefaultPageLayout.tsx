@@ -293,6 +293,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
           <SidebarWithLargeItems.NavItem
             icon={<FeatherShoppingBag />}
             selected={pathname.startsWith('/app/store')}
+            rightSlot={<Badge variant="brand">{t('common.new')}</Badge>}
           >
             {t('navigation.store')}
           </SidebarWithLargeItems.NavItem>
@@ -342,6 +343,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                 <SidebarWithLargeItems.NavItem
                   icon={<FeatherShoppingBag />}
                   selected={pathname.startsWith('/app/store')}
+                  rightSlot={<Badge variant="brand">{t('common.new')}</Badge>}
                 >
                   {t('navigation.store')}
                 </SidebarWithLargeItems.NavItem>

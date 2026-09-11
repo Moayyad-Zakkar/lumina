@@ -27,7 +27,8 @@
     "print": "Print",
     "learnMore": "Learn more about our systems",
     "noDescription": "No description available.",
-    "noRecords": "No materials found."
+    "noRecords": "No materials found.",
+    "new": "New"
   },
   "navigation": {
     "dashboard": "Dashboard",

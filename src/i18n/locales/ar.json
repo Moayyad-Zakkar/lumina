@@ -27,7 +27,8 @@
     "print": "طباعة",
     "learnMore": "تعرف على المزيد",
     "noDescription": "لا يوجد وصف متاح.",
-    "noRecords": "لم يتم العثور على أي مواد."
+    "noRecords": "لم يتم العثور على أي مواد.",
+    "new": "جديد"
   },
   "navigation": {
     "dashboard": "الرئيسية",

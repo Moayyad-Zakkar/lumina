@@ -7,28 +7,17 @@ import Error from '../../components/Error';
 import { FeatherLogs, FeatherSearch } from '@subframe/core';
 
 import DoctorsBillingTable from '../../components/billing/DoctorsBillingTable';
-import PaymentCollectionDialog from '../../components/billing/PaymentCollectionDialog';
-import ExpensesDialog from '../../components/billing/ExpensesDialog';
-import AdditionalServicesDialog from '../../components/billing/AdditionalServicesDialog';
 import BillingStats from '../../components/billing/BillingStats';
 import { useBillingData } from '../../../hooks/useBillingData';
 import AdminHeadline from '../../components/AdminHeadline';
 import { Link } from 'react-router';
 import { isSuperAdmin } from '../../../helper/auth';
 import { useUserRole } from '../../../helper/useUserRole';
-import CreditDialog from '../../components/billing/CreditDialog';
-import WithdrawalDialog from '../../components/billing/WithdrawalDialog';
+import { useBillingActions } from '../../../hooks/useBillingActions';
 
 function AdminBillingPage() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [showExpensesDialog, setShowExpensesDialog] = useState(false);
-  const [showCreditDialog, setShowCreditDialog] = useState(false);
-  const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
-  const [showAdditionalServicesDialog, setShowAdditionalServicesDialog] =
-    useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   const { role } = useUserRole();
   const isSuperAdminUser = isSuperAdmin(role);
@@ -43,41 +32,18 @@ function AdminBillingPage() {
     refetchBillingData,
   } = useBillingData();
 
-  const filteredDoctors = doctors.filter(
-    (doctor) =>
-      doctor.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.clinic?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const { buttonProps, dialogs, openPaymentForDoctor } = useBillingActions({
+    doctors,
+    refetchBillingData,
+    includeSuperAdminActions: isSuperAdminUser,
+  });
 
-  const handleAddCredit = () => setShowCreditDialog(true);
-  const handleCloseCreditDialog = () => setShowCreditDialog(false);
-
-  const handleCollectPayment = (doctor) => {
-    setSelectedDoctor(doctor);
-    setShowPaymentDialog(true);
-  };
-
-  const handleReceivePayment = () => {
-    setSelectedDoctor(null);
-    setShowPaymentDialog(true);
-  };
-
-  const handleMakePayment = () => setShowExpensesDialog(true);
-
-  const handleClosePaymentDialog = () => {
-    setShowPaymentDialog(false);
-    setSelectedDoctor(null);
-  };
-
-  const handleCloseExpensesDialog = () => setShowExpensesDialog(false);
-
-  const handleWithdrawProfits = () => setShowWithdrawalDialog(true);
-  const handleCloseWithdrawalDialog = () => setShowWithdrawalDialog(false);
-
-  const handleAddAdditionalService = () =>
-    setShowAdditionalServicesDialog(true);
-  const handleCloseAdditionalServicesDialog = () =>
-    setShowAdditionalServicesDialog(false);
+  const filteredDoctors = doctors.filter((doctor) => {
+    const q = searchTerm.toLowerCase();
+    const name = doctor.full_name?.toLowerCase() || '';
+    const clinic = doctor.clinic?.toLowerCase() || '';
+    return name.includes(q) || clinic.includes(q);
+  });
 
   return (
     <>
@@ -113,13 +79,7 @@ function AdminBillingPage() {
             totalEarnings={isSuperAdminUser ? totalEarnings : null}
             totalDue={isSuperAdminUser ? totalDue : null}
             totalExpenses={isSuperAdminUser ? totalExpenses : null}
-            onReceivePayment={handleReceivePayment}
-            onMakePayment={isSuperAdminUser ? handleMakePayment : null}
-            onAddCredit={isSuperAdminUser ? handleAddCredit : null}
-            onWithdrawProfits={isSuperAdminUser ? handleWithdrawProfits : null}
-            onAddAdditionalService={
-              isSuperAdminUser ? handleAddAdditionalService : null
-            }
+            {...buttonProps}
           />
 
           <div className="flex w-full items-center gap-2">
@@ -144,51 +104,12 @@ function AdminBillingPage() {
 
           <DoctorsBillingTable
             doctors={filteredDoctors}
-            onCollectPayment={handleCollectPayment}
+            onCollectPayment={openPaymentForDoctor}
           />
         </>
       )}
 
-      <PaymentCollectionDialog
-        isOpen={showPaymentDialog}
-        onClose={handleClosePaymentDialog}
-        doctors={doctors}
-        initialDoctor={selectedDoctor}
-        refetchBillingData={refetchBillingData}
-      />
-
-      {isSuperAdminUser && (
-        <ExpensesDialog
-          isOpen={showExpensesDialog}
-          onClose={handleCloseExpensesDialog}
-          refetchBillingData={refetchBillingData}
-        />
-      )}
-
-      {isSuperAdminUser && (
-        <CreditDialog
-          isOpen={showCreditDialog}
-          onClose={handleCloseCreditDialog}
-          refetchBillingData={refetchBillingData}
-        />
-      )}
-
-      {isSuperAdminUser && (
-        <WithdrawalDialog
-          isOpen={showWithdrawalDialog}
-          onClose={handleCloseWithdrawalDialog}
-          refetchBillingData={refetchBillingData}
-        />
-      )}
-
-      {isSuperAdminUser && (
-        <AdditionalServicesDialog
-          isOpen={showAdditionalServicesDialog}
-          onClose={handleCloseAdditionalServicesDialog}
-          doctors={doctors}
-          refetchBillingData={refetchBillingData}
-        />
-      )}
+      {dialogs}
     </>
   );
 }

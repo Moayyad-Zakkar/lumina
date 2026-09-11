@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useRef,
+  useCallback,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
 import { Button } from '../../components/Button';
@@ -24,6 +30,9 @@ import { Link } from 'react-router';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { isSuperAdmin } from '../../../helper/auth';
 import DialogWrapper from '../../components/DialogWrapper';
+import { useBillingData } from '../../../hooks/useBillingData';
+import { BillingActionButtons } from '../../components/billing/BillingStats';
+import { useBillingActions } from '../../../hooks/useBillingActions';
 
 /* -------------------------------------------------------
    PrintableInvoice Component
@@ -342,6 +351,18 @@ function AdminTransactionLogPage() {
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
+  const { doctors, refetchBillingData } = useBillingData();
+  const refreshTransactionsRef = useRef(() => {});
+  const handleBillingSuccess = useCallback(() => {
+    refreshTransactionsRef.current();
+  }, []);
+  const { buttonProps, dialogs } = useBillingActions({
+    doctors,
+    refetchBillingData,
+    onSuccess: handleBillingSuccess,
+    includeSuperAdminActions: isSuperAdminUser,
+  });
+
   // Delete confirmation dialog state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
@@ -483,6 +504,7 @@ function AdminTransactionLogPage() {
   const handleRefresh = () => {
     fetchTransactions(true);
   };
+  refreshTransactionsRef.current = handleRefresh;
 
   /* ------------------------------------------------------------------
      Handle Print Click - Fetch Cases from payment_case_allocations
@@ -854,6 +876,8 @@ function AdminTransactionLogPage() {
               }
             />
           </div>
+
+          <BillingActionButtons {...buttonProps} />
 
           {/* Filters */}
           <div className="flex flex-col gap-3">
@@ -1349,6 +1373,7 @@ function AdminTransactionLogPage() {
           </div>
         </div>
       )}
+      {dialogs}
     </>
   );
 }

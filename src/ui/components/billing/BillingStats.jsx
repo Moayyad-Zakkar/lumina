@@ -35,19 +35,13 @@ const BillingStats = ({
       </div>
 
       {withButtons && (
-        <div className="flex w-full flex-wrap items-start gap-4">
-          <PaymentButton onReceivePayment={onReceivePayment} />
-          {onMakePayment && <ExpenseButton onMakePayment={onMakePayment} />}
-          {onAddCredit && <CreditButton onAddCredit={onAddCredit} />}
-          {onAddAdditionalService && (
-            <AdditionalServiceButton
-              onAddAdditionalService={onAddAdditionalService}
-            />
-          )}
-          {onWithdrawProfits && (
-            <WithdrawProfitsButton onWithdrawProfits={onWithdrawProfits} />
-          )}
-        </div>
+        <BillingActionButtons
+          onReceivePayment={onReceivePayment}
+          onMakePayment={onMakePayment}
+          onAddCredit={onAddCredit}
+          onAddAdditionalService={onAddAdditionalService}
+          onWithdrawProfits={onWithdrawProfits}
+        />
       )}
     </>
   );
@@ -127,6 +121,32 @@ const ExpensesCard = ({ totalExpenses }) => {
           </span>
         </div>
       </div>
+    </div>
+  );
+};
+
+export const BillingActionButtons = ({
+  onReceivePayment,
+  onMakePayment,
+  onAddCredit,
+  onWithdrawProfits,
+  onAddAdditionalService,
+}) => {
+  return (
+    <div className="flex w-full flex-wrap items-start gap-4">
+      {onReceivePayment && (
+        <PaymentButton onReceivePayment={onReceivePayment} />
+      )}
+      {onMakePayment && <ExpenseButton onMakePayment={onMakePayment} />}
+      {onAddCredit && <CreditButton onAddCredit={onAddCredit} />}
+      {onAddAdditionalService && (
+        <AdditionalServiceButton
+          onAddAdditionalService={onAddAdditionalService}
+        />
+      )}
+      {onWithdrawProfits && (
+        <WithdrawProfitsButton onWithdrawProfits={onWithdrawProfits} />
+      )}
     </div>
   );
 };

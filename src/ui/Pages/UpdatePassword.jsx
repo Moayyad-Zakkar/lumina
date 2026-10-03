@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
+import { getHomePathForRole } from '../../helper/auth';
 import { Button } from '../components/Button';
 import toast from 'react-hot-toast';
 
@@ -64,9 +65,18 @@ const UpdatePassword = () => {
       setPassword('');
       setConfirmPassword('');
 
-      // Redirect to dashboard after a short delay
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      const role = profile?.role || user?.app_metadata?.role || null;
+
       setTimeout(() => {
-        navigate('/app/dashboard');
+        navigate(getHomePathForRole(role));
       }, 2000);
     } catch (error) {
       console.error('Error updating password:', error.message);

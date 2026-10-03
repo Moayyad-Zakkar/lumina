@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import supabase from '../../helper/supabaseClient';
 import SignUpRequestDialog from '../components/SignUpRequestDialog';
-import { isAdminRole } from '../../helper/auth';
+import { getHomePathForRole } from '../../helper/auth';
 
 function Login() {
   const { t } = useTranslation();
@@ -35,13 +35,14 @@ function Login() {
 
       if (error) throw error;
 
-      // Keep loading state active during navigation
-      const userRole = data.user?.app_metadata?.role || 'user';
-      if (isAdminRole(userRole)) {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/app/dashboard');
-      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      const userRole = profile?.role || data.user?.app_metadata?.role || null;
+      navigate(getHomePathForRole(userRole));
       // Don't set loading to false here - let the component unmount
     } catch (error) {
       setError(error.message);
@@ -90,16 +91,14 @@ function Login() {
           alt="Illustration"
         />
       </div>
-      */
-      }
+      */}
       <div className="hidden md:flex h-screen grow shrink-0 basis-0 flex-col items-end justify-between bg-brand-600">
-      <img
+        <img
           className="object-cover h-full w-full object-center"
-            src="./bg-intro.png"
-            alt="Logo"
+          src="./bg-intro.png"
+          alt="Logo"
         />
       </div>
-
 
       {/* Right Section - Main Login Form */}
       <div className="flex grow shrink-0 basis-0 items-center justify-center px-6 py-8 md:px-12">
@@ -188,6 +187,20 @@ function Login() {
                   className="text-sky-600 p-0 h-auto"
                 >
                   {t('login.resetPassword')}
+                </LinkButton>
+              </Link>
+            </div>
+            <div className="flex flex-wrap justify-center gap-1">
+              <span className="text-default-font">
+                {t('login.areYouPatient')}
+              </span>
+              <Link to="/patient-login">
+                <LinkButton
+                  variant="brand"
+                  size="small"
+                  className="text-sky-600 p-0 h-auto"
+                >
+                  {t('login.goToPatientLogin')}
                 </LinkButton>
               </Link>
             </div>

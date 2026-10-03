@@ -13,7 +13,13 @@ export function useUserRole() {
       const user = session?.user;
 
       if (user) {
-        setRole(user.app_metadata?.role || 'user');
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        setRole(profile?.role || user.app_metadata?.role || null);
       }
 
       setLoading(false);

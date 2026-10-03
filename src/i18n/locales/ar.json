@@ -4,6 +4,7 @@
     "save": "حفظ",
     "cancel": "إلغاء",
     "delete": "حذف",
+    "done": "تم",
     "edit": "تعديل",
     "submit": "إرسال",
     "required": "مطلوب",
@@ -383,6 +384,60 @@
     "openViewer": "فتح مستعرض الحالات",
     "viewOriginalCase": "عرض الحالة الأصلية",
     "refinementCase": "حالة محسّنة",
+    "patientManagement": {
+      "title": "إدارة المريض",
+      "wearPhase": "مرحلة الارتداء",
+      "currentAligner": "حالياً على الراصفة رقم {{number}}",
+      "startedOn": "بدأ بتاريخ {{date}}",
+      "noProgressYet": "لم يقم المريض بعد بتسجيل بدء ارتداء أي راصفة.",
+      "onTrack": "ضمن الجدول الزمني",
+      "behindSchedule_zero": "لا يوجد تأخير",
+      "behindSchedule_one": "متأخر براصفة واحدة",
+      "behindSchedule_two": "متأخر براصفتين",
+      "behindSchedule_few": "متأخر بـ {{count}} راصفات",
+      "behindSchedule_many": "متأخر بـ {{count}} راصفات",
+      "behindSchedule_other": "متأخر بـ {{count}} راصفات",
+      "aheadOfSchedule_zero": "لا يوجد تقدم",
+      "aheadOfSchedule_one": "متقدم براصفة واحدة",
+      "aheadOfSchedule_two": "متقدم براصفتين",
+      "aheadOfSchedule_few": "متقدم بـ {{count}} راصفات",
+      "aheadOfSchedule_many": "متقدم بـ {{count}} راصفات",
+      "aheadOfSchedule_other": "متقدم بـ {{count}} راصفات"
+    },
+    "invitePatient": {
+      "title": "دعوة المريض",
+      "credentialsTitle": "بيانات دخول المريض",
+      "description": "قم بدعوة مريض الحالة رقم {{caseId}} إلى التطبيق ليتمكن من الاطلاع على التعليمات وإرسال الملاحظات.",
+      "existingDescription": "يملك هذا المريض (الحالة رقم {{caseId}}) حساباً بالفعل. يمكنك مشاركة كلمة المرور الحالية أدناه، أو توليد كلمة مرور جديدة.",
+      "phone": "رقم الهاتف",
+      "phoneRequired": "الرجاء إدخال رقم هاتف، أو تفعيل الخيار إذا لم يكن لدى المريض رقم هاتف.",
+      "password": "كلمة المرور",
+      "passwordTooShort": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.",
+      "noPhoneToggle": "المريض لا يملك رقم هاتف",
+      "noPhoneHint": "سيقوم المريض بتسجيل الدخول باستخدام رقم الحالة ({{caseId}}) بدلاً من رقم الهاتف.",
+      "invite": "دعوة",
+      "inviting": "جارِ الدعوة...",
+      "updatePassword": "تحديث كلمة المرور",
+      "generateNew": "توليد كلمة مرور جديدة",
+      "success": "تمت دعوة المريض بنجاح.",
+      "failed": "فشلت دعوة المريض.",
+      "shareInstructions": "شارك بيانات الدخول هذه مع المريض ليتمكن من تسجيل الدخول إلى التطبيق:",
+      "caseNumberLogin": "بيانات الدخول (رقم الحالة)",
+      "copy": "نسخ",
+      "copied": "تم نسخ بيانات الدخول."
+    },
+    "instructions": {
+      "title": "التعليمات",
+      "notes": "ملاحظات للمريض",
+      "wearHoursPerDay": "ساعات الارتداء يوميًّا",
+      "schedule": "جدول ارتداء الراصفات",
+      "applyToAll": "تطبيق على الكل",
+      "aligner": "راصفة",
+      "days": "أيام",
+      "saved": "تم حفظ التعليمات.",
+      "saving": "جارِ الحفظ...",
+      "saveFailed": "فشل حفظ التعليمات."
+    },
     "materialSelection": {
       "title": "اختر نظام الراصفات المفضل لديك",
       "subtitle": "اختر نظام الراصفات المناسب لك. اختيارك سيحدد التكلفة النهائية للعلاج.",
@@ -1117,6 +1172,8 @@
   },
 
   "login": {
+    "areYouPatient": "هل أنت مريض؟",
+    "goToPatientLogin": "الانتقال إلى صفحة تسجيل دخول المرضى",
     "welcomeBack": "مرحبًا بعودتك",
     "subtitle": "سجل الدخول لعرض وإرسال حالات Lumina الخاصة بك",
     "enterCredentials": "أدخل بيانات الدخول الخاصة بك للوصول إلى حسابك",
@@ -1351,5 +1408,31 @@
       "saved": "تم تحديث تفاصيل الحالة بنجاح.",
       "saveFailed": "فشل تحديث تفاصيل الحالة."
     }
+  },
+  "patientLogin": {
+    "title": "تسجيل دخول المريض",
+    "subtitle": "أدخل رقم الحالة وكلمة المرور للاطلاع على خطة علاجك.",
+    "identifierLabel": "رقم الحالة",
+    "identifierPlaceholder": "مثال: 1042",
+    "areYouDoctor": "هل أنت طبيب أو مسؤول؟",
+    "goToDoctorLogin": "الانتقال إلى تسجيل دخول الطبيب/المسؤول",
+    "errors": {
+      "emptyFields": "الرجاء إدخال رقم الحالة وكلمة المرور.",
+      "notAPatientAccount": "هذا الحساب ليس حساب مريض."
+    }
+  },
+  "patientHome": {
+    "title": "علاجي",
+    "signOut": "تسجيل الخروج",
+    "instructions": "التعليمات",
+    "noInstructionsYet": "لم يقم طبيبك بإضافة تعليمات بعد.",
+    "wearHoursPerDay": "ارتدِ الراصفة لمدة {{hours}} ساعة يومياً على الأقل",
+    "wearPhase": "مرحلة الارتداء",
+    "notStartedYet": "لم تقم بعد بتسجيل بدء ارتداء الراصفات.",
+    "startTreatment": "بدأت بارتداء الراصفة الأولى",
+    "currentAligner": "الراصفة {{number}} من {{total}}",
+    "startedOn": "بدأ بتاريخ {{date}}",
+    "movedToNext": "انتقلت إلى الراصفة التالية",
+    "noActiveCase": "لا توجد حالة مرتبطة بحسابك حالياً."
   }
 }

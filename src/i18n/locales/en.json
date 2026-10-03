@@ -4,6 +4,7 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
+    "done": "Done",
     "edit": "Edit",
     "submit": "Submit",
     "required": "required",
@@ -362,6 +363,52 @@
     "openViewer": "Open Case Viewer",
     "viewOriginalCase": "View Original Case",
     "refinementCase": "Refinement",
+    "patientManagement": {
+      "title": "Patient Management",
+      "wearPhase": "Wear Phase",
+      "currentAligner": "Currently on aligner #{{number}}",
+      "startedOn": "Started on {{date}}",
+      "noProgressYet": "The patient hasn't reported starting their aligners yet.",
+      "onTrack": "On track",
+      "behindSchedule": "Behind by {{count}} aligner",
+      "behindSchedule_other": "Behind by {{count}} aligners",
+      "aheadOfSchedule": "Ahead by {{count}} aligner",
+      "aheadOfSchedule_other": "Ahead by {{count}} aligners"
+    },
+    "invitePatient": {
+      "title": "Invite Patient",
+      "credentialsTitle": "Patient Credentials",
+      "description": "Invite the patient for case #{{caseId}} to the app so they can view instructions and send feedback.",
+      "existingDescription": "This patient (case #{{caseId}}) already has an account. You can share their current password below, or generate a new one.",
+      "phone": "Phone number",
+      "phoneRequired": "Please enter a phone number, or check the box if the patient has none.",
+      "password": "Password",
+      "passwordTooShort": "Password must be at least 6 characters.",
+      "noPhoneToggle": "Patient has no phone number",
+      "noPhoneHint": "The patient will log in using their case number ({{caseId}}) instead of a phone number.",
+      "invite": "Invite",
+      "inviting": "Inviting...",
+      "updatePassword": "Update Password",
+      "generateNew": "Generate new password",
+      "success": "Patient invited successfully.",
+      "failed": "Failed to invite patient.",
+      "shareInstructions": "Share these credentials with the patient so they can log in to the app:",
+      "caseNumberLogin": "Login (case number)",
+      "copy": "Copy",
+      "copied": "Credentials copied to clipboard."
+    },
+    "instructions": {
+      "title": "Instructions",
+      "notes": "Notes for the patient",
+      "wearHoursPerDay": "Wear hours per day",
+      "schedule": "Aligner wear schedule",
+      "applyToAll": "Apply to all",
+      "aligner": "Aligner",
+      "days": "days",
+      "saved": "Instructions saved.",
+      "saving": "Saving...",
+      "saveFailed": "Failed to save instructions."
+    },
     "statusMessages": {
       "awaitingApproval": "Please review the treatment plan details and choose to approve, decline, or request edits.",
       "approved": "Your plan is approved. Production will start soon.",
@@ -1051,6 +1098,8 @@
     }
   },
   "login": {
+    "areYouPatient": "Are you a patient?",
+    "goToPatientLogin": "Go to patient login",
     "welcomeBack": "Welcome back",
     "subtitle": "Sign in to view and submit your Lumina cases",
     "enterCredentials": "Enter your credentials to access your account",
@@ -1347,5 +1396,31 @@
       "saved": "Case details updated successfully.",
       "saveFailed": "Failed to update case details."
     }
+  },
+  "patientLogin": {
+    "title": "Patient Sign In",
+    "subtitle": "Enter your case number and password to view your treatment.",
+    "identifierLabel": "Case number",
+    "identifierPlaceholder": "e.g. 1042",
+    "areYouDoctor": "Are you a doctor or admin?",
+    "goToDoctorLogin": "Go to doctor/admin login",
+    "errors": {
+      "emptyFields": "Please enter your case number and password.",
+      "notAPatientAccount": "This account is not a patient account."
+    }
+  },
+  "patientHome": {
+    "title": "My Treatment",
+    "signOut": "Sign out",
+    "instructions": "Instructions",
+    "noInstructionsYet": "Your doctor hasn't added instructions yet.",
+    "wearHoursPerDay": "Wear at least {{hours}} hours per day",
+    "wearPhase": "Wear Phase",
+    "notStartedYet": "You haven't reported starting your aligners yet.",
+    "startTreatment": "I've started aligner #1",
+    "currentAligner": "Aligner {{number}} of {{total}}",
+    "startedOn": "Started on {{date}}",
+    "movedToNext": "I've moved to the next aligner",
+    "noActiveCase": "No active case is linked to your account."
   }
 }

@@ -43,6 +43,9 @@ import CaseSatisfactionDisplay from '../components/case/CaseSatisfactionDisplay'
 import RequestEditDialog from '../components/case/RequestEditDialog';
 import TreatmentDetails from '../components/case/TreatmentDetails';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import InvitePatientDialog from '../components/case/InvitePatientDialog';
+import InstructionsDialog from '../components/case/InstructionsDialog';
+import PatientManagementCard from '../components/case/PatientManagementCard';
 
 const CasePageRefactored = () => {
   const { t } = useTranslation();
@@ -58,14 +61,21 @@ const CasePageRefactored = () => {
   // Material selection state
   const [alignerMaterials, setAlignerMaterials] = useState([]);
   const [selectedMaterial, setSelectedMaterial] = useState(
-    caseData?.aligner_material || null
+    caseData?.aligner_material || null,
   );
   const [loadingMaterials, setLoadingMaterials] = useState(false);
 
   // Custom hooks
   const { status, setStatus, alertContent, showPlanSection } = useCaseStatus(
-    caseData?.status
+    caseData?.status,
   );
+
+  const canManagePatient = [
+    'ready_for_delivery',
+    'delivered',
+    'completed',
+  ].includes(status);
+
   const isMobile = useIsMobile();
   const { downloadingFiles, downloadSingleFile, downloadAllFiles } =
     useFileDownload();
@@ -124,7 +134,9 @@ const CasePageRefactored = () => {
   useEffect(() => {
     const markCaseNotificationsRead = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user || !caseData?.id) return;
         await supabase
           .from('notifications')
@@ -147,7 +159,7 @@ const CasePageRefactored = () => {
   // Derive total cost for the chosen material
   const getMaterialTotal = (materialName) => {
     const alignersPrice = parseFloat(
-      caseData?.material_prices?.[materialName] || 0
+      caseData?.material_prices?.[materialName] || 0,
     );
     return (
       parseFloat(caseData?.case_study_fee || 0) +
@@ -170,7 +182,7 @@ const CasePageRefactored = () => {
       setActionError(null);
 
       const alignersPrice = parseFloat(
-        caseData?.material_prices?.[selectedMaterial] || 0
+        caseData?.material_prices?.[selectedMaterial] || 0,
       );
       const totalCost = getMaterialTotal(selectedMaterial);
 
@@ -309,7 +321,11 @@ const CasePageRefactored = () => {
           </div>
           <div className="flex items-center gap-2">
             {caseData.parent_case_id && (
-              <Button variant="neutral-secondary" icon={<FeatherRefreshCw />} asChild>
+              <Button
+                variant="neutral-secondary"
+                icon={<FeatherRefreshCw />}
+                asChild
+              >
                 <Link to={`/app/cases/${caseData.parent_case_id}`}>
                   {t('casePage.viewOriginalCase')}
                 </Link>
@@ -349,7 +365,10 @@ const CasePageRefactored = () => {
 
         {/* Satisfaction Display */}
         {status === 'completed' && caseData.satisfaction_rating && (
-          <CaseSatisfactionDisplay caseData={caseData} onRefresh={handleRefresh} />
+          <CaseSatisfactionDisplay
+            caseData={caseData}
+            onRefresh={handleRefresh}
+          />
         )}
 
         <TreatmentDetails caseData={caseData} />
@@ -397,7 +416,10 @@ const CasePageRefactored = () => {
               <DentalChart
                 initialStatus={caseData.tooth_status || {}}
                 onChange={(updated) =>
-                  supabase.from('cases').update({ tooth_status: updated }).eq('id', caseData.id)
+                  supabase
+                    .from('cases')
+                    .update({ tooth_status: updated })
+                    .eq('id', caseData.id)
                 }
                 readOnly={true}
               />
@@ -475,6 +497,13 @@ const CasePageRefactored = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {canManagePatient && (
+          <PatientManagementCard
+            caseData={caseData}
+            onRefresh={handleRefresh}
+          />
         )}
 
         {/* Refinement Section */}

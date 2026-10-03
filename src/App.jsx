@@ -45,6 +45,11 @@ import AdminSignUpRequests from './ui/Pages/admin/AdminSignUpRequests';
 import TermsAndConditions from './ui/Pages/TermsAndConditions';
 import Store from './ui/Pages/Store';
 import AdminStoreRequestsPage from './ui/Pages/admin/AdminStoreRequestsPage';
+import { patientLayoutLoader } from './ui/loaders/patientLayoutLoader';
+import PatientLayout from './ui/layouts/PatientLayout';
+import PatientInstructionsPage from './ui/Pages/patient/PatientInstructionsPage';
+import PatientLogin from './ui/Pages/PatientLogin';
+import { patientInstructionsLoader } from './ui/loaders/patientInstructionsLoader';
 
 const router = createBrowserRouter([
   {
@@ -71,6 +76,10 @@ const router = createBrowserRouter([
   {
     element: <Login />,
     path: '/login',
+  },
+  {
+    element: <PatientLogin />,
+    path: '/patient-login',
   },
   {
     element: <ResetPassword />,
@@ -201,6 +210,23 @@ const router = createBrowserRouter([
     ],
   },
   {
+    element: (
+      <ProtectedRoute>
+        <RequireRole role="patient">
+          <PatientLayout />
+        </RequireRole>
+      </ProtectedRoute>
+    ),
+    loader: patientLayoutLoader,
+    children: [
+      {
+        element: <PatientInstructionsPage />,
+        path: '/patient/instructions',
+        loader: patientInstructionsLoader,
+      },
+    ],
+  },
+  {
     path: '/app',
     loader: () => redirect('/app/dashboard'),
   },
@@ -209,12 +235,16 @@ const router = createBrowserRouter([
     loader: () => redirect('/admin/dashboard'),
   },
   {
-    path: '*',
-    element: <NotFound />,
+    path: '/patient',
+    loader: () => redirect('/patient/instructions'),
   },
   {
     path: '/unauthorized',
     element: <UnauthorizedPage />,
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   },
 ]);
 

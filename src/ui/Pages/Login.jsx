@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TextField } from '../../ui/components/TextField';
 import { Button } from '../../ui/components/Button';
 import { LinkButton } from '../../ui/components/LinkButton';
 import { Link, useNavigate } from 'react-router';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import AuthScreen from '../components/AuthScreen';
 import supabase from '../../helper/supabaseClient';
 import SignUpRequestDialog from '../components/SignUpRequestDialog';
 import { getHomePathForRole } from '../../helper/auth';
@@ -46,7 +46,6 @@ function Login() {
       // Don't set loading to false here - let the component unmount
     } catch (error) {
       setError(error.message);
-      // Only set loading to false if there's an error
       setLoading(false);
     }
   };
@@ -66,71 +65,19 @@ function Login() {
   };
 
   return (
-    <div className="flex w-full min-h-screen items-stretch bg-default-background">
-      {/* Left Section - Hidden on Mobile */}
-      {/*
-      <div className="hidden md:flex grow shrink-0 basis-0 flex-col items-start justify-between bg-brand-600 px-12 py-12">
-        <Link to="/">
-          <img
-            className="h-20 flex-none object-cover"
-            src="./logo-2.png"
-            alt="Logo"
-          />
-        </Link>
-        <div className="flex flex-col items-start gap-2">
-          <span className="text-2xl font-medium text-white">
-            {t('login.welcomeBack')}
-          </span>
-          <span className="text-xl text-neutral-200">
-            {t('login.subtitle')}
-          </span>
-        </div>
-        <img
-          className="w-full flex-none rounded-lg"
-          src="https://res.cloudinary.com/subframe/image/upload/v1751625442/uploads/16759/dtha82l1njnh9ohl9b9k.jpg"
-          alt="Illustration"
-        />
-      </div>
-      */}
-      <div className="hidden md:flex h-screen grow shrink-0 basis-0 flex-col items-end justify-between bg-brand-600">
-        <img
-          className="object-cover h-full w-full object-center"
-          src="./bg-intro.png"
-          alt="Logo"
-        />
-      </div>
-
-      {/* Right Section - Main Login Form */}
-      <div className="flex grow shrink-0 basis-0 items-center justify-center px-6 py-8 md:px-12">
-        <div className="flex w-full max-w-[384px] flex-col items-center justify-center gap-8">
-          {/* Mobile Logo - Visible only on small screens */}
-          <div className="md:hidden mb-4">
-            <Link to="/">
-              <img
-                className="h-20 object-contain"
-                src="./logo.png"
-                alt="Lumina Logo"
-              />
-            </Link>
-          </div>
-
-          <div
-            className={`flex w-full flex-col items-start gap-2 text-center md:text-start`}
-          >
-            <span className="w-full text-xl font-medium text-default-font">
-              {t('auth.signIn')}
-            </span>
-            <span className="w-full text-body text-subtext-color">
-              {t('login.enterCredentials')}
-            </span>
+    <AuthScreen backTo="/" backLabel={t('login.changeRole')}>
+        <div className="flex w-full max-w-[420px] flex-col items-center gap-8">
+          <div className="flex w-full flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold text-brand-600">{t('auth.doctorSignIn')}</h1>
+            <p className="text-body text-subtext-color">{t('login.enterCredentials')}</p>
           </div>
 
           <form
             onSubmit={handleSignIn}
-            className="flex w-full flex-col items-start gap-6"
+            className="flex w-full flex-col items-start gap-5 rounded-[28px] bg-[#f7ebf6] px-5 py-6 shadow-sm"
           >
             {error && (
-              <div className="rounded-md bg-red-50 w-full p-4">
+              <div className="w-full rounded-2xl bg-red-50 p-4">
                 <h3 className="text-sm font-medium text-red-800">{error}</h3>
               </div>
             )}
@@ -155,65 +102,47 @@ function Login() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-brand-600 w-full"
+              className="w-full rounded-full bg-brand-600"
               size="large"
             >
               {loading ? t('login.signingIn') : t('auth.signIn')}
             </Button>
           </form>
 
-          <div className="flex flex-col items-center gap-4 text-sm">
+          <div className="flex flex-col items-center gap-3 text-sm">
             <div className="flex flex-wrap justify-center gap-1">
-              <span className="text-default-font">
-                {t('auth.dontHaveAccount')}
-              </span>
+              <span className="text-subtext-color">{t('auth.dontHaveAccount')}</span>
               <LinkButton
                 variant="brand"
                 size="small"
-                className="text-sky-600 p-0 h-auto"
+                className="h-auto p-0 font-semibold text-brand-600"
                 onClick={() => setShowSignUpDialog(true)}
               >
                 {t('login.requestAccess')}
               </LinkButton>
             </div>
             <div className="flex flex-wrap justify-center gap-1">
-              <span className="text-default-font">
-                {t('login.forgotPasswordText')}
-              </span>
+              <span className="text-subtext-color">{t('login.forgotPasswordText')}</span>
               <Link to="/reset-password">
                 <LinkButton
                   variant="brand"
                   size="small"
-                  className="text-sky-600 p-0 h-auto"
+                  className="h-auto p-0 font-semibold text-brand-600"
                 >
                   {t('login.resetPassword')}
-                </LinkButton>
-              </Link>
-            </div>
-            <div className="flex flex-wrap justify-center gap-1">
-              <span className="text-default-font">
-                {t('login.areYouPatient')}
-              </span>
-              <Link to="/patient-login">
-                <LinkButton
-                  variant="brand"
-                  size="small"
-                  className="text-sky-600 p-0 h-auto"
-                >
-                  {t('login.goToPatientLogin')}
                 </LinkButton>
               </Link>
             </div>
           </div>
         </div>
 
-        <SignUpRequestDialog
-          isOpen={showSignUpDialog}
-          onClose={() => setShowSignUpDialog(false)}
-          onSubmit={handleSignUpRequest}
-        />
-      </div>
-    </div>
+      <SignUpRequestDialog
+        isOpen={showSignUpDialog}
+        onClose={() => setShowSignUpDialog(false)}
+        onSubmit={handleSignUpRequest}
+      />
+    </AuthScreen>
   );
 }
+
 export default Login;

@@ -16,7 +16,7 @@ export const isUserRole = (role) => {
 
 export const getHomePathForRole = (role) => {
   if (isAdminRole(role)) return '/admin/dashboard';
-  if (isPatientRole(role)) return '/patient/instructions';
+  if (isPatientRole(role)) return '/patient';
   if (isUserRole(role)) return '/app/dashboard';
   return '/unauthorized';
 };

@@ -43,8 +43,6 @@ import CaseSatisfactionDisplay from '../components/case/CaseSatisfactionDisplay'
 import RequestEditDialog from '../components/case/RequestEditDialog';
 import TreatmentDetails from '../components/case/TreatmentDetails';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import InvitePatientDialog from '../components/case/InvitePatientDialog';
-import InstructionsDialog from '../components/case/InstructionsDialog';
 import PatientManagementCard from '../components/case/PatientManagementCard';
 
 const CasePageRefactored = () => {

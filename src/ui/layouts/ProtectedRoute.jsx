@@ -42,7 +42,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    navigate('/login');
+    navigate('/', { replace: true });
     return;
   }
 

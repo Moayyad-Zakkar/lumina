@@ -758,7 +758,7 @@
     }
   },
   "auth": {
-    "signIn": "Sign In",
+    "signIn": "Doctor Sign In",
     "signUp": "Sign Up",
     "signOut": "Sign Out",
     "email": "Email",
@@ -1100,6 +1100,7 @@
   "login": {
     "areYouPatient": "Are you a patient?",
     "goToPatientLogin": "Go to patient login",
+    "changeRole": "Choose a different role",
     "welcomeBack": "Welcome back",
     "subtitle": "Sign in to view and submit your Lumina cases",
     "enterCredentials": "Enter your credentials to access your account",
@@ -1397,6 +1398,15 @@
       "saveFailed": "Failed to update case details."
     }
   },
+  "roleSelect": {
+    "title": "Choose your role",
+    "subtitle": "Sign in to the Lumina app",
+    "doctorTitle": "I'm a doctor",
+    "doctorSubtitle": "Doctor sign-in",
+    "patientTitle": "I'm a patient",
+    "patientSubtitle": "Patient sign-in",
+    "footer": "All rights reserved © 2026 Lumina"
+  },
   "patientLogin": {
     "title": "Patient Sign In",
     "subtitle": "Enter your case number and password to view your treatment.",
@@ -1404,6 +1414,7 @@
     "identifierPlaceholder": "e.g. 1042",
     "areYouDoctor": "Are you a doctor or admin?",
     "goToDoctorLogin": "Go to doctor/admin login",
+    "changeRole": "Choose a different role",
     "errors": {
       "emptyFields": "Please enter your case number and password.",
       "notAPatientAccount": "This account is not a patient account."
@@ -1422,5 +1433,108 @@
     "startedOn": "Started on {{date}}",
     "movedToNext": "I've moved to the next aligner",
     "noActiveCase": "No active case is linked to your account."
+  },
+  "patientTracking": {
+    "back": "Back",
+    "signOut": "Sign out",
+    "homeTitle": "My treatment",
+    "noActiveCase": "No active treatment yet. Your doctor will link your case once your aligners are ready.",
+    "noSchedule": "Your doctor hasn't set your aligner schedule yet. Please check back soon.",
+    "overall": {
+      "title": "Treatment progress",
+      "hint": "Progress follows the slower arch, so your treatment is only complete when both arches are finished."
+    },
+    "archName": {
+      "upper": "Upper aligners",
+      "lower": "Lower aligners"
+    },
+    "archShort": {
+      "upper": "Upper",
+      "lower": "Lower"
+    },
+    "status": {
+      "notStarted": "Not started yet",
+      "finished": "All aligners completed",
+      "current": "Aligner {{current}} of {{total}}",
+      "switchOn": "Switch on {{date}}",
+      "finishOn": "Finishes {{date}}",
+      "switchToday": "Time to switch to aligner {{next}}",
+      "switchOverdue": "Switch to aligner {{next}} is overdue"
+    },
+    "log": {
+      "cardTitle": "Daily wear time",
+      "cardMissing": "You haven't logged today yet",
+      "cardDone": "Today is logged",
+      "pageTitle": "Log wear time",
+      "question": "How many hours did you wear your aligners {{date}}?",
+      "today": "today",
+      "unit": "hours",
+      "separate": "Enter upper and lower separately",
+      "save": "Save",
+      "saved": "Saved",
+      "error": "Something went wrong. Please try again.",
+      "editHint": "You can fill in or edit any previous day.",
+      "summary": "{{done}} of the last {{total}} days logged",
+      "chipLogged": "Logged",
+      "chipMissing": "Not logged",
+      "startFirst": "Start wearing your first aligner to begin logging wear time.",
+      "goStart": "Start my first aligner"
+    },
+    "archPage": {
+      "unavailable": "This aligner set isn't part of your treatment plan.",
+      "startedOn": "Started {{date}}",
+      "wearDays": "Wear for {{days}} days",
+      "start": "Start aligner {{n}}",
+      "switch": "Switch to aligner {{n}}",
+      "changeDate": "Change start date",
+      "undo": "Undo last switch",
+      "undoConfirm": "Undo the switch to aligner {{n}}? You'll go back to the previous aligner.",
+      "dateLabel": "When did you start wearing aligner {{n}}?",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "saved": "Saved",
+      "dateInvalid": "Please choose a valid date (not in the future, and not before the previous aligner).",
+      "timeline": "All aligners",
+      "done": "Done",
+      "current": "Current",
+      "upcoming": "Upcoming"
+    }
+  },
+  "scheduleEditor": {
+    "arch": {
+      "upper": "Upper arch",
+      "lower": "Lower arch"
+    },
+    "noArches": "No aligner counts are set on this case yet. Set the number of upper and lower aligners on the case first.",
+    "apply": "Apply",
+    "copyFrom": "Copy durations from {{arch}}",
+    "add": "Add aligner",
+    "removeLast": "Remove last",
+    "startedOn": "Started {{date}}",
+    "startedLocked": "The patient has already started this aligner, so it can't be removed.",
+    "invalid": "Each wear duration must be a whole number between 1 and 365 days.",
+    "changes": "Unsaved changes: {{n}}",
+    "reasonLabel": "Reason for the change",
+    "reasonPlaceholder": "e.g. lost aligner, damaged aligner, clinical complication",
+    "reasonHint": "The patient has already started, so every change is logged together with your reason."
+  },
+  "patientProgress": {
+    "status": {
+      "onTrack": "On track",
+      "dueToday": "Switch due today",
+      "overdue": "Overdue by {{days}} days",
+      "finished": "Completed",
+      "notStarted": "Not started"
+    },
+    "current": "Aligner {{current}} of {{total}}",
+    "startedOn": "Started {{date}}",
+    "nextSwitch": "Next switch {{date}}",
+    "finishes": "Final aligner ends {{date}}",
+    "adherence": "Last 7 days: {{avg}} h/day average, {{logged}} of {{days}} days logged",
+    "adherenceNone": "No wear time logged in the last 7 days",
+    "prescribed": "Prescribed: {{hours}} h/day",
+    "noSchedule": "No aligner schedule yet. Open Instructions to set one."
   }
 }

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { TextField } from '../../ui/components/TextField';
-import { Button } from '../../ui/components/Button';
-import { LinkButton } from '../../ui/components/LinkButton';
-import { Link, useNavigate } from 'react-router';
+import { TextField } from '../components/TextField';
+import { Button } from '../components/Button';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import AuthScreen from '../components/AuthScreen';
 import supabase from '../../helper/supabaseClient';
 import { getHomePathForRole } from '../../helper/auth';
+
 
 // Mirrors synthesizePhone() in the invite-patient edge function: the case
 // number is encoded as a synthetic phone so Supabase's native phone auth can
@@ -59,31 +60,19 @@ function PatientLogin() {
   };
 
   return (
-    <div className="flex w-full min-h-screen items-stretch bg-default-background">
-      <div className="hidden md:flex h-screen grow shrink-0 basis-0 flex-col items-end justify-between bg-brand-600">
-        <img className="object-cover h-full w-full object-center" src="./bg-intro.png" alt="Logo" />
-      </div>
-
-      <div className="flex grow shrink-0 basis-0 items-center justify-center px-6 py-8 md:px-12">
-        <div className="flex w-full max-w-[384px] flex-col items-center justify-center gap-8">
-          <div className="md:hidden mb-4">
-            <Link to="/">
-              <img className="h-20 object-contain" src="./logo.png" alt="Lumina Logo" />
-            </Link>
+    <AuthScreen backTo="/" backLabel={t('patientLogin.changeRole')}>
+        <div className="flex w-full max-w-[420px] flex-col items-center gap-8">
+          <div className="flex w-full flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold text-brand-600">{t('patientLogin.title')}</h1>
+            <p className="text-body text-subtext-color">{t('patientLogin.subtitle')}</p>
           </div>
 
-          <div className="flex w-full flex-col items-start gap-2 text-center md:text-start">
-            <span className="w-full text-xl font-medium text-default-font">
-              {t('patientLogin.title')}
-            </span>
-            <span className="w-full text-body text-subtext-color">
-              {t('patientLogin.subtitle')}
-            </span>
-          </div>
-
-          <form onSubmit={handleSignIn} className="flex w-full flex-col items-start gap-6">
+          <form
+            onSubmit={handleSignIn}
+            className="flex w-full flex-col items-start gap-5 rounded-[28px] bg-[#f3f4e4] px-5 py-6 shadow-sm"
+          >
             {error && (
-              <div className="rounded-md bg-red-50 w-full p-4">
+              <div className="w-full rounded-2xl bg-red-50 p-4">
                 <h3 className="text-sm font-medium text-red-800">{error}</h3>
               </div>
             )}
@@ -106,22 +95,17 @@ function PatientLogin() {
                 placeholder={t('login.passwordPlaceholder')}
               />
             </TextField>
-            <Button type="submit" disabled={loading} className="bg-brand-600 w-full" size="large">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full bg-brand-600"
+              size="large"
+            >
               {loading ? t('login.signingIn') : t('auth.signIn')}
             </Button>
           </form>
-
-          <div className="flex flex-wrap justify-center gap-1 text-sm">
-            <span className="text-default-font">{t('patientLogin.areYouDoctor')}</span>
-            <Link to="/login">
-              <LinkButton variant="brand" size="small" className="text-sky-600 p-0 h-auto">
-                {t('patientLogin.goToDoctorLogin')}
-              </LinkButton>
-            </Link>
-          </div>
         </div>
-      </div>
-    </div>
+    </AuthScreen>
   );
 }
 

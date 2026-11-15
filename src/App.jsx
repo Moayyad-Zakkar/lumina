@@ -47,9 +47,12 @@ import Store from './ui/Pages/Store';
 import AdminStoreRequestsPage from './ui/Pages/admin/AdminStoreRequestsPage';
 import { patientLayoutLoader } from './ui/loaders/patientLayoutLoader';
 import PatientLayout from './ui/layouts/PatientLayout';
-import PatientInstructionsPage from './ui/Pages/patient/PatientInstructionsPage';
 import PatientLogin from './ui/Pages/PatientLogin';
-import { patientInstructionsLoader } from './ui/loaders/patientInstructionsLoader';
+import RoleSelect from './ui/Pages/RoleSelect';
+import ArchPage from './ui/Pages/patient/Archpage';
+import PatientHome from './ui/Pages/patient/PatientHome';
+import DailyLogPage from './ui/Pages/patient/DailyLogPage';
+import { patientTrackingLoader } from './helper/patientTracking';
 
 const router = createBrowserRouter([
   {
@@ -70,7 +73,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    element: <Login />,
+    element: <RoleSelect />,
     path: '/',
   },
   {
@@ -219,11 +222,9 @@ const router = createBrowserRouter([
     ),
     loader: patientLayoutLoader,
     children: [
-      {
-        element: <PatientInstructionsPage />,
-        path: '/patient/instructions',
-        loader: patientInstructionsLoader,
-      },
+      { element: <PatientHome />, path: '/patient', loader: patientTrackingLoader },
+      { element: <ArchPage />, path: '/patient/arch/:arch', loader: patientTrackingLoader },
+      { element: <DailyLogPage />, path: '/patient/log', loader: patientTrackingLoader }
     ],
   },
   {
@@ -236,7 +237,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/patient',
-    loader: () => redirect('/patient/instructions'),
+    loader: () => redirect('/patient'),
   },
   {
     path: '/unauthorized',

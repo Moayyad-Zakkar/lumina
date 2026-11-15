@@ -78,7 +78,7 @@ const BoldNavbarRoot = React.forwardRef<HTMLElement, BoldNavbarRootProps>(
         <LinkButton>Pricing</LinkButton>
         <LinkButton>Contact</LinkButton>
         <div className="flex items-center gap-2 px-2">
-          <Link to="/login">
+          <Link to="/">
             <Button variant="brand-tertiary">Log in</Button>
           </Link>
           {/*

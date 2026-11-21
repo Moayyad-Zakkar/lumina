@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLoaderData } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { FeatherChevronsUp, FeatherChevronsDown, FeatherClock } from '@subframe/core';
+import { FeatherChevronsUp, FeatherChevronsDown, FeatherClock, FeatherCamera, FeatherHelpCircle } from '@subframe/core';
 
 
 import Error from '../../components/Error';
@@ -179,6 +179,9 @@ export default function PatientHome() {
             />
           );
         })}
+      <ActionCard to={PATIENT_PATHS.photos} icon={<FeatherCamera />} cardClassName="bg-[#fdf1e6]" title={t('patientTracking.photos.cardTitle')} subtitle={t('patientTracking.photos.cardSubtitle')} />
+      <ActionCard to={PATIENT_PATHS.help} icon={<FeatherHelpCircle />} cardClassName="bg-[#f4f4f5]" title={t('issues.cardTitle')} subtitle={t('issues.cardSubtitle')} />
+
       </div>
     </PatientShell>
   );

@@ -53,6 +53,10 @@ import ArchPage from './ui/Pages/patient/Archpage';
 import PatientHome from './ui/Pages/patient/PatientHome';
 import DailyLogPage from './ui/Pages/patient/DailyLogPage';
 import { patientTrackingLoader } from './helper/patientTracking';
+import { patientPhotosLoader } from './helper/casePhotos';
+import PhotosPage from './ui/Pages/patient/PhotosPage';
+import HelpPage from './ui/Pages/patient/HelpPage';
+import { patientIssuesLoader } from './helper/patientIssues';
 
 const router = createBrowserRouter([
   {
@@ -224,7 +228,10 @@ const router = createBrowserRouter([
     children: [
       { element: <PatientHome />, path: '/patient', loader: patientTrackingLoader },
       { element: <ArchPage />, path: '/patient/arch/:arch', loader: patientTrackingLoader },
-      { element: <DailyLogPage />, path: '/patient/log', loader: patientTrackingLoader }
+      { element: <DailyLogPage />, path: '/patient/log', loader: patientTrackingLoader },
+      { element: <PhotosPage />, path: '/patient/photos', loader: patientPhotosLoader },
+      { element: <HelpPage />, path: '/patient/help', loader: patientIssuesLoader }
+
     ],
   },
   {

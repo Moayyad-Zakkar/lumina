@@ -758,7 +758,8 @@
     }
   },
   "auth": {
-    "signIn": "Doctor Sign In",
+    "signIn": "Sign In",
+    "doctorSignIn": "Doctor Sign In",
     "signUp": "Sign Up",
     "signOut": "Sign Out",
     "email": "Email",
@@ -1432,7 +1433,11 @@
     "currentAligner": "Aligner {{number}} of {{total}}",
     "startedOn": "Started on {{date}}",
     "movedToNext": "I've moved to the next aligner",
-    "noActiveCase": "No active case is linked to your account."
+    "noActiveCase": "No active case is linked to your account.",
+    "help": {
+      "cardTitle": "Help",
+      "cardSubtitle": "Get help with your treatment"
+    }
   },
   "patientTracking": {
     "back": "Back",
@@ -1440,6 +1445,48 @@
     "homeTitle": "My treatment",
     "noActiveCase": "No active treatment yet. Your doctor will link your case once your aligners are ready.",
     "noSchedule": "Your doctor hasn't set your aligner schedule yet. Please check back soon.",
+    "photos": {
+      "cardTitle": "Treatment photos",
+      "cardSubtitle": "Track how your teeth change over time",
+      "pageTitle": "My photos",
+      "add": "Add photos",
+      "chooseFiles": "Choose photos",
+      "hint": "Take clear photos in good light, with your teeth together. You can pick up to {{max}} photos at once.",
+      "empty": "No photos yet. Add your first photos to start your timeline.",
+      "sortNewest": "Newest first",
+      "sortOldest": "Oldest first",
+      "dateLabel": "When were these photos taken?",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "noteLabel": "Note (optional)",
+      "notePlaceholder": "Note for your doctor (optional)",
+      "upload": "Upload",
+      "uploading": "Uploading {{done}} of {{total}}…",
+      "uploaded": "Photos uploaded",
+      "uploadFailed": "Upload failed. Please try again.",
+      "tooMany": "You can add up to {{max}} photos at a time.",
+      "notImage": "Only image files can be uploaded.",
+      "remove": "Remove",
+      "cancel": "Cancel",
+      "close": "Close",
+      "loading": "Loading…",
+      "loadFailed": "Couldn't load this photo.",
+      "reviewed": "Reviewed by your doctor",
+      "delete": "Delete photo",
+      "deleteConfirm": "Delete this photo? This can't be undone.",
+      "deleted": "Photo deleted",
+      "upperAligner": "Upper aligner {{n}}",
+      "lowerAligner": "Lower aligner {{n}}",
+      "beforeStart": "Before starting aligners",
+      "views": {
+        "front": "Front",
+        "right": "Right side",
+        "left": "Left side",
+        "upper": "Upper teeth",
+        "lower": "Lower teeth",
+        "other": "Other"
+      }
+    },
     "overall": {
       "title": "Treatment progress",
       "hint": "Progress follows the slower arch, so your treatment is only complete when both arches are finished."
@@ -1536,5 +1583,66 @@
     "adherenceNone": "No wear time logged in the last 7 days",
     "prescribed": "Prescribed: {{hours}} h/day",
     "noSchedule": "No aligner schedule yet. Open Instructions to set one."
+  },
+  "casePhotos": {
+    "title": "Patient photos",
+    "empty": "No photos uploaded yet.",
+    "newCount": "{{n}} new",
+    "markAll": "Mark all as reviewed",
+    "markOne": "Mark as reviewed",
+    "reviewed": "Reviewed",
+    "failed": "Couldn't update. Please try again."
+  },
+  "issues": {
+    "cardTitle": "Help",
+    "cardSubtitle": "Report a problem with your treatment",
+    "pageTitle": "Help",
+    "report": "Report a problem",
+    "empty": "No reports yet. If something is wrong with your aligners, tell your doctor here.",
+    "emergency": "This is not for emergencies. If you have swelling, severe pain, a fever or an injury, contact the clinic directly.",
+    "whatHappened": "What is the problem?",
+    "whichArch": "Which arch?",
+    "pickCategory": "Choose what the problem is first.",
+    "describePlaceholder": "Describe what is happening",
+    "submit": "Send to my doctor",
+    "sent": "Sent to your doctor",
+    "cancel": "Cancel",
+    "categories": {
+      "not_fit": "Aligner doesn't fit",
+      "pain": "Pain or discomfort",
+      "attachment_off": "Attachment came off",
+      "broken_lost": "Aligner broken or lost",
+      "other": "Something else"
+    },
+    "arches": {
+      "both": "Both",
+      "upper": "Upper",
+      "lower": "Lower"
+    },
+    "status": {
+      "open": "Waiting for doctor",
+      "answered": "Doctor replied",
+      "resolved": "Solved",
+      "needsReply": "Needs reply"
+    },
+    "upperAligner": "Upper aligner {{n}}",
+    "lowerAligner": "Lower aligner {{n}}",
+    "doctor": "Doctor",
+    "replyPlaceholder": "Write a message",
+    "reopenPlaceholder": "Write a message to reopen this",
+    "send": "Send",
+    "sending": "Sending…",
+    "markSolved": "Mark as solved",
+    "resolve": "Mark as resolved",
+    "reopen": "Reopen",
+    "resolvedHint": "This issue is marked as solved. Writing a new message will reopen it.",
+    "addPhoto": "Add photo",
+    "removePhoto": "Remove photo",
+    "tooManyPhotos": "You can attach up to {{max}} photos.",
+    "sendFailed": "Couldn't send. Please try again.",
+    "doctorTitle": "Patient issues",
+    "doctorEmpty": "The patient hasn't reported any issues.",
+    "doctorButton": "Issues"
   }
 }
+

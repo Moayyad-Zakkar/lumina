@@ -44,6 +44,7 @@ import RequestEditDialog from '../components/case/RequestEditDialog';
 import TreatmentDetails from '../components/case/TreatmentDetails';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import PatientManagementCard from '../components/case/PatientManagementCard';
+import CasePhotosCard from '../components/CasePhotosCard';
 
 const CasePageRefactored = () => {
   const { t } = useTranslation();
@@ -498,10 +499,13 @@ const CasePageRefactored = () => {
         )}
 
         {canManagePatient && (
+          <>
           <PatientManagementCard
             caseData={caseData}
             onRefresh={handleRefresh}
           />
+          <CasePhotosCard caseData={caseData} />
+          </>
         )}
 
         {/* Refinement Section */}

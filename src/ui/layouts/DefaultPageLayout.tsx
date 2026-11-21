@@ -392,10 +392,18 @@ const DefaultPageLayoutRoot = React.forwardRef<
       <Toaster position="top-right" />
 
       {/* MAIN CONTENT */}
+
+
+      
       {children ? (
+        /*
         <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4 self-stretch overflow-y-auto bg-default-background w-full">
           {children}
         </div>
+        */
+        <div className="flex grow shrink-0 basis-0 flex-col items-start gap-4 self-stretch bg-default-background w-full"> 
+        {children}
+      </div>
       ) : null}
     </div>
   );

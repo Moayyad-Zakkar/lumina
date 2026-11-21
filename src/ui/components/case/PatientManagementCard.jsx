@@ -5,7 +5,9 @@ import { Badge } from '../Badge';
 import supabase from '../../../helper/supabaseClient';
 import InvitePatientDialog from './InvitePatientDialog';
 import InstructionsDialog from './InstructionsDialog';
-import { FeatherUserPlus, FeatherClipboard } from '@subframe/core';
+import IssuesDialog from './IssuesDialog';
+import { FeatherUserPlus, FeatherClipboard, FeatherMessageCircle } from '@subframe/core';
+import { countOpenIssues } from '../../../helper/patientIssues';
 import {
   ARCHES,
   addDays,
@@ -56,6 +58,8 @@ export default function PatientManagementCard({ caseData }) {
   const { t, i18n } = useTranslation();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [isIssuesOpen, setIsIssuesOpen] = useState(false);
+  const [openIssues, setOpenIssues] = useState(0);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -118,8 +122,18 @@ export default function PatientManagementCard({ caseData }) {
     setLoading(false);
   };
 
+  // Issues waiting for a reply. Failing here only hides the badge, so it never blocks the card.
+  const loadIssueCount = async () => {
+    try {
+      setOpenIssues(await countOpenIssues(caseData.id));
+    } catch {
+      setOpenIssues(0);
+    }
+  };
+
   useEffect(() => {
     loadData();
+    loadIssueCount();
   }, [caseData.id]);
 
   const lang = i18n.language;
@@ -191,6 +205,18 @@ export default function PatientManagementCard({ caseData }) {
         <div className="flex items-center gap-2">
           <Button
             variant="neutral-secondary"
+            icon={<FeatherMessageCircle />}
+            onClick={() => setIsIssuesOpen(true)}
+          >
+            {t('issues.doctorButton')}
+            {openIssues > 0 && (
+              <span className="ms-2 rounded-full bg-[#c9cc4a] px-2 text-caption font-caption text-default-font">
+                {openIssues}
+              </span>
+            )}
+          </Button>
+          <Button
+            variant="neutral-secondary"
             icon={<FeatherClipboard />}
             onClick={() => setIsInstructionsOpen(true)}
           >
@@ -234,6 +260,12 @@ export default function PatientManagementCard({ caseData }) {
         onClose={() => setIsInviteOpen(false)}
         caseData={caseData}
         onInvited={loadData}
+      />
+      <IssuesDialog
+        isOpen={isIssuesOpen}
+        onClose={() => setIsIssuesOpen(false)}
+        caseData={caseData}
+        onChanged={loadIssueCount}
       />
       <InstructionsDialog
         isOpen={isInstructionsOpen}

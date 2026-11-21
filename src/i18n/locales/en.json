@@ -51,7 +51,7 @@
     "title": "Dashboard",
     "hello": "Hello, Dr.",
     "totalCases": "TOTAL CASES",
-    "pendingReview": "New Cases",
+    "pendingReview": "NEW CASES",
     "adminAcceptedCases": "Accepted Cases Pending Treatment Plan",
     "completedBy3DA": "COMPLETED",
     "recentCases": "Recent Cases",
@@ -363,6 +363,7 @@
     "openViewer": "Open Case Viewer",
     "viewOriginalCase": "View Original Case",
     "refinementCase": "Refinement",
+
     "patientManagement": {
       "title": "Patient Management",
       "wearPhase": "Wear Phase",
@@ -400,6 +401,7 @@
     "instructions": {
       "title": "Instructions",
       "notes": "Notes for the patient",
+      "notesForPatient": "Note for the patient (shown on the patient's home page)",
       "wearHoursPerDay": "Wear hours per day",
       "schedule": "Aligner wear schedule",
       "applyToAll": "Apply to all",
@@ -1445,11 +1447,18 @@
     "homeTitle": "My treatment",
     "noActiveCase": "No active treatment yet. Your doctor will link your case once your aligners are ready.",
     "noSchedule": "Your doctor hasn't set your aligner schedule yet. Please check back soon.",
+    "note": {
+      "title": "From your doctor",
+      "wearHours": "Wear your aligners {{hours}} hours a day",
+      "more": "Read more",
+      "less": "Show less"
+    },
     "photos": {
       "cardTitle": "Treatment photos",
       "cardSubtitle": "Track how your teeth change over time",
       "pageTitle": "My photos",
       "add": "Add photos",
+      "takePhoto": "Take a photo",
       "chooseFiles": "Choose photos",
       "hint": "Take clear photos in good light, with your teeth together. You can pick up to {{max}} photos at once.",
       "empty": "No photos yet. Add your first photos to start your timeline.",
@@ -1585,7 +1594,7 @@
     "noSchedule": "No aligner schedule yet. Open Instructions to set one."
   },
   "casePhotos": {
-    "title": "Patient photos",
+    "title": "Patient Photos",
     "empty": "No photos uploaded yet.",
     "newCount": "{{n}} new",
     "markAll": "Mark all as reviewed",

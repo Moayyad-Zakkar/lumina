@@ -149,9 +149,9 @@ export default function PatientManagementCard({ caseData }) {
     return (
       <div
         key={a}
-        className="flex w-full flex-col gap-2 rounded-md border border-solid border-neutral-border px-4 py-3"
+        className="flex w-full flex-col gap-2 rounded-md border border-solid border-neutral-border px-3 py-3 md:px-4"
       >
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-between gap-2">
           <span className="text-body-bold font-body-bold text-default-font">
             {t(`scheduleEditor.arch.${a}`)}
           </span>
@@ -162,7 +162,7 @@ export default function PatientManagementCard({ caseData }) {
 
         {info?.current_aligner != null && (
           <div className="flex w-full flex-col gap-1">
-            <div className="flex w-full items-center justify-between">
+            <div className="flex w-full items-center justify-between gap-2">
               <span className="text-body font-body text-default-font">
                 {t('patientProgress.current', { current: info.current_aligner, total })}
               </span>
@@ -171,13 +171,22 @@ export default function PatientManagementCard({ caseData }) {
             <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
               <div className="h-full rounded-full bg-brand-600" style={{ width: `${pct}%` }} />
             </div>
-            <span className="text-caption font-caption text-subtext-color">
-              {t('patientProgress.startedOn', { date: formatDate(info.current_started_on, lang) })}
-              {' · '}
-              {info.is_last_stage
-                ? t('patientProgress.finishes', { date: formatDate(info.next_switch_on, lang) })
-                : t('patientProgress.nextSwitch', { date: formatDate(info.next_switch_on, lang) })}
-            </span>
+            {/* Stacks on mobile so the two dates don't wrap awkwardly mid-sentence */}
+            <div className="flex flex-col gap-0.5 text-caption font-caption text-subtext-color md:flex-row md:gap-1">
+              <span>
+                {t('patientProgress.startedOn', {
+                  date: formatDate(info.current_started_on, lang),
+                })}
+              </span>
+              <span className="hidden md:inline">·</span>
+              <span>
+                {info.is_last_stage
+                  ? t('patientProgress.finishes', { date: formatDate(info.next_switch_on, lang) })
+                  : t('patientProgress.nextSwitch', {
+                      date: formatDate(info.next_switch_on, lang),
+                    })}
+              </span>
+            </div>
           </div>
         )}
 
@@ -197,13 +206,14 @@ export default function PatientManagementCard({ caseData }) {
   };
 
   return (
-    <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
-      <div className="flex w-full items-center justify-between">
+    <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 pt-4 pb-5 shadow-sm md:px-6 md:pb-6">
+      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <span className="text-heading-3 font-heading-3 text-default-font">
           {t('casePage.patientManagement.title')}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:items-center">
           <Button
+            className="w-full md:w-auto"
             variant="neutral-secondary"
             icon={<FeatherMessageCircle />}
             onClick={() => setIsIssuesOpen(true)}
@@ -216,13 +226,18 @@ export default function PatientManagementCard({ caseData }) {
             )}
           </Button>
           <Button
+            className="w-full md:w-auto"
             variant="neutral-secondary"
             icon={<FeatherClipboard />}
             onClick={() => setIsInstructionsOpen(true)}
           >
             {t('casePage.instructions.title')}
           </Button>
-          <Button icon={<FeatherUserPlus />} onClick={() => setIsInviteOpen(true)}>
+          <Button
+            className="col-span-2 w-full md:col-span-1 md:w-auto"
+            icon={<FeatherUserPlus />}
+            onClick={() => setIsInviteOpen(true)}
+          >
             {t('casePage.invitePatient.title')}
           </Button>
         </div>

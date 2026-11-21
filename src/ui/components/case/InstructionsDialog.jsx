@@ -288,7 +288,7 @@ export default function InstructionsDialog({ isOpen, onClose, caseData, onSaved 
             <>
               <div className="flex w-full flex-col gap-1">
                 <span className="text-caption font-caption text-subtext-color">
-                  {t('casePage.instructions.notes')}
+                  {t('casePage.instructions.notesForPatient')}
                 </span>
                 <textarea
                   className="w-full min-h-24 rounded-md border border-solid border-neutral-border px-3 py-2 text-body font-body"

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData, useRevalidator } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 import { FeatherCamera, FeatherCheck, FeatherX } from '@subframe/core';
 import Error from '../../components/Error';
 import PatientShell from '../../components/PatientShell';
@@ -22,10 +24,23 @@ import {
 
 const p = 'patientTracking.photos';
 
+const isNative = Capacitor.isNativePlatform();
+
 const primaryBtn =
   'w-full rounded-full bg-brand-600 px-6 py-4 text-body-bold font-bold text-white shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50';
 const ghostBtn =
   'flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-body-bold font-semibold text-brand-600 shadow-sm disabled:opacity-50';
+
+// Turns a Capacitor webPath into a File so the existing upload pipeline keeps working.
+const toFile = async (webPath, i = 0) => {
+  const blob = await (await fetch(webPath)).blob();
+  return new File([blob], `photo-${Date.now()}-${i}.jpg`, {
+    type: blob.type || 'image/jpeg',
+  });
+};
+
+// The plugin rejects with a "cancelled" message when the user backs out; that is not an error.
+const isCancel = (e) => /cancel/i.test(e?.message || '');
 
 export default function PhotosPage() {
   const data = useLoaderData();
@@ -60,6 +75,7 @@ function PhotoUploadPanel({ caseId, userId, today, onChanged, onClose }) {
   const itemsRef = useRef(items);
   const uploading = progress !== null;
   const yesterday = addDays(today, -1);
+  const full = items.length >= MAX_FILES_PER_UPLOAD;
 
   useEffect(() => {
     itemsRef.current = items;
@@ -69,25 +85,60 @@ function PhotoUploadPanel({ caseId, userId, today, onChanged, onClose }) {
     [],
   );
 
-  const onPick = (e) => {
-    const picked = Array.from(e.target.files || []);
-    e.target.value = ''; // lets the same file be picked again
+  // Shared by the web file input and the native camera / gallery buttons.
+  const addFiles = (picked) => {
     setErr(null);
+    const current = itemsRef.current;
 
     const images = picked.filter((f) => f.type.startsWith('image/'));
-    const room = Math.max(0, MAX_FILES_PER_UPLOAD - items.length);
+    const room = Math.max(0, MAX_FILES_PER_UPLOAD - current.length);
     const take = images.slice(0, room);
     if (images.length < picked.length) setErr(t(`${p}.notImage`));
     else if (images.length > take.length) setErr(t(`${p}.tooMany`, { max: MAX_FILES_PER_UPLOAD }));
 
     // Suggest the usual intraoral set in order (front, right, left, upper, lower); editable.
-    const used = new Set(items.map((i) => i.view));
+    const used = new Set(current.map((i) => i.view));
     const added = take.map((file) => {
       const view = PHOTO_VIEWS.find((v) => v !== 'other' && !used.has(v)) || 'other';
       used.add(view);
       return { id: nextItemId++, file, previewUrl: URL.createObjectURL(file), view };
     });
-    setItems([...items, ...added]);
+    setItems((prev) => [...prev, ...added]);
+  };
+
+  // Web: the hidden <input type="file">.
+  const onPick = (e) => {
+    const picked = Array.from(e.target.files || []);
+    e.target.value = ''; // lets the same file be picked again
+    addFiles(picked);
+  };
+
+  // Android app: open the camera directly.
+  const takePhoto = async () => {
+    try {
+      const photo = await Camera.getPhoto({
+        quality: 90,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+        correctOrientation: true,
+      });
+      addFiles([await toFile(photo.webPath)]);
+    } catch (e) {
+      if (!isCancel(e)) setErr(e.message || t(`${p}.uploadFailed`));
+    }
+  };
+
+  // Android app: pick several photos from the gallery.
+  const pickFromGallery = async () => {
+    try {
+      const res = await Camera.pickImages({
+        quality: 90,
+        limit: Math.max(1, MAX_FILES_PER_UPLOAD - itemsRef.current.length),
+      });
+      addFiles(await Promise.all(res.photos.map((ph, i) => toFile(ph.webPath, i))));
+    } catch (e) {
+      if (!isCancel(e)) setErr(e.message || t(`${p}.uploadFailed`));
+    }
   };
 
   const setView = (id, view) =>
@@ -138,23 +189,47 @@ function PhotoUploadPanel({ caseId, userId, today, onChanged, onClose }) {
         {t(`${p}.hint`, { max: MAX_FILES_PER_UPLOAD })}
       </p>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={onPick}
-      />
-      <button
-        type="button"
-        className={ghostBtn}
-        disabled={uploading || items.length >= MAX_FILES_PER_UPLOAD}
-        onClick={() => fileRef.current?.click()}
-      >
-        <FeatherCamera className="h-5 w-5" />
-        {t(`${p}.chooseFiles`)}
-      </button>
+      {isNative ? (
+        <>
+          <button
+            type="button"
+            className={ghostBtn}
+            disabled={uploading || full}
+            onClick={takePhoto}
+          >
+            <FeatherCamera className="h-5 w-5" />
+            {t(`${p}.takePhoto`)}
+          </button>
+          <button
+            type="button"
+            className={ghostBtn}
+            disabled={uploading || full}
+            onClick={pickFromGallery}
+          >
+            {t(`${p}.chooseFiles`)}
+          </button>
+        </>
+      ) : (
+        <>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={onPick}
+          />
+          <button
+            type="button"
+            className={ghostBtn}
+            disabled={uploading || full}
+            onClick={() => fileRef.current?.click()}
+          >
+            <FeatherCamera className="h-5 w-5" />
+            {t(`${p}.chooseFiles`)}
+          </button>
+        </>
+      )}
 
       {items.map((item) => (
         <div key={item.id} className="flex items-center gap-3">

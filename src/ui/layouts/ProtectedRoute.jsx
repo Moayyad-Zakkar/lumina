@@ -1,26 +1,26 @@
-import { useEffect } from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { Loader } from '../components/Loader';
 
 // Protected route component
 export default function ProtectedRoute({ children }) {
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated
+    // Read the stored session (local, no network call), so a slow
+    // connection on app start doesn't look like being logged out
     const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user || null);
       setLoading(false);
     };
 
     getUser();
 
-    // Set up auth state listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user || null);
@@ -41,10 +41,7 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  if (!user) {
-    navigate('/', { replace: true });
-    return;
-  }
+  if (!user) return <Navigate to="/" replace />;
 
   return children;
 }

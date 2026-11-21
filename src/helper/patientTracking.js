@@ -123,6 +123,13 @@ export async function loadTrackingBundle(caseId, today = toLocalISODate()) {
     supabase.rpc('arch_progress', { p_case_id: caseId, p_arch: 'lower', p_today: today }),
     supabase.rpc('case_progress', { p_case_id: caseId, p_today: today }),
   ]);
+  // The doctor's general note + prescribed wear time. Fetched separately and NOT part of the
+  // failure check: if this one request fails the home page still works, just without the card.
+  const instr = await supabase
+    .from('treatment_instructions')
+    .select('notes, wear_hours_per_day')
+    .eq('case_id', caseId)
+    .maybeSingle();
   const failed = results.find((r) => r.error);
   if (failed) throw failed.error;
   const [schedule, starts, logs, upper, lower, overall] = results;
@@ -138,6 +145,7 @@ export async function loadTrackingBundle(caseId, today = toLocalISODate()) {
     // An arch only exists for this case if the doctor gave it a schedule.
     arches: ARCHES.filter((a) => schedule.data.some((r) => r.arch === a)),
     overall: overall.data, // slower arch, 0-100 or null
+    instructions: instr.error ? null : instr.data, // { notes, wear_hours_per_day } | null
   };
 }
 

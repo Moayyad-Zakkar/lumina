@@ -57,6 +57,7 @@ import { patientPhotosLoader } from './helper/casePhotos';
 import PhotosPage from './ui/Pages/patient/PhotosPage';
 import HelpPage from './ui/Pages/patient/HelpPage';
 import { patientIssuesLoader } from './helper/patientIssues';
+import { rootRedirectLoader } from './ui/loaders/rootRedirectLoader';
 
 const router = createBrowserRouter([
   {
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
   {
     element: <RoleSelect />,
     path: '/',
+    loader: rootRedirectLoader,
   },
   {
     element: <Login />,
@@ -241,10 +243,6 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     loader: () => redirect('/admin/dashboard'),
-  },
-  {
-    path: '/patient',
-    loader: () => redirect('/patient'),
   },
   {
     path: '/unauthorized',

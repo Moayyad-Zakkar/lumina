@@ -8,6 +8,7 @@ import Error from '../../components/Error';
 import PatientShell from '../../components/PatientShell';
 import ActionCard from '../../components/ActionCard';
 import ProgressRing from '../../components/ProgressRing';
+import TreatmentNoteCard from '../../components/TreatmentNoteCard';
 import useArchStatusText from '../../../helper/useArchStatusText';
 import { totalAligners } from '../../../helper/patientTracking';
 import { PATIENT_PATHS } from '../patientPaths';
@@ -89,7 +90,7 @@ export default function PatientHome() {
     );
   }
 
-  const { today, arches, arch, schedule, logs, overall } = data;
+  const { today, arches, arch, schedule, logs, overall, instructions } = data;
 
   if (arches.length === 0) {
     return (
@@ -140,6 +141,11 @@ export default function PatientHome() {
         </div>
         <p className="text-caption text-subtext-color">{t('patientTracking.overall.hint')}</p>
       </div>
+
+      <TreatmentNoteCard
+        notes={instructions?.notes}
+        wearHours={instructions?.wear_hours_per_day}
+      />
 
       <div className="flex w-full flex-col gap-4">
         <ActionCard

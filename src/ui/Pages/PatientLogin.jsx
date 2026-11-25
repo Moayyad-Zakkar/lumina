@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import AuthScreen from '../components/AuthScreen';
 import supabase from '../../helper/supabaseClient';
 import { getHomePathForRole } from '../../helper/auth';
+import { unregisterPush } from '../../helper/pushNotifications';
 
 
 // Mirrors synthesizePhone() in the invite-patient edge function: the case
@@ -47,6 +48,7 @@ function PatientLogin() {
         .single();
 
       if (profile?.role !== 'patient') {
+        unregisterPush()
         await supabase.auth.signOut();
         throw new Error(t('patientLogin.errors.notAPatientAccount'));
       }

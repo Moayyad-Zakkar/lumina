@@ -20,6 +20,8 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { Badge } from '../components/Badge';
 import { useTranslation } from 'react-i18next';
+import { unregisterPush } from '../../helper/pushNotifications';
+import NotificationBell from '../components/NotificationBell';
 
 interface DefaultPageLayoutRootProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -63,33 +65,57 @@ const DefaultPageLayoutRoot = React.forwardRef<
 
   // Notifications logic (existing)
   useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-      const effectiveUserId = initialUserId || user?.id;
-      if (authError || !effectiveUserId) {
-        if (isMounted) setBadgeLoading(false);
-        return;
-      }
-      const cacheKey = `unread_count_${effectiveUserId}`;
-      const cached = localStorage.getItem(cacheKey);
-      if (isMounted && cached != null) setBadgeCount(Number(cached));
+    let active = true;
+    let channel: any = null;
+  
+    const refresh = async (userId: string) => {
       const { count, error } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', effectiveUserId)
+        .eq('recipient_id', userId)
+        .eq('type', 'case')
         .eq('status', 'unread');
-      if (!error && isMounted) {
+      if (!error && active) {
         setBadgeCount(count || 0);
-        localStorage.setItem(cacheKey, String(count || 0));
+        localStorage.setItem(`unread_count_${userId}`, String(count || 0));
       }
-      if (isMounted) setBadgeLoading(false);
+    };
+  
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const userId = initialUserId || user?.id;
+      if (!userId || !active) {
+        setBadgeLoading(false);
+        return;
+      }
+  
+      const cached = localStorage.getItem(`unread_count_${userId}`);
+      if (cached != null) setBadgeCount(Number(cached));
+  
+      await refresh(userId);
+      if (!active) return;           // <- add this
+setBadgeLoading(false);
+  
+      channel = supabase
+        .channel(`cases_badge_${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `recipient_id=eq.${userId}`,
+          },
+          () => refresh(userId),
+        )
+        .subscribe();
     })();
+  
     return () => {
-      isMounted = false;
+      active = false;
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
@@ -147,13 +173,16 @@ const DefaultPageLayoutRoot = React.forwardRef<
     >
       {/* MOBILE HEADER - Sticky Option 2 */}
       <div className="flex md:hidden sticky top-0 w-full items-center justify-between px-4 py-3 border-b border-component-divider bg-default-background z-30">
-        <img className="h-8" src="/logo.png" alt="logo" />
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-subtext-color"
-        >
-          {isMobileMenuOpen ? <FeatherX /> : <FeatherMenu />}
-        </button>
+      <img className="h-8" src="/logo.png" alt="logo" />
+<div className="flex items-center gap-2">
+  <NotificationBell mode="popover" role="admin" />
+  <button
+    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+    className="p-2 text-subtext-color"
+  >
+    {isMobileMenuOpen ? <FeatherX /> : <FeatherMenu />}
+  </button>
+</div>
       </div>
 
       {/* DESKTOP SIDEBAR */}
@@ -161,6 +190,8 @@ const DefaultPageLayoutRoot = React.forwardRef<
         className="hidden md:flex"
         header={<img className="flex-none" src="/logo.png" />}
         footer={
+          <div className="flex flex-col items-center gap-3">
+              <NotificationBell mode="popover" role="admin" />
           <SubframeCore.DropdownMenu.Root>
             <SubframeCore.DropdownMenu.Trigger asChild>
               <div className="cursor-pointer">
@@ -187,6 +218,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   <SidebarWithLargeItems.NavItem
                     icon={<SubframeCore.FeatherLogOut />}
                     onClick={async () => {
+                      await unregisterPush();
                       await supabase.auth.signOut();
                       navigate('/');
                     }}
@@ -197,6 +229,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
               </SubframeCore.DropdownMenu.Content>
             </SubframeCore.DropdownMenu.Portal>
           </SubframeCore.DropdownMenu.Root>
+          </div>
         }
       >
         <Link to="/admin/dashboard">
@@ -364,6 +397,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
 
               <button
                 onClick={async () => {
+                  await unregisterPush();
                   await supabase.auth.signOut();
                   navigate('/');
                 }}

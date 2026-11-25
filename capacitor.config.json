@@ -1,5 +1,13 @@
 {
   "appId": "sy.lumina.app",
   "appName": "Lumina",
-  "webDir": "dist"
+  "webDir": "dist",
+  "backgroundColor": "#ffffff",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#ffffff",
+      "showSpinner": false
+    }
+  }
 }

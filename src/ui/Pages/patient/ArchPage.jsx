@@ -18,6 +18,7 @@ import {
   undoLastStart,
 } from '../../../helper/patientTracking';
 import useArchStatusText from '../../../helper/useArchStatusText';
+import { useReminderSync } from '../../../hooks/useReminderSync';
 
 // Route: { path: '/patient/arch/:arch', loader: patientTrackingLoader, element: <ArchPage /> }
 
@@ -25,6 +26,8 @@ export default function ArchPage() {
   const data = useLoaderData();
   const { arch } = useParams();
   const { t } = useTranslation();
+  useReminderSync();
+
 
   if (data.error) return <Error error={data.error} />;
 

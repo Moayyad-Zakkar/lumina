@@ -742,7 +742,7 @@
     "saveFee": "Save Fee",
     "alignerMaterials": "Aligners Systems",
     "services": "Services",
-
+"announcements": "Announcements",
     "errors": {
       "invalidEmail": "Please enter a valid email address.",
       "passwordTooShort": "Password must be at least 6 characters.",
@@ -1447,6 +1447,32 @@
     "homeTitle": "My treatment",
     "noActiveCase": "No active treatment yet. Your doctor will link your case once your aligners are ready.",
     "noSchedule": "Your doctor hasn't set your aligner schedule yet. Please check back soon.",
+    "viewer": {
+  "pageTitle": "Treatment plan",
+  "cardTitle": "Treatment plan",
+  "cardSubtitle": "See how your teeth will move",
+  "downloadGuide": "Download user guide",
+  "empty": "Your treatment plan isn't ready yet."
+},
+    "reminders": {
+  "pageTitle": "Reminders",
+  "dailyLog": "Daily wear reminder",
+  "dailyLogHint": "A reminder to log your wear time. Skipped on days you've already logged.",
+  "dailyTime": "Reminder time",
+  "switchReminders": "Aligner switch reminders",
+  "switchRemindersHint": "The evening before and the morning of each switch.",
+  "permissionDenied": "Notifications are turned off for this app. Enable them in Android settings.",
+  "saved": "Saved",
+  "webOnly": "Reminders are available in the Lumina app for Android.",
+  "dailyTitle": "Time to log your wear",
+  "dailyBody": "How many hours did you wear your aligners today?",
+  "switchTomorrowTitle": "Aligner switch tomorrow",
+  "switchTodayTitle": "Time to switch aligners",
+  "switchOverdueTitle": "Your aligner switch is due",
+  "lineUpper": "Upper: aligner {{n}}",
+  "lineLower": "Lower: aligner {{n}}",
+  "cardSubtitle": "Daily log and aligner switch"
+},
     "note": {
       "title": "From your doctor",
       "wearHours": "Wear your aligners {{hours}} hours a day",
@@ -1652,6 +1678,37 @@
     "doctorTitle": "Patient issues",
     "doctorEmpty": "The patient hasn't reported any issues.",
     "doctorButton": "Issues"
-  }
+  },
+  "notifications": {
+  "bell": "Notifications",
+  "pageTitle": "Notifications",
+  "empty": "No notifications yet.",
+  "loading": "Loading...",
+  "markAllRead": "Mark all as read",
+  "close": "Close"
+},
+"broadcast": {
+  "open": "Send announcement",
+  "title": "Send announcement",
+  "audience": "Send to",
+  "patients": "All patients",
+  "doctors": "All doctors",
+  "languageHint": "Each person receives the language set in their profile.",
+  "english": "English",
+  "arabic": "Arabic",
+  "titleLabel": "Title",
+  "bodyLabel": "Message",
+  "cancel": "Cancel",
+  "review": "Review",
+  "back": "Back",
+  "send": "Send now",
+  "sending": "Sending...",
+  "confirmLine": "This will be sent to {{count}} ({{audience}}). {{withApp}} of them have the app installed and will get a phone notification; everyone will see it in their notifications.",
+  "confirmWarning": "A sent notification cannot be recalled.",
+  "sent": "Sent to {{count}} recipients",
+  "history": "Sent announcements",
+  "historyEmpty": "No announcements sent yet.",
+  "recipientsRead": "Sent to {{sent}} · read by {{read}}"
+}
 }
 

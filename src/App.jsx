@@ -58,6 +58,13 @@ import PhotosPage from './ui/Pages/patient/PhotosPage';
 import HelpPage from './ui/Pages/patient/HelpPage';
 import { patientIssuesLoader } from './helper/patientIssues';
 import { rootRedirectLoader } from './ui/loaders/rootRedirectLoader';
+import RemindersPage from './ui/Pages/patient/RemindersPage';
+import ViewerPage from './ui/Pages/patient/ViewerPage';
+import { patientViewerLoader } from './helper/patientViewer';
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
+import AppLoading from './ui/components/AppLoading';
+import NotificationsPage from './ui/Pages/patient/NotificationsPage';
 
 const router = createBrowserRouter([
   {
@@ -230,10 +237,12 @@ const router = createBrowserRouter([
     children: [
       { element: <PatientHome />, path: '/patient', loader: patientTrackingLoader },
       { element: <ArchPage />, path: '/patient/arch/:arch', loader: patientTrackingLoader },
+      { element: <ViewerPage />, path: '/patient/viewer', loader: patientViewerLoader },
       { element: <DailyLogPage />, path: '/patient/log', loader: patientTrackingLoader },
       { element: <PhotosPage />, path: '/patient/photos', loader: patientPhotosLoader },
-      { element: <HelpPage />, path: '/patient/help', loader: patientIssuesLoader }
-
+      { element: <HelpPage />, path: '/patient/help', loader: patientIssuesLoader },
+      { element: <RemindersPage />, path: '/patient/reminders', loader: patientTrackingLoader },
+      { element: <NotificationsPage />, path: '/patient/notifications' },
     ],
   },
   {
@@ -254,8 +263,25 @@ const router = createBrowserRouter([
   },
 ]);
 
+
+// Keep the native splash up until the first route and its data are ready.
+if (Capacitor.isNativePlatform()) {
+  const hideSplash = () => SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
+  if (router.state.initialized) {
+    hideSplash();
+  } else {
+    const unsubscribe = router.subscribe((state) => {
+      if (state.initialized) {
+        hideSplash();
+        unsubscribe();
+      }
+    });
+    setTimeout(hideSplash, 6000); // safety net: never leave the splash up forever
+  }
+}
+
 function App() {
-  return <RouterProvider router={router} hydrateFallbackElement={null} />;
+  return <RouterProvider router={router} hydrateFallbackElement={<AppLoading />} />;
 }
 
 export default App;

@@ -27,6 +27,8 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import supabase from '../../helper/supabaseClient';
 import { Badge } from '../components/Badge';
 import { useTranslation } from 'react-i18next';
+import { unregisterPush } from '../../helper/pushNotifications';
+import NotificationBell from '../components/NotificationBell';
 
 interface DefaultPageLayoutRootProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -81,55 +83,41 @@ const DefaultPageLayoutRoot = React.forwardRef<
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      const effectiveUserId = initialUserId || user?.id;
-
-      if (authError || !effectiveUserId) {
-        if (isMounted) setBadgeLoading(false);
-        return;
-      }
-
-      const cacheKey = `unread_count_${effectiveUserId}`;
-      const cached = localStorage.getItem(cacheKey);
-      if (isMounted && cached != null) setBadgeCount(Number(cached));
-
+    let active = true;
+    let channel: any = null;
+  
+    const refresh = async (userId: string) => {
       const { count, error } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', effectiveUserId)
+        .eq('recipient_id', userId)
+        .eq('type', 'case')
         .eq('status', 'unread');
-
-      if (!error && isMounted) {
+      if (!error && active) {
         setBadgeCount(count || 0);
-        localStorage.setItem(cacheKey, String(count || 0));
+        localStorage.setItem(`unread_count_${userId}`, String(count || 0));
       }
-      if (isMounted) setBadgeLoading(false);
-    })();
-
-    return () => {
-      isMounted = false;
     };
-  }, []);
-
-  // Realtime subscription to update badge immediately
-  useEffect(() => {
-    let active = true;
+  
     (async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       const userId = initialUserId || user?.id;
-      if (!userId || !active) return;
-      const cacheKey = `unread_count_${userId}`;
-
-      const channel = supabase
-        .channel('notifications_changes_app')
+      if (!userId || !active) {
+        setBadgeLoading(false);
+        return;
+      }
+  
+      const cached = localStorage.getItem(`unread_count_${userId}`);
+      if (cached != null) setBadgeCount(Number(cached));
+  
+      await refresh(userId);
+      if (!active) return;           
+setBadgeLoading(false);
+  
+      channel = supabase
+        .channel(`cases_badge_${userId}`)
         .on(
           'postgres_changes',
           {
@@ -138,48 +126,14 @@ const DefaultPageLayoutRoot = React.forwardRef<
             table: 'notifications',
             filter: `recipient_id=eq.${userId}`,
           },
-          (payload) => {
-            const evt = payload.eventType;
-            const newRow = payload.new as any;
-            const oldRow = payload.old as any;
-            let delta = 0;
-            if (evt === 'INSERT') {
-              if (
-                newRow?.recipient_id === userId &&
-                newRow?.status === 'unread'
-              )
-                delta = 1;
-            } else if (evt === 'UPDATE') {
-              if (newRow?.recipient_id === userId) {
-                if (oldRow?.status === 'unread' && newRow?.status !== 'unread')
-                  delta = -1;
-                if (oldRow?.status !== 'unread' && newRow?.status === 'unread')
-                  delta = 1;
-              }
-            } else if (evt === 'DELETE') {
-              if (
-                oldRow?.recipient_id === userId &&
-                oldRow?.status === 'unread'
-              )
-                delta = -1;
-            }
-            if (delta !== 0) {
-              setBadgeCount((prev) => {
-                const next = Math.max(0, (prev || 0) + delta);
-                localStorage.setItem(cacheKey, String(next));
-                return next;
-              });
-            }
-          },
+          () => refresh(userId),
         )
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     })();
+  
     return () => {
       active = false;
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
@@ -194,12 +148,12 @@ const DefaultPageLayoutRoot = React.forwardRef<
       {/* MOBILE HEADER - Only visible on small screens */}
       <div className="flex md:hidden w-full px-4 py-3 items-center justify-between border-b border-component-divider bg-default-background z-20">
         <img className="h-8" src="/logo.png" alt="logo" />
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-subtext-color"
-        >
-          {isMobileMenuOpen ? <FeatherX /> : <FeatherMenu />}
-        </button>
+        <div className="flex items-center gap-2">
+  <NotificationBell mode="popover" role="user" />
+  <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-subtext-color">
+    {isMobileMenuOpen ? <FeatherX /> : <FeatherMenu />}
+  </button>
+</div>
       </div>
 
       {/* DESKTOP SIDEBAR - Hidden on mobile */}
@@ -207,6 +161,8 @@ const DefaultPageLayoutRoot = React.forwardRef<
         className="hidden md:flex"
         header={<img className="flex-none" src="/logo.png" />}
         footer={
+          <div className="flex flex-col items-center gap-3">
+            <NotificationBell mode="popover" role="user" />
           <SubframeCore.DropdownMenu.Root>
             <SubframeCore.DropdownMenu.Trigger asChild>
               <div className="cursor-pointer">
@@ -243,6 +199,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
                   <SidebarWithLargeItems.NavItem
                     icon={<SubframeCore.FeatherLogOut />}
                     onClick={async () => {
+                      await unregisterPush();
                       await supabase.auth.signOut();
                       navigate('/'); // or a login route
                     }}
@@ -253,6 +210,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
               </SubframeCore.DropdownMenu.Content>
             </SubframeCore.DropdownMenu.Portal>
           </SubframeCore.DropdownMenu.Root>
+          </div>
         }
       >
         <Link to="/app/dashboard">
@@ -377,6 +335,7 @@ const DefaultPageLayoutRoot = React.forwardRef<
 
               <button
                 onClick={async () => {
+                  await unregisterPush()
                   await supabase.auth.signOut();
                   navigate('/');
                 }}

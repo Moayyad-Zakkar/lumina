@@ -23,6 +23,7 @@ export async function userLayoutLoader() {
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('recipient_id', user.id)
+    .eq('type', 'case')
     .eq('status', 'unread');
 
   return {

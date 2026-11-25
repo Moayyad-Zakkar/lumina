@@ -10,6 +10,9 @@ import Error from '../../components/Error';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 import supabase from '../../../helper/supabaseClient';
 import toast from 'react-hot-toast';
+import { useUserRole } from '../../../helper/useUserRole';
+import { isSuperAdmin } from '../../../helper/auth';
+import BroadcastPanel from '../../components/BroadcastPanel';
 
 function AdminSettingsPage() {
   const { t, i18n } = useTranslation();
@@ -25,6 +28,9 @@ function AdminSettingsPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [savingContact, setSavingContact] = useState(false);
+
+  const { role } = useUserRole();
+const canBroadcast = isSuperAdmin(role);
 
   // Case Acceptance Fee state
   const [feeId, setFeeId] = useState(null);
@@ -234,6 +240,15 @@ function AdminSettingsPage() {
         >
           {t('settings.storeManagement')}
         </Tabs.Item>
+
+        {canBroadcast && (
+  <Tabs.Item
+    active={activeTab === 'broadcast'}
+    onClick={() => setActiveTab('broadcast')}
+  >
+    {t('settings.announcements')}
+  </Tabs.Item>
+)}
       </Tabs>
 
       {activeTab === 'security' && (
@@ -406,6 +421,8 @@ function AdminSettingsPage() {
           </div>
         </>
       )}
+
+      {activeTab === 'broadcast' && canBroadcast && <BroadcastPanel />}
     </>
   );
 }

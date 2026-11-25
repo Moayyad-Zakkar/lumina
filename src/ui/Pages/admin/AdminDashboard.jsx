@@ -14,6 +14,7 @@ import Error from '../../components/Error';
 import { useIsMobile } from '../../../hooks/useIsMobile';
 import { CaseCardBase } from '../../components/CaseCardBase';
 
+
 function AdminDashboard() {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();

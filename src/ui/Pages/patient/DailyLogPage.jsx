@@ -13,6 +13,7 @@ import {
   formatDate,
   saveWearHours,
 } from '../../../helper/patientTracking';
+import { useReminderSync } from '../../../hooks/useReminderSync';
 
 // Route: { path: '/patient/log', loader: patientTrackingLoader, element: <DailyLogPage /> }
 
@@ -26,6 +27,7 @@ function HoursStepper({ value, onChange, label }) {
   const { t } = useTranslation();
   const set = (v) => onChange(Math.max(0, Math.min(24, Math.round(v * 2) / 2)));
   const step = (delta) => set(value == null ? DEFAULT_START : value + delta);
+
 
   return (
     <div className="flex w-full flex-col items-center gap-4 rounded-[28px] bg-white px-5 py-5 shadow-sm">
@@ -79,6 +81,7 @@ function HoursStepper({ value, onChange, label }) {
 export default function DailyLogPage() {
   const data = useLoaderData();
   const { t } = useTranslation();
+  useReminderSync();
 
   if (data.error) return <Error error={data.error} />;
 

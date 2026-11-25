@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLoaderData } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { FeatherChevronsUp, FeatherChevronsDown, FeatherClock, FeatherCamera, FeatherHelpCircle } from '@subframe/core';
+import { FeatherChevronsUp, FeatherChevronsDown, FeatherClock, FeatherCamera, FeatherHelpCircle, FeatherBell, FeatherEye } from '@subframe/core';
 
 
 import Error from '../../components/Error';
@@ -12,6 +12,7 @@ import TreatmentNoteCard from '../../components/TreatmentNoteCard';
 import useArchStatusText from '../../../helper/useArchStatusText';
 import { totalAligners } from '../../../helper/patientTracking';
 import { PATIENT_PATHS } from '../patientPaths';
+import { useReminderSync } from '../../../hooks/useReminderSync';
 
 // Route: { path: '/patient', loader: patientTrackingLoader, element: <PatientHome /> }
 /*
@@ -77,6 +78,7 @@ export default function PatientHome() {
   const data = useLoaderData();
   const { t } = useTranslation();
   const statusText = useArchStatusText();
+  useReminderSync();
 
   if (data.error) return <Error error={data.error} />;
 
@@ -185,8 +187,10 @@ export default function PatientHome() {
             />
           );
         })}
+        <ActionCard to={PATIENT_PATHS.viewer} icon={<FeatherEye />}  cardClassName="bg-[#eaf5ee]"  title={t('patientTracking.viewer.cardTitle')}  subtitle={t('patientTracking.viewer.cardSubtitle')} />
       <ActionCard to={PATIENT_PATHS.photos} icon={<FeatherCamera />} cardClassName="bg-[#fdf1e6]" title={t('patientTracking.photos.cardTitle')} subtitle={t('patientTracking.photos.cardSubtitle')} />
       <ActionCard to={PATIENT_PATHS.help} icon={<FeatherHelpCircle />} cardClassName="bg-[#f4f4f5]" title={t('issues.cardTitle')} subtitle={t('issues.cardSubtitle')} />
+      <ActionCard to={PATIENT_PATHS.reminders}  icon={<FeatherBell />}  cardClassName="bg-[#eef0fb]"  title={t('patientTracking.reminders.pageTitle')}  subtitle={t('patientTracking.reminders.cardSubtitle')} />
 
       </div>
     </PatientShell>

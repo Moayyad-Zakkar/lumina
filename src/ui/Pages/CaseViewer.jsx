@@ -79,14 +79,12 @@ const handleDownloadPDF = () => {
       setLoading(true);
 
       // Fetch case data
-      const { data: caseInfo, error: caseError } = await supabase
-        .from('cases')
-        .select('*')
-        .eq('id', caseId)
-        .single();
-
+      const { data: rows, error: caseError } = await supabase.rpc('get_viewer_case', {
+        p_case_id: Number(caseId),
+      });
       if (caseError) throw caseError;
-
+      const caseInfo = rows?.[0];
+      if (!caseInfo) throw new Error(t('viewer.caseNotFound'));
       // Fetch all treatment plan images
       const { data: images, error: imagesError } = await supabase
         .from('treatment_plan_images')

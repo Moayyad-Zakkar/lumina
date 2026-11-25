@@ -3,10 +3,12 @@ import { Link, useOutletContext } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { FeatherArrowLeft, FeatherLogOut } from '@subframe/core';
 import LanguageSwitcher from './LanguageSwitcher';
+import { PATIENT_PATHS } from '../Pages/patientPaths';
+import NotificationBell from './NotificationBell';
 
 // Same page chrome as RoleSelect: white page, three decorative circles,
 // language switcher on top, content centred in a 420px column.
-export default function PatientShell({ backTo, title, subtitle, showLogo = false, children }) {
+export default function PatientShell({ backTo, title, subtitle, showLogo = false, hideBell = false, children }) {
   const { t } = useTranslation();
 
   // Provided by PatientLayout. Top-level pages (no back button) get a sign-out button.
@@ -42,6 +44,9 @@ export default function PatientShell({ backTo, title, subtitle, showLogo = false
         )}
 
         <div className="flex items-center gap-2">
+        {!hideBell && (
+    <NotificationBell mode="link" to={PATIENT_PATHS.notifications} role="patient" />
+  )}
           {showSignOut && (
             <button
               type="button"

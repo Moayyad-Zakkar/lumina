@@ -5,5 +5,7 @@ export const PATIENT_PATHS = {
   log: '/patient/log',
   photos: '/patient/photos',
   help: '/patient/help',
-
+  reminders: '/patient/reminders',
+  viewer: '/patient/viewer',
+  notifications: '/patient/notifications'
 };

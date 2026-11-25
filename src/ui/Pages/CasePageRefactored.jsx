@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLoaderData, useRevalidator } from 'react-router';
+import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { Button } from '../components/Button';
@@ -45,6 +45,7 @@ import TreatmentDetails from '../components/case/TreatmentDetails';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import PatientManagementCard from '../components/case/PatientManagementCard';
 import CasePhotosCard from '../components/CasePhotosCard';
+import { Capacitor } from '@capacitor/core';
 
 const CasePageRefactored = () => {
   const { t } = useTranslation();
@@ -63,21 +64,21 @@ const CasePageRefactored = () => {
     caseData?.aligner_material || null,
   );
   const [loadingMaterials, setLoadingMaterials] = useState(false);
-
+  
   // Custom hooks
   const { status, setStatus, alertContent, showPlanSection } = useCaseStatus(
     caseData?.status,
   );
-
+  
   const canManagePatient = [
     'ready_for_delivery',
     'delivered',
     'completed',
   ].includes(status);
-
+  
   const isMobile = useIsMobile();
   const { downloadingFiles, downloadSingleFile, downloadAllFiles } =
-    useFileDownload();
+  useFileDownload();
   const {
     isEditingNote,
     noteText,
@@ -88,7 +89,9 @@ const CasePageRefactored = () => {
     handleCancelEditNote,
     handleSaveNote,
   } = useCaseNotes(caseData);
-
+  const navigate = useNavigate();
+  
+  
   // Fetch aligner materials when in awaiting_user_approval
   useEffect(() => {
     if (status === 'awaiting_user_approval' && caseData?.material_prices) {
@@ -239,8 +242,14 @@ const CasePageRefactored = () => {
   };
 
   const handleViewerClick = () => {
-    window.open(`/case-viewer/${caseData.id}`, '_blank');
+    const path = `/case-viewer/${caseData.id}`;
+    if (Capacitor.isNativePlatform()) {
+      navigate(path); // stays in the app, so history exists and the back button appears
+    } else {
+      window.open(path, '_blank');
+    }
   };
+
 
   const changeMaterial = async (newMaterial, materialChanged, userNote) => {
     try {
@@ -294,7 +303,7 @@ const CasePageRefactored = () => {
 
   return (
     <>
-      <div className="flex w-full flex-col items-start gap-2">
+      <div className="flex w-full min-w-0 flex-col items-start gap-3 md:gap-2">
         <Breadcrumbs>
           <Link to="/app/cases">
             <Breadcrumbs.Item>{t('navigation.cases')}</Breadcrumbs.Item>
@@ -304,8 +313,10 @@ const CasePageRefactored = () => {
             {t('casePage.caseDetails')}
           </Breadcrumbs.Item>
         </Breadcrumbs>
-        <div className="flex w-full items-center justify-between">
-          <div className="flex items-center gap-4">
+
+        <div className="flex w-full min-w-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          {/* Title + badges: wraps instead of overflowing */}
+          <div className="flex min-w-0 flex-wrap items-center gap-2 md:gap-4">
             <span className="text-heading-2 font-heading-2 text-default-font">
               {t('casePage.caseNumber', { id: caseData.id })}
             </span>
@@ -318,7 +329,11 @@ const CasePageRefactored = () => {
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Action buttons: full-width stack on mobile, row from sm up.
+              [&>*]:w-full forces each direct child (the buttons) to fill the
+              container on mobile without relying on Button forwarding className. */}
+          <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center [&>*]:w-full sm:[&>*]:w-auto">
             {caseData.parent_case_id && (
               <Button
                 variant="neutral-secondary"
@@ -359,7 +374,7 @@ const CasePageRefactored = () => {
         />
       )}
 
-      <div className="flex w-full flex-col items-start gap-6">
+      <div className="flex w-full min-w-0 flex-col items-start gap-4 md:gap-6">
         <CaseInformation caseData={caseData} isAdmin={false} />
 
         {/* Satisfaction Display */}
@@ -375,17 +390,17 @@ const CasePageRefactored = () => {
         {/* Decline Reason Section */}
         {(status === 'user_rejected' || status === 'rejected') &&
           caseData.decline_reason && (
-            <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-red-200 bg-red-50 px-6 pt-4 pb-6 shadow-sm">
+            <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-red-200 bg-red-50 px-4 pt-4 pb-5 shadow-sm md:px-6 md:pb-6">
               <div className="flex items-center gap-2">
-                <FeatherAlertTriangle className="w-5 h-5 text-red-600" />
+                <FeatherAlertTriangle className="h-5 w-5 flex-none text-red-600" />
                 <span className="text-heading-3 font-heading-3 text-red-900">
                   {status === 'user_rejected'
                     ? t('casePage.declineReason')
                     : t('casePage.rejectionReason')}
                 </span>
               </div>
-              <div className="w-full bg-white border border-red-200 rounded-md p-4 shadow-sm">
-                <div className="text-body font-body text-neutral-800 whitespace-pre-wrap break-words leading-relaxed">
+              <div className="w-full rounded-md border border-red-200 bg-white p-4 shadow-sm">
+                <div className="whitespace-pre-wrap break-words text-body font-body leading-relaxed text-neutral-800">
                   {caseData.decline_reason}
                 </div>
               </div>
@@ -428,7 +443,7 @@ const CasePageRefactored = () => {
 
         {/* Treatment Plan Section */}
         {showPlanSection && (
-          <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-6 pt-4 pb-6 shadow-sm">
+          <div className="flex w-full flex-col items-start gap-4 rounded-md border border-solid border-neutral-border bg-default-background px-4 pt-4 pb-5 shadow-sm md:px-6 md:pb-6">
             <span className="text-heading-3 font-heading-3 text-default-font">
               {t('casePage.treatmentPlanReview')}
             </span>
@@ -457,42 +472,41 @@ const CasePageRefactored = () => {
 
               <div className="flex h-px w-full flex-none bg-neutral-border" />
 
-              <div className="flex w-full items-center justify-between">
-                {!isMobile && (
-                  <span className="text-body font-body text-subtext-color">
-                    {getStatusMessage()}
-                  </span>
+              {/* Status message + plan actions.
+                  On mobile the buttons stack full-width with Approve on top
+                  (flex-col-reverse); from md up it's the original single row. */}
+              <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <span className="text-caption font-caption text-subtext-color md:text-body md:font-body">
+                  {getStatusMessage()}
+                </span>
+                {status === 'awaiting_user_approval' && (
+                  <div className="flex w-full flex-col-reverse gap-2 md:w-auto md:flex-row md:items-center [&>*]:w-full md:[&>*]:w-auto">
+                    <Button
+                      variant="destructive-secondary"
+                      icon={<FeatherX />}
+                      disabled={saving}
+                      onClick={() => setIsDeclineDialogOpen(true)}
+                    >
+                      {t('casePage.declinePlan')}
+                    </Button>
+                    <Button
+                      variant="neutral-secondary"
+                      icon={<FeatherEdit3 />}
+                      disabled={saving}
+                      onClick={() => setIsRequestEditOpen(true)}
+                    >
+                      {t('casePage.requestEdit')}
+                    </Button>
+                    <Button
+                      variant="brand-primary"
+                      icon={<FeatherCheck />}
+                      disabled={saving || !selectedMaterial}
+                      onClick={() => setIsApprovalConfirmOpen(true)}
+                    >
+                      {t('casePage.approvePlan')}
+                    </Button>
+                  </div>
                 )}
-                <div className="flex items-center gap-2">
-                  {status === 'awaiting_user_approval' && (
-                    <>
-                      <Button
-                        variant="destructive-secondary"
-                        icon={<FeatherX />}
-                        disabled={saving}
-                        onClick={() => setIsDeclineDialogOpen(true)}
-                      >
-                        {t('casePage.declinePlan')}
-                      </Button>
-                      <Button
-                        variant="neutral-secondary"
-                        icon={<FeatherEdit3 />}
-                        disabled={saving}
-                        onClick={() => setIsRequestEditOpen(true)}
-                      >
-                        {t('casePage.requestEdit')}
-                      </Button>
-                      <Button
-                        variant="brand-primary"
-                        icon={<FeatherCheck />}
-                        disabled={saving || !selectedMaterial}
-                        onClick={() => setIsApprovalConfirmOpen(true)}
-                      >
-                        {t('casePage.approvePlan')}
-                      </Button>
-                    </>
-                  )}
-                </div>
               </div>
             </div>
           </div>
@@ -500,11 +514,11 @@ const CasePageRefactored = () => {
 
         {canManagePatient && (
           <>
-          <PatientManagementCard
-            caseData={caseData}
-            onRefresh={handleRefresh}
-          />
-          <CasePhotosCard caseData={caseData} />
+            <PatientManagementCard
+              caseData={caseData}
+              onRefresh={handleRefresh}
+            />
+            <CasePhotosCard caseData={caseData} />
           </>
         )}
 

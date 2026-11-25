@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
@@ -11,6 +11,7 @@ import {
   FeatherChevronsLeft,
   FeatherChevronsRight,
   FeatherDownload,
+  FeatherArrowLeft,
 } from '@subframe/core';
 import supabase from '../../helper/supabaseClient';
 import { capitalizeFirst } from '../../helper/formatText';
@@ -32,6 +33,7 @@ import mandible from '../../assets/imgs/views/aligner-info-lower.svg';
 import ViewButton from '../components/viewer/ViewButton';
 import { Loader } from '../components/Loader';
 import JawView from '../components/viewer/JawView';
+import { Capacitor } from '@capacitor/core';
 
 function CaseViewer() {
   const { t, i18n } = useTranslation();
@@ -39,6 +41,14 @@ function CaseViewer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { caseId } = useParams();
+  const navigate = useNavigate();
+
+  // Show "back" only inside the Capacitor app, and only when we actually arrived
+  // from another page (react-router stores the position in history.state.idx).
+  // On the web the viewer opens in its own tab, so the browser handles back there.
+  const isNativeApp = Capacitor.isNativePlatform();
+  const canGoBack = isNativeApp && (window.history.state?.idx ?? 0) > 0;
+
 
   const [view, setView] = useState('Front');
   const [currentTab, setCurrentTab] = useState('videos');
@@ -50,12 +60,15 @@ function CaseViewer() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const slideShowInterval = useRef(null);
 
+
   // Set default language to Arabic on component mount
+  /*
   useEffect(() => {
     if (i18n.language !== 'ar') {
       i18n.changeLanguage('ar');
     }
   }, [i18n]);
+*/
 
   // Check if current language is Arabic
   const isRTL = i18n.language === 'ar';
@@ -357,11 +370,20 @@ const handleDownloadPDF = () => {
     <Content>
       {/* Header with Logo */}
       <Header>
-        <LogoContainer>
-          <LogoImage src="/logo.png" alt="Lumina Logo" />
-        </LogoContainer>
-      </Header>
-
+  {canGoBack && (
+    <BackButton
+      type="button"
+      onClick={() => navigate(-1)}
+      aria-label={t('viewer.back', 'Back')}
+      $rtl={isRTL}
+    >
+      <FeatherArrowLeft />
+    </BackButton>
+  )}
+  <LogoContainer>
+    <LogoImage src="/logo.png" alt="Lumina Logo" />
+  </LogoContainer>
+</Header>
       <Container>
         {/* Patient Information */}
         <PatientInfo>
@@ -669,11 +691,47 @@ const Header = styled.div`
   width: 100%;
   background-color: #fff;
   padding: 1.5rem 2rem;
+  /* keep the logo and back button clear of the Android status bar / notch */
+  padding-top: calc(1.5rem + env(safe-area-inset-top));
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+  }
+`;
+
+const BackButton = styled.button`
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 50%;
+  color: #760052;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  &:active {
+    background-color: #f8f9fa;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    /* the page defaults to Arabic, so flip the arrow for RTL */
+    transform: ${(props) => (props.$rtl ? 'rotate(180deg)' : 'none')};
+  }
 `;
 
 const LogoContainer = styled.div`

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { FeatherX, FeatherChevronLeft, FeatherChevronRight } from '@subframe/core';
 import { signOne } from '../../helper/casePhotos';
@@ -7,8 +8,12 @@ import { signOne } from '../../helper/casePhotos';
 //   photos        the photos in the order shown (so prev/next follows the timeline)
 //   info(photo)   node shown under the image (date, view, note)
 //   actions(photo) node with buttons (delete / mark reviewed)
+//
+// Rendered through a portal into document.body so it always sits above page
+// chrome (e.g. PatientShell's header and language switcher), which live in
+// their own stacking contexts.
 export default function PhotoLightbox({ photos, index, onClose, onIndexChange, info, actions }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const photo = photos[index];
   const path = photo?.storage_path;
   const [url, setUrl] = useState(null);
@@ -56,14 +61,19 @@ export default function PhotoLightbox({ photos, index, onClose, onIndexChange, i
   const navBtn =
     'absolute top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white disabled:hidden';
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-black/90"
+      // dir is set explicitly because a portal escapes any wrapper that sets it
+      dir={i18n.dir()}
+      className="fixed inset-0 z-[1000] flex flex-col bg-black/90"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
     >
-      <div className="flex items-center justify-between px-4 py-3 text-white" onClick={stop}>
+      <div
+        className="flex items-center justify-between px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-white"
+        onClick={stop}
+      >
         <span className="text-caption">
           {index + 1} / {photos.length}
         </span>
@@ -73,7 +83,7 @@ export default function PhotoLightbox({ photos, index, onClose, onIndexChange, i
           aria-label={t('patientTracking.photos.close')}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10"
         >
-          <FeatherX className="h-5 w-5" />
+          <FeatherX className="h-5" />
         </button>
       </div>
 
@@ -117,10 +127,14 @@ export default function PhotoLightbox({ photos, index, onClose, onIndexChange, i
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 bg-black/60 px-4 py-4 text-white" onClick={stop}>
+      <div
+        className="flex flex-col gap-3 bg-black/60 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 text-white"
+        onClick={stop}
+      >
         {info && info(photo)}
         {actions && actions(photo)}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
